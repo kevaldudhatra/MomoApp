@@ -1,0 +1,25 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
+const black = Color(0xFF0B0A09);
+const white = Color(0xFFFFFFFF);
+const orange = Color(0xFFD8510D);
+const blue = Color(0xFF0270FF);
+const charcoalGray = Color(0xFF353B41);
+const lightGray = Color(0xFFC3CCD6);
+const background = Color(0xffF6F6F6);
+const orangeGradientStart = Color(0xFFD24A00);
+const orangeGradientEnd = Color(0xFFE85A00);
+const cardShadow = Color(0x1A000000);
+const borderGray = Color(0xFFE5E9F0);
+const greenBadge = Color(0xFF0F8A42);
+const greenFree = Color(0xFF0F8A42);
+const redBadge = Color(0xFFD32F2F);
+const chipBorder = Color(0xFFE2E8F0);
+const dialogBarrierColor = Color(0x66000000);
+const textSecondary = Color(0xFF6B7280);
+const sectionHeaderColor = Color(0xFF4B5563);
+const avatarBg = Color(0xFFE2E8F0);
+const avatarTextColor = Color(0xFF475569);
+const orangeDisabled = Color(0xFFF3C7B2);
+const textDisabled = Color(0xFF9CA3AF);
