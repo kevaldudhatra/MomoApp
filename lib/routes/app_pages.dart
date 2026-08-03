@@ -35,6 +35,14 @@ import 'package:momos/screens/orderDetailScreen/order_detail_screen_controller.d
 import 'package:momos/screens/orderDetailScreen/order_detail_screen_view.dart';
 import 'package:momos/screens/offersScreen/offers_screen_controller.dart';
 import 'package:momos/screens/offersScreen/offers_screen_view.dart';
+import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
+import 'package:momos/screens/addressSelectionScreen/address_selection_screen_view.dart';
+import 'package:momos/screens/searchAddressScreen/search_address_screen_controller.dart';
+import 'package:momos/screens/searchAddressScreen/search_address_screen_view.dart';
+import 'package:momos/screens/myOrdersScreen/my_orders_screen_controller.dart';
+import 'package:momos/screens/myOrdersScreen/my_orders_screen_view.dart';
+import 'package:momos/screens/orderStatusScreen/order_status_screen_controller.dart';
+import 'package:momos/screens/orderStatusScreen/order_status_screen_view.dart';
 
 part 'app_routes.dart';
 
@@ -182,6 +190,40 @@ class AppPages {
       page: () => const OffersScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut<OffersScreenController>(() => OffersScreenController());
+      }),
+    ),
+    GetPage(
+      name: Routes.addressSelectionScreen,
+      page: () => const AddressSelectionScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<AddressSelectionScreenController>(
+          () => AddressSelectionScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.searchAddressScreen,
+      page: () => const SearchAddressScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SearchAddressScreenController>(
+          () => SearchAddressScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.myOrdersScreen,
+      page: () => const MyOrdersScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<MyOrdersScreenController>(() => MyOrdersScreenController());
+      }),
+    ),
+    GetPage(
+      name: Routes.orderStatusScreen,
+      page: () => const OrderStatusScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<OrderStatusScreenController>(
+          () => OrderStatusScreenController(),
+        );
       }),
     ),
   ];

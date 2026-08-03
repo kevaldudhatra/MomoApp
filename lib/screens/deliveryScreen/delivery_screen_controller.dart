@@ -15,7 +15,7 @@ class DeliveryScreenController extends GetxController {
     });
     categories.assignAll([
       FoodItem(
-        id: "1",
+        id: 1,
         name: "Smokey Chilli Paneer",
         description: "Indulge in our spicy chilli panner flavor",
         price: 350,
@@ -27,7 +27,7 @@ class DeliveryScreenController extends GetxController {
         hasCustomise: true,
       ),
       FoodItem(
-        id: "2",
+        id: 2,
         name: "Smokey Chilli Paneer",
         description: "Indulge in our spicy chilli panner flavor",
         price: 350,
@@ -38,7 +38,7 @@ class DeliveryScreenController extends GetxController {
         hasCustomise: false,
       ),
       FoodItem(
-        id: "3",
+        id: 3,
         name: "Smokey Chilli Paneer",
         description: "Indulge in our spicy chilli panner flavor",
         price: 350,

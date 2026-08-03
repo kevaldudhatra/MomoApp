@@ -10,6 +10,7 @@ class ApiServices {
   static String login = '$baseUrl/public/api/v1/user/login';
   static String forgotPassword = '$baseUrl/public/api/v1/user/forgot-password';
   static String resetPassword = '$baseUrl/api/v1/user/reset-password';
-  static String verifyForgotOtp = '$baseUrl/public/api/v1/user/verify-forgot-password-otp';
   static String updateProfile = '$baseUrl/api/v1/user/profile';
+  static String verifyForgotOtp =
+      '$baseUrl/public/api/v1/user/verify-forgot-password-otp';
 }

@@ -20,7 +20,7 @@ class OutletReview {
   });
 }
 
-/// Data model representing opening hours for a day
+// Data model representing opening hours for a day
 class DayOpeningHours {
   final String day;
   final List<String> timeSlots;
@@ -28,7 +28,7 @@ class DayOpeningHours {
   DayOpeningHours({required this.day, required this.timeSlots});
 }
 
-/// Bottom Sheet Widget displaying Outlet Opening Hours
+// Bottom Sheet Widget displaying Outlet Opening Hours
 class OpeningHoursBottomSheet extends StatelessWidget {
   final List<DayOpeningHours> openingHours;
   final VoidCallback? onClose;
@@ -39,7 +39,7 @@ class OpeningHoursBottomSheet extends StatelessWidget {
     this.onClose,
   });
 
-  /// Helper static method to show the bottom sheet cleanly
+  // Helper static method to show the bottom sheet cleanly
   static Future<void> show(
     BuildContext context, {
     required List<DayOpeningHours> openingHours,
@@ -157,7 +157,7 @@ class OpeningHoursBottomSheet extends StatelessWidget {
     );
   }
 
-  /// Builds a single day timing row with divider
+  // Builds a single day timing row with divider
   Widget _buildDayRow(DayOpeningHours dayItem, {required bool showDivider}) {
     return Column(
       children: [

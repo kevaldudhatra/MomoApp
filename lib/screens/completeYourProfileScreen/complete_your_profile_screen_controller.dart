@@ -30,6 +30,7 @@ class CompleteYourProfileScreenController extends GetxController {
         "Oops!",
         "Full Name is required.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
@@ -42,6 +43,7 @@ class CompleteYourProfileScreenController extends GetxController {
         "Oops!",
         "Valid email is required.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );

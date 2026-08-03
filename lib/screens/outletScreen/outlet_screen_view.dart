@@ -439,14 +439,16 @@ class OutletScreen extends GetView<OutletScreenController> {
 
           // Food Item Cards inside Category
           if (category.isExpanded.value)
-            ...category.items.map((item) => _buildFoodItemCard(item)),
+            ...category.items.map(
+              (item) => _buildFoodItemCard(item, category.title),
+            ),
         ],
       ),
     );
   }
 
   // Single Food Item Card Widget
-  Widget _buildFoodItemCard(FoodItem item) {
+  Widget _buildFoodItemCard(FoodItem item, String categoryName) {
     return GestureDetector(
       onTap: () {
         FoodItemDetailsBottomSheet.show(Get.context!, foodItem: item);
@@ -572,44 +574,119 @@ class OutletScreen extends GetView<OutletScreenController> {
                           ),
 
                           // Add Button (Overlapping)
-                          Positioned(
-                            bottom: 0,
-                            child: InkWell(
-                              onTap: () {
-                                Get.find<CartController>().addItem(
-                                  id: item.id,
-                                  name: item.name,
-                                  price: item.price,
-                                  image: item.image,
-                                  isVeg: item.isVeg,
-                                );
-                              },
-                              child: Container(
-                                width: 70,
-                                height: 34,
-                                decoration: BoxDecoration(
-                                  color: orange,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: cardShadow,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
+                          item.quantity > 0
+                              ? Positioned(
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 70,
+                                    height: 34,
+                                    decoration: BoxDecoration(
+                                      color: white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: orange,
+                                        width: 1,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: cardShadow,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  "Add",
-                                  style: TextStyle(
-                                    color: white,
-                                    fontSize: 14,
-                                    fontFamily: natoBold,
+                                    alignment: Alignment.center,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            Get.find<OutletScreenController>()
+                                                .decrimentQuantity(
+                                                  categoryName,
+                                                  item.id,
+                                                );
+                                          },
+                                          child: const Icon(
+                                            Icons.remove,
+                                            color: charcoalGray,
+                                            size: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          item.quantity.toString(),
+                                          style: const TextStyle(
+                                            color: charcoalGray,
+                                            fontSize: 14,
+                                            fontFamily: natoBold,
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            Get.find<OutletScreenController>()
+                                                .incrementQuantity(
+                                                  categoryName,
+                                                  item.id,
+                                                );
+                                          },
+                                          child: const Icon(
+                                            Icons.add,
+                                            color: charcoalGray,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : Positioned(
+                                  bottom: 0,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Get.find<CartController>().addItemToCart(
+                                        id: item.id,
+                                        categoryName: categoryName,
+                                        name: item.name,
+                                        description: item.description,
+                                        price: item.price,
+                                        image: item.image,
+                                        isVeg: item.isVeg,
+                                      );
+                                      Get.find<OutletScreenController>()
+                                          .incrementQuantity(
+                                            categoryName,
+                                            item.id,
+                                          );
+                                    },
+                                    child: Container(
+                                      width: 70,
+                                      height: 34,
+                                      decoration: BoxDecoration(
+                                        color: orange,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: cardShadow,
+                                            blurRadius: 4,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: const Text(
+                                        "Add",
+                                        style: TextStyle(
+                                          color: white,
+                                          fontSize: 14,
+                                          fontFamily: natoBold,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),

@@ -20,4 +20,9 @@ abstract class Routes {
   static const reviewsScreen = '/reviewsScreen';
   static const orderDetailScreen = '/orderDetailScreen';
   static const offersScreen = '/offersScreen';
+  static const addressSelectionScreen = '/addressSelectionScreen';
+  static const searchAddressScreen = '/searchAddressScreen';
+  static const myOrdersScreen = '/myOrdersScreen';
+  static const orderStatusScreen = '/orderStatusScreen';
+  static const editProfileScreen = '/editProfileScreen';
 }

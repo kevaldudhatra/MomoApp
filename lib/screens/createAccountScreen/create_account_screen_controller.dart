@@ -61,6 +61,7 @@ class CreateAccountScreenController extends GetxController {
         "Oops!",
         "Full Name is required.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
@@ -73,6 +74,7 @@ class CreateAccountScreenController extends GetxController {
         "Oops!",
         "Valid email is required.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
@@ -85,6 +87,7 @@ class CreateAccountScreenController extends GetxController {
         "Oops!",
         "Password must be at least 8 characters long.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
@@ -96,6 +99,7 @@ class CreateAccountScreenController extends GetxController {
         "Oops!",
         "Confirm password must be at least 8 characters long.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
@@ -107,6 +111,7 @@ class CreateAccountScreenController extends GetxController {
         "Oops!",
         "Password and confirm password does not match.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );

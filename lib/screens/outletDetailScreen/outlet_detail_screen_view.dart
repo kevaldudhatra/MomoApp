@@ -26,13 +26,22 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
                     behavior: HitTestBehavior.opaque,
                     child: Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: Image.asset(AppImages().backArrowIcon, width: 18, height: 18, color: black),
+                      child: Image.asset(
+                        AppImages().backArrowIcon,
+                        width: 18,
+                        height: 18,
+                        color: black,
+                      ),
                     ),
                   ),
                   Obx(
                     () => Text(
                       controller.outletName.value,
-                      style: const TextStyle(fontFamily: natoBold, fontSize: 18, color: black),
+                      style: const TextStyle(
+                        fontFamily: natoBold,
+                        fontSize: 18,
+                        color: black,
+                      ),
                     ),
                   ),
                 ],
@@ -47,7 +56,12 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Map Image Banner
-                    Image.asset(AppImages().mapImg, width: double.infinity, height: 180, fit: BoxFit.cover),
+                    Image.asset(
+                      AppImages().mapImg,
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    ),
 
                     const SizedBox(height: 12),
 
@@ -71,13 +85,20 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
 
                     // Reviews Section Header with View All link
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
                             "Reviews",
-                            style: TextStyle(fontFamily: natoMedium, fontSize: 15, color: sectionHeaderColor),
+                            style: TextStyle(
+                              fontFamily: natoMedium,
+                              fontSize: 15,
+                              color: sectionHeaderColor,
+                            ),
                           ),
                           GestureDetector(
                             onTap: () {
@@ -86,7 +107,11 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
                             behavior: HitTestBehavior.opaque,
                             child: const Text(
                               "View all",
-                              style: TextStyle(fontFamily: natoMedium, fontSize: 14, color: textSecondary),
+                              style: TextStyle(
+                                fontFamily: natoMedium,
+                                fontSize: 14,
+                                color: textSecondary,
+                              ),
                             ),
                           ),
                         ],
@@ -94,7 +119,13 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
                     ),
 
                     // Reviews List
-                    Obx(() => Column(children: controller.reviews.map((review) => _buildReviewCard(review)).toList())),
+                    Obx(
+                      () => Column(
+                        children: controller.reviews
+                            .map((review) => _buildReviewCard(review))
+                            .toList(),
+                      ),
+                    ),
 
                     const SizedBox(height: 24),
                   ],
@@ -107,33 +138,50 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
     );
   }
 
-  /// Section Header Widget
+  // Section Header Widget
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(fontFamily: natoMedium, fontSize: 15, color: sectionHeaderColor),
+        style: const TextStyle(
+          fontFamily: natoMedium,
+          fontSize: 15,
+          color: sectionHeaderColor,
+        ),
       ),
     );
   }
 
-  /// Address Card Container Widget
+  // Address Card Container Widget
   Widget _buildAddressCard(OutletDetailScreenController controller) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Image.asset(AppImages().locationIcon, color: charcoalGray, width: 22, height: 22),
+          Image.asset(
+            AppImages().locationIcon,
+            color: charcoalGray,
+            width: 22,
+            height: 22,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Obx(
               () => Text(
                 controller.fullAddress.value,
-                style: const TextStyle(fontFamily: natoRegular, fontSize: 13.5, color: textSecondary, height: 1.35),
+                style: const TextStyle(
+                  fontFamily: natoRegular,
+                  fontSize: 13.5,
+                  color: textSecondary,
+                  height: 1.35,
+                ),
               ),
             ),
           ),
@@ -142,12 +190,15 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
     );
   }
 
-  /// Restaurant Contact Card Container Widget
+  // Restaurant Contact Card Container Widget
   Widget _buildContactCard(OutletDetailScreenController controller) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(color: white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         children: [
           Image.asset(AppImages().phoneIcon, width: 20, height: 20),
@@ -155,7 +206,11 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
           Obx(
             () => Text(
               controller.contactNumber.value,
-              style: const TextStyle(fontFamily: natoBold, fontSize: 16, color: black),
+              style: const TextStyle(
+                fontFamily: natoBold,
+                fontSize: 16,
+                color: black,
+              ),
             ),
           ),
           const Spacer(),
@@ -164,10 +219,17 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
             behavior: HitTestBehavior.opaque,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-              decoration: BoxDecoration(color: orange, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: orange,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: const Text(
                 "Call now",
-                style: TextStyle(fontFamily: natoMedium, fontSize: 14, color: white),
+                style: TextStyle(
+                  fontFamily: natoMedium,
+                  fontSize: 14,
+                  color: white,
+                ),
               ),
             ),
           ),
@@ -176,15 +238,21 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
     );
   }
 
-  /// Opening Hours Card Container Widget
-  Widget _buildOpeningHoursCard(BuildContext context, OutletDetailScreenController controller) {
+  // Opening Hours Card Container Widget
+  Widget _buildOpeningHoursCard(
+    BuildContext context,
+    OutletDetailScreenController controller,
+  ) {
     return GestureDetector(
       onTap: () => controller.showOpeningHoursBottomSheet(context),
       behavior: HitTestBehavior.opaque,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: white, borderRadius: BorderRadius.circular(16)),
+        decoration: BoxDecoration(
+          color: white,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
             Image.asset(AppImages().clockIcon, width: 22, height: 22),
@@ -196,14 +264,22 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
                   Obx(
                     () => Text(
                       controller.openingStatus.value,
-                      style: const TextStyle(fontFamily: natoBold, fontSize: 16, color: black),
+                      style: const TextStyle(
+                        fontFamily: natoBold,
+                        fontSize: 16,
+                        color: black,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
                   Obx(
                     () => Text(
                       controller.openingHoursInfo.value,
-                      style: const TextStyle(fontFamily: natoRegular, fontSize: 13.5, color: textSecondary),
+                      style: const TextStyle(
+                        fontFamily: natoRegular,
+                        fontSize: 13.5,
+                        color: textSecondary,
+                      ),
                     ),
                   ),
                 ],
@@ -211,7 +287,12 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
             ),
             GestureDetector(
               onTap: () => controller.showOpeningHoursBottomSheet(context),
-              child: Image.asset(AppImages().infoIcon, width: 20, height: 20, color: textSecondary),
+              child: Image.asset(
+                AppImages().infoIcon,
+                width: 20,
+                height: 20,
+                color: textSecondary,
+              ),
             ),
           ],
         ),
@@ -219,12 +300,15 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
     );
   }
 
-  /// Single Review Card Widget
+  // Single Review Card Widget
   Widget _buildReviewCard(OutletReview review) {
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -234,23 +318,38 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
               Container(
                 width: 34,
                 height: 34,
-                decoration: const BoxDecoration(color: avatarBg, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: avatarBg,
+                  shape: BoxShape.circle,
+                ),
                 child: Center(
                   child: Text(
                     review.userInitial,
-                    style: const TextStyle(fontFamily: natoBold, fontSize: 15, color: avatarTextColor),
+                    style: const TextStyle(
+                      fontFamily: natoBold,
+                      fontSize: 15,
+                      color: avatarTextColor,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Text(
                 review.userName,
-                style: const TextStyle(fontFamily: natoBold, fontSize: 16, color: black),
+                style: const TextStyle(
+                  fontFamily: natoBold,
+                  fontSize: 16,
+                  color: black,
+                ),
               ),
               const Spacer(),
               Text(
                 review.timeAgo,
-                style: const TextStyle(fontFamily: natoRegular, fontSize: 13, color: textSecondary),
+                style: const TextStyle(
+                  fontFamily: natoRegular,
+                  fontSize: 13,
+                  color: textSecondary,
+                ),
               ),
             ],
           ),
@@ -263,7 +362,12 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
                 review.rating,
                 (index) => Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Image.asset(AppImages().starIcon, width: 15, height: 15, color: greenBadge),
+                  child: Image.asset(
+                    AppImages().starIcon,
+                    width: 15,
+                    height: 15,
+                    color: greenBadge,
+                  ),
                 ),
               ),
             ),
@@ -272,7 +376,12 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
           // Review Comment Content Text
           Text(
             review.comment,
-            style: const TextStyle(fontFamily: natoRegular, fontSize: 13.5, color: sectionHeaderColor, height: 1.4),
+            style: const TextStyle(
+              fontFamily: natoRegular,
+              fontSize: 13.5,
+              color: sectionHeaderColor,
+              height: 1.4,
+            ),
           ),
         ],
       ),

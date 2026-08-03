@@ -26,12 +26,21 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
                     behavior: HitTestBehavior.opaque,
                     child: Padding(
                       padding: const EdgeInsets.only(right: 12),
-                      child: Image.asset(AppImages().backArrowIcon, width: 18, height: 18, color: black),
+                      child: Image.asset(
+                        AppImages().backArrowIcon,
+                        width: 18,
+                        height: 18,
+                        color: black,
+                      ),
                     ),
                   ),
                   const Text(
                     "Reviews",
-                    style: TextStyle(fontFamily: natoBold, fontSize: 18, color: black),
+                    style: TextStyle(
+                      fontFamily: natoBold,
+                      fontSize: 18,
+                      color: black,
+                    ),
                   ),
                 ],
               ),
@@ -59,12 +68,15 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
     );
   }
 
-  /// Single Review Card Widget
+  // Single Review Card Widget
   Widget _buildReviewCard(OutletReview review) {
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: white, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,23 +86,38 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
               Container(
                 width: 34,
                 height: 34,
-                decoration: const BoxDecoration(color: avatarBg, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                  color: avatarBg,
+                  shape: BoxShape.circle,
+                ),
                 child: Center(
                   child: Text(
                     review.userInitial,
-                    style: const TextStyle(fontFamily: natoBold, fontSize: 15, color: avatarTextColor),
+                    style: const TextStyle(
+                      fontFamily: natoBold,
+                      fontSize: 15,
+                      color: avatarTextColor,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               Text(
                 review.userName,
-                style: const TextStyle(fontFamily: natoBold, fontSize: 16, color: black),
+                style: const TextStyle(
+                  fontFamily: natoBold,
+                  fontSize: 16,
+                  color: black,
+                ),
               ),
               const Spacer(),
               Text(
                 review.timeAgo,
-                style: const TextStyle(fontFamily: natoRegular, fontSize: 13, color: textSecondary),
+                style: const TextStyle(
+                  fontFamily: natoRegular,
+                  fontSize: 13,
+                  color: textSecondary,
+                ),
               ),
             ],
           ),
@@ -103,7 +130,12 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
                 review.rating,
                 (index) => Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Image.asset(AppImages().starIcon, width: 15, height: 15, color: greenBadge),
+                  child: Image.asset(
+                    AppImages().starIcon,
+                    width: 15,
+                    height: 15,
+                    color: greenBadge,
+                  ),
                 ),
               ),
             ),
@@ -112,7 +144,12 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
           // Review Comment Text
           Text(
             review.comment,
-            style: const TextStyle(fontFamily: natoRegular, fontSize: 13.5, color: sectionHeaderColor, height: 1.4),
+            style: const TextStyle(
+              fontFamily: natoRegular,
+              fontSize: 13.5,
+              color: sectionHeaderColor,
+              height: 1.4,
+            ),
           ),
         ],
       ),

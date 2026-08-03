@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 
 class FoodItem {
-  final String id;
+  final int id;
   final String name;
   final String description;
   final double price;
@@ -15,6 +16,7 @@ class FoodItem {
   final String customization;
   final String image;
   final bool hasCustomise;
+  final int quantity;
 
   FoodItem({
     required this.id,
@@ -27,7 +29,36 @@ class FoodItem {
     required this.customization,
     required this.image,
     this.hasCustomise = false,
+    this.quantity = 0,
   });
+
+  FoodItem copyWith({
+    int? id,
+    String? name,
+    String? description,
+    double? price,
+    double? originalPrice,
+    bool? isVeg,
+    bool? isBestseller,
+    String? customization,
+    String? image,
+    bool? hasCustomise,
+    int? quantity,
+  }) {
+    return FoodItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      price: price ?? this.price,
+      originalPrice: originalPrice ?? this.originalPrice,
+      isVeg: isVeg ?? this.isVeg,
+      isBestseller: isBestseller ?? this.isBestseller,
+      customization: customization ?? this.customization,
+      image: image ?? this.image,
+      hasCustomise: hasCustomise ?? this.hasCustomise,
+      quantity: quantity ?? this.quantity,
+    );
+  }
 }
 
 class MenuCategory {
@@ -292,7 +323,7 @@ class FoodItemDetailsBottomSheet extends StatefulWidget {
     this.onClose,
   });
 
-  /// Helper static method to display the bottom sheet cleanly
+  // Helper static method to display the bottom sheet cleanly
   static Future<void> show(
     BuildContext context, {
     required FoodItem foodItem,
@@ -740,6 +771,8 @@ class _FoodItemDetailsBottomSheetState
 }
 
 class OutletScreenController extends GetxController {
+  final CartController cartController = Get.find<CartController>();
+  RxList<CartItem> get cartItems => cartController.cartItems;
   final searchController = TextEditingController();
   final isVegSelected = false.obs;
   final isNonVegSelected = false.obs;
@@ -773,10 +806,11 @@ class OutletScreenController extends GetxController {
         title: "Bestseller",
         items: [
           FoodItem(
-            id: "1",
+            id: 1,
             name: "Smokey Chilli Paneer",
             description: "Indulge in our spicy chilli panner flavor",
             price: 350,
+            quantity: 0,
             originalPrice: 450,
             isVeg: true,
             isBestseller: true,
@@ -785,10 +819,11 @@ class OutletScreenController extends GetxController {
             hasCustomise: true,
           ),
           FoodItem(
-            id: "2",
+            id: 2,
             name: "Smokey Chilli Paneer",
             description: "Indulge in our spicy chilli panner flavor",
             price: 350,
+            quantity: 0,
             isVeg: true,
             isBestseller: true,
             customization: "Choice of noodles(veg/chicken/shrimp/mix)",
@@ -801,10 +836,11 @@ class OutletScreenController extends GetxController {
         title: "Items @ 149",
         items: [
           FoodItem(
-            id: "3",
+            id: 3,
             name: "Smokey Chilli Paneer",
             description: "Indulge in our spicy chilli panner flavor",
             price: 350,
+            quantity: 0,
             originalPrice: 450,
             isVeg: true,
             customization: "Choice of noodles(veg/chicken/shrimp/mix)",
@@ -873,5 +909,65 @@ class OutletScreenController extends GetxController {
         isMenuOpen.value = false;
       },
     );
+  }
+
+  void incrementQuantity(String categoryTitle, int itemId) {
+    int categoryIndex = categories.indexWhere(
+      (element) => element.title == categoryTitle,
+    );
+    int itemIndex = categories[categoryIndex].items.indexWhere(
+      (element) => element.id == itemId,
+    );
+    if (categoryIndex >= 0 && itemIndex >= 0) {
+      categories[categoryIndex].items[itemIndex] = categories[categoryIndex]
+          .items[itemIndex]
+          .copyWith(
+            quantity: categories[categoryIndex].items[itemIndex].quantity + 1,
+          );
+    }
+    int index = cartItems.indexWhere(
+      (element) =>
+          element.categoryName == categoryTitle && element.id == itemId,
+    );
+    if (index >= 0) {
+      cartItems[index] = cartItems[index].copyWith(
+        quantity: cartItems[index].quantity + 1,
+      );
+    }
+    cartItems.refresh();
+    categories.refresh();
+  }
+
+  void decrimentQuantity(String categoryTitle, int itemId) {
+    int categoryIndex = categories.indexWhere(
+      (element) => element.title == categoryTitle,
+    );
+    int itemIndex = categories[categoryIndex].items.indexWhere(
+      (element) => element.id == itemId,
+    );
+    if (categoryIndex >= 0 && itemIndex >= 0) {
+      if (categories[categoryIndex].items[itemIndex].quantity > 0) {
+        categories[categoryIndex].items[itemIndex] = categories[categoryIndex]
+            .items[itemIndex]
+            .copyWith(
+              quantity: categories[categoryIndex].items[itemIndex].quantity - 1,
+            );
+      }
+    }
+    int index = cartItems.indexWhere(
+      (element) =>
+          element.categoryName == categoryTitle && element.id == itemId,
+    );
+    if (index >= 0) {
+      if (cartItems[index].quantity > 1) {
+        cartItems[index] = cartItems[index].copyWith(
+          quantity: cartItems[index].quantity - 1,
+        );
+      } else {
+        cartItems.removeAt(index);
+      }
+    }
+    cartItems.refresh();
+    categories.refresh();
   }
 }

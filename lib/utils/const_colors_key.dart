@@ -23,3 +23,4 @@ const avatarBg = Color(0xFFE2E8F0);
 const avatarTextColor = Color(0xFF475569);
 const orangeDisabled = Color(0xFFF3C7B2);
 const textDisabled = Color(0xFF9CA3AF);
+const segmentedBg = Color(0xFFF1F5F9);

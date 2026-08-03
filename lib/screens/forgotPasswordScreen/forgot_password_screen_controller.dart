@@ -24,6 +24,7 @@ class ForgotPasswordScreenController extends GetxController {
         "Oops!",
         "Valid email is required.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );

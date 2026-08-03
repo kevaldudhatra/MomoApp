@@ -7,7 +7,6 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_text_field.dart';
-import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/screens/cartManagement/cart_button.dart';
 
 class CarouselSlider extends StatefulWidget {
@@ -169,40 +168,45 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    AppImages().locationIcon,
-                                    width: 24,
-                                    height: 24,
-                                    color: white,
-                                  ),
-                                  const SizedBox(width: 2),
-                                  const Text(
-                                    "Home",
-                                    style: TextStyle(
-                                      fontFamily: natoSemiBold,
-                                      fontSize: 16,
+                          InkWell(
+                            onTap: () {
+                              Get.toNamed(Routes.addressSelectionScreen);
+                            },
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      AppImages().locationIcon,
+                                      width: 24,
+                                      height: 24,
                                       color: white,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                "  Kolkata, westbengal, India",
-                                style: TextStyle(
-                                  fontFamily: natoRegular,
-                                  fontSize: 12,
-                                  color: white.withValues(alpha: 0.85),
+                                    const SizedBox(width: 2),
+                                    const Text(
+                                      "Home",
+                                      style: TextStyle(
+                                        fontFamily: natoSemiBold,
+                                        fontSize: 16,
+                                        color: white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 3),
+                                Text(
+                                  "  Yagnik Road, Rajkot",
+                                  style: TextStyle(
+                                    fontFamily: natoRegular,
+                                    fontSize: 12,
+                                    color: white.withValues(alpha: 0.85),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           Container(
                             padding: const EdgeInsets.all(7),
@@ -651,15 +655,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                           Positioned(
                             bottom: 0,
                             child: InkWell(
-                              onTap: () {
-                                Get.find<CartController>().addItem(
-                                  id: item.id,
-                                  name: item.name,
-                                  price: item.price,
-                                  image: item.image,
-                                  isVeg: item.isVeg,
-                                );
-                              },
+                              onTap: () {},
                               child: Container(
                                 width: 70,
                                 height: 34,

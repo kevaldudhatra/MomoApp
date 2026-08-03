@@ -52,6 +52,14 @@ class AppImages {
   final walletIcon = '${images}walletIcon.png';
   final phonePeIcon = '${images}phonePeIcon.png';
   final gPeIcon = '${images}gPeIcon.png';
+  final currentLocationIcon = '${images}currentLocationIcon.png';
+  final addIcon = '${images}addIcon.png';
+  final workIcon = '${images}workIcon.png';
+  final addressPinIcon = '${images}addressPinIcon.png';
+  final chatIcon = '${images}chatIcon.png';
+  final callIcon = '${images}callIcon.png';
+  final calenderIcon = '${images}calenderIcon.png';
+  final paymentIcon = '${images}paymentIcon.png';
 
   // loading view
   final loading = '${gifJson}loading.json';

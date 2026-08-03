@@ -36,6 +36,7 @@ class LoginScreenController extends GetxController {
         "Oops!",
         "Valid email is required.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
@@ -47,6 +48,7 @@ class LoginScreenController extends GetxController {
         "Oops!",
         "Password must be at least 8 characters long.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );

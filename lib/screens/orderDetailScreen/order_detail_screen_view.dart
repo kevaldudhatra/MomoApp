@@ -6,6 +6,7 @@ import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/custom_text_field.dart';
+import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/screens/orderDetailScreen/order_detail_screen_controller.dart';
 
 class OrderDetailScreen extends GetView<OrderDetailScreenController> {
@@ -65,12 +66,12 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Ordered Items List Card
-                        Obx(
-                          () => _buildCard(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: ListView.separated(
+                        _buildCard(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Obx(
+                                () => ListView.separated(
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemCount: controller.cartItems.length,
@@ -91,48 +92,48 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                                   },
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () => Get.back(),
-                                child: Container(
-                                  width: double.infinity,
-                                  margin: const EdgeInsets.only(
-                                    left: 16,
-                                    right: 16,
-                                    bottom: 16,
+                            ),
+                            GestureDetector(
+                              onTap: () => Get.back(),
+                              child: Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.only(
+                                  left: 16,
+                                  right: 16,
+                                  bottom: 16,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: borderGray,
+                                    width: 1,
                                   ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: borderGray,
-                                      width: 1,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add,
+                                      color: charcoalGray,
+                                      size: 18,
                                     ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.add,
+                                    SizedBox(width: 6),
+                                    Text(
+                                      "Add More Items",
+                                      style: TextStyle(
                                         color: charcoalGray,
-                                        size: 18,
+                                        fontSize: 14,
+                                        fontFamily: natoMedium,
                                       ),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        "Add More Items",
-                                        style: TextStyle(
-                                          color: charcoalGray,
-                                          fontSize: 14,
-                                          fontFamily: natoMedium,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 20),
 
@@ -252,95 +253,89 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
 
   // Row for Each Cart Item
   Widget _buildCartItemRow(CartItem item) {
-    return Obx(
-      () => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Veg Indicator
-          Image.asset(AppImages().vegIcon, width: 16, height: 16),
-          const SizedBox(width: 12),
-          // Title & Description
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  style: const TextStyle(
-                    color: black,
-                    fontSize: 15,
-                    fontFamily: natoBold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  item.description,
-                  style: const TextStyle(
-                    color: charcoalGray,
-                    fontSize: 12,
-                    fontFamily: natoRegular,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Quantity Selector & Price Column
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Veg Indicator
+        Image.asset(AppImages().vegIcon, width: 16, height: 16),
+        const SizedBox(width: 12),
+        // Title & Description
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Custom bordered quantity selector
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: orange, width: 1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => controller.decrementQuantity(item),
-                      child: const Icon(
-                        Icons.remove,
-                        size: 16,
-                        color: charcoalGray,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Text(
-                        item.quantity.value.toString(),
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 14,
-                          fontFamily: natoBold,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => controller.incrementQuantity(item),
-                      child: const Icon(
-                        Icons.add,
-                        size: 16,
-                        color: charcoalGray,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
               Text(
-                "₹${item.price.toInt()}",
+                item.name,
                 style: const TextStyle(
                   color: black,
-                  fontSize: 14,
+                  fontSize: 15,
                   fontFamily: natoBold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.description,
+                style: const TextStyle(
+                  color: charcoalGray,
+                  fontSize: 12,
+                  fontFamily: natoRegular,
                 ),
               ),
             ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        // Quantity Selector & Price Column
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            // Custom bordered quantity selector
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: orange, width: 1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => controller.decrementQuantity(item),
+                    child: const Icon(
+                      Icons.remove,
+                      size: 16,
+                      color: charcoalGray,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      item.quantity.toString(),
+                      style: const TextStyle(
+                        color: black,
+                        fontSize: 14,
+                        fontFamily: natoBold,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => controller.incrementQuantity(item),
+                    child: const Icon(Icons.add, size: 16, color: charcoalGray),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "₹${item.price.toInt()}",
+              style: const TextStyle(
+                color: black,
+                fontSize: 14,
+                fontFamily: natoBold,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -380,29 +375,28 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
     );
   }
 
-  // Card details for Delivery details
   Widget _buildDeliveryDetailsCard(BuildContext context) {
-    return Obx(
-      () => _buildCard(
-        children: [
-          // Row 1: Delivering now
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset(
-                  AppImages().timerIcon,
-                  width: 20,
-                  height: 20,
-                  color: charcoalGray,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+    return _buildCard(
+      children: [
+        // Row 1: Delivering now
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset(
+                AppImages().timerIcon,
+                width: 20,
+                height: 20,
+                color: charcoalGray,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Obx(
+                      () => Text(
                         controller.deliveryTime.value,
                         style: const TextStyle(
                           color: black,
@@ -410,47 +404,48 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                           fontFamily: natoBold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      GestureDetector(
-                        onTap: () =>
-                            controller.showScheduleBottomSheet(context),
-                        child: const Text(
-                          "Schedule for later",
-                          style: TextStyle(
-                            color: orange,
-                            fontSize: 13,
-                            fontFamily: natoMedium,
-                            decoration: TextDecoration.underline,
-                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () => controller.showScheduleBottomSheet(context),
+                      child: const Text(
+                        "Schedule for later",
+                        style: TextStyle(
+                          color: orange,
+                          fontSize: 13,
+                          fontFamily: natoMedium,
+                          decoration: TextDecoration.underline,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
 
-          const Divider(height: 1, thickness: 1, color: borderGray),
+        const Divider(height: 1, thickness: 1, color: borderGray),
 
-          // Row 2: Selected address
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset(
-                  AppImages().addressIcon,
-                  width: 20,
-                  height: 20,
-                  color: charcoalGray,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
+        // Row 2: Selected address
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Image.asset(
+                AppImages().addressIcon,
+                width: 20,
+                height: 20,
+                color: charcoalGray,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Obx(
+                      () => Text(
                         controller.addressTitle.value,
                         style: const TextStyle(
                           color: black,
@@ -458,8 +453,10 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                           fontFamily: natoBold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
+                    ),
+                    const SizedBox(height: 4),
+                    Obx(
+                      () => Text(
                         controller.addressSubtitle.value,
                         style: const TextStyle(
                           color: charcoalGray,
@@ -467,60 +464,60 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                           fontFamily: natoRegular,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      GestureDetector(
-                        onTap: () => controller.showAddressBottomSheet(context),
-                        child: const Text(
-                          "Change",
-                          style: TextStyle(
-                            color: orange,
-                            fontSize: 13,
-                            fontFamily: natoMedium,
-                            decoration: TextDecoration.underline,
-                          ),
+                    ),
+                    const SizedBox(height: 6),
+                    GestureDetector(
+                      onTap: () => controller.showAddressBottomSheet(context),
+                      child: const Text(
+                        "Change",
+                        style: TextStyle(
+                          color: orange,
+                          fontSize: 13,
+                          fontFamily: natoMedium,
+                          decoration: TextDecoration.underline,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   // Card details for Total bill
   Widget _buildTotalBillCard(BuildContext context) {
-    return Obx(
-      () => _buildCard(
-        children: [
-          GestureDetector(
-            onTap: () => controller.showBillDetailsBottomSheet(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 14.0,
-              ),
-              child: Row(
-                children: [
-                  Image.asset(
-                    AppImages().billIcon,
-                    width: 20,
-                    height: 20,
-                    color: charcoalGray,
+    return _buildCard(
+      children: [
+        GestureDetector(
+          onTap: () => controller.showBillDetailsBottomSheet(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+            child: Row(
+              children: [
+                Image.asset(
+                  AppImages().billIcon,
+                  width: 20,
+                  height: 20,
+                  color: charcoalGray,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  "Total Bill ",
+                  style: const TextStyle(
+                    color: black,
+                    fontSize: 15,
+                    fontFamily: natoMedium,
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    "Total Bill ",
-                    style: const TextStyle(
-                      color: black,
-                      fontSize: 15,
-                      fontFamily: natoMedium,
-                    ),
-                  ),
-                  Text(
+                ),
+                Obx(
+                  () => Text(
                     "₹${controller.totalBill.toInt()}",
                     style: const TextStyle(
                       color: black,
@@ -528,45 +525,46 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                       fontFamily: natoBold,
                     ),
                   ),
-                  const Spacer(),
-                  Image.asset(
-                    AppImages().dropDownArrowIcon,
-                    width: 20,
-                    height: 20,
-                    color: charcoalGray,
-                  ),
-                ],
-              ),
+                ),
+                const Spacer(),
+                Image.asset(
+                  AppImages().dropDownArrowIcon,
+                  width: 20,
+                  height: 20,
+                  color: charcoalGray,
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   // Card details for Payment method
   Widget _buildPaymentMethodCard(BuildContext context) {
-    return Obx(() {
-      final selectedMethod = controller.paymentMethod.value.toLowerCase();
-      String iconPath = AppImages().codIcon;
-      if (selectedMethod == "wallet") {
-        iconPath = AppImages().walletIcon;
-      } else if (selectedMethod == "phonepe") {
-        iconPath = AppImages().phonePeIcon;
-      } else if (selectedMethod == "g pay") {
-        iconPath = AppImages().gPeIcon;
-      }
+    return _buildCard(
+      children: [
+        GestureDetector(
+          onTap: () => controller.showPaymentMethodBottomSheet(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+            child: Obx(() {
+              final selectedMethod = controller.paymentMethod.value
+                  .toLowerCase();
+              String iconPath = AppImages().codIcon;
+              if (selectedMethod == "wallet") {
+                iconPath = AppImages().walletIcon;
+              } else if (selectedMethod == "phonepe") {
+                iconPath = AppImages().phonePeIcon;
+              } else if (selectedMethod == "g pay") {
+                iconPath = AppImages().gPeIcon;
+              }
 
-      return _buildCard(
-        children: [
-          GestureDetector(
-            onTap: () => controller.showPaymentMethodBottomSheet(context),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 14.0,
-              ),
-              child: Row(
+              return Row(
                 children: [
                   Image.asset(iconPath, width: 20, height: 20),
                   const SizedBox(width: 10),
@@ -586,11 +584,11 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                     color: charcoalGray,
                   ),
                 ],
-              ),
-            ),
+              );
+            }),
           ),
-        ],
-      );
-    });
+        ),
+      ],
+    );
   }
 }

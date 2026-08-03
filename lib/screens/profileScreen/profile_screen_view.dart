@@ -14,7 +14,11 @@ class _ProfileListItem extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _ProfileListItem({required this.icon, required this.title, required this.onTap});
+  const _ProfileListItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +35,19 @@ class _ProfileListItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(color: black, fontSize: 15, fontFamily: natoMedium),
+                  style: const TextStyle(
+                    color: black,
+                    fontSize: 15,
+                    fontFamily: natoMedium,
+                  ),
                 ),
               ),
-              Image.asset(AppImages().rightArrowIcon, width: 12, height: 12, color: charcoalGray),
+              Image.asset(
+                AppImages().rightArrowIcon,
+                width: 12,
+                height: 12,
+                color: charcoalGray,
+              ),
             ],
           ),
         ),
@@ -58,10 +71,19 @@ class ProfileScreen extends GetView<ProfileScreenController> {
           Container(
             width: double.infinity,
             color: white,
-            padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 16),
+            padding: const EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: 16,
+            ),
             child: const Text(
               "My Profile",
-              style: TextStyle(color: black, fontSize: 22, fontFamily: natoBold),
+              style: TextStyle(
+                color: black,
+                fontSize: 22,
+                fontFamily: natoBold,
+              ),
             ),
           ),
           const Divider(height: 1, thickness: 1, color: borderGray),
@@ -71,7 +93,10 @@ class ProfileScreen extends GetView<ProfileScreenController> {
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 16.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -90,7 +115,12 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                                   height: 60,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
-                                    return Image.asset(AppImages().profileIcon, width: 60, height: 60, fit: BoxFit.cover);
+                                    return Image.asset(
+                                      AppImages().profileIcon,
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                    );
                                   },
                                 ),
                               ),
@@ -102,20 +132,34 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                                   children: [
                                     Text(
                                       "Neha Verma",
-                                      style: TextStyle(color: black, fontSize: 18, fontFamily: natoBold),
+                                      style: TextStyle(
+                                        color: black,
+                                        fontSize: 18,
+                                        fontFamily: natoBold,
+                                      ),
                                     ),
                                     SizedBox(height: 4),
                                     Text(
                                       "+91 123456789",
-                                      style: TextStyle(color: charcoalGray, fontSize: 13, fontFamily: natoRegular),
+                                      style: TextStyle(
+                                        color: charcoalGray,
+                                        fontSize: 13,
+                                        fontFamily: natoRegular,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                               // Edit Icon
                               GestureDetector(
-                                onTap: () {},
-                                child: Image.asset(AppImages().editIcon, width: 20, height: 20, color: charcoalGray),
+                                onTap: () =>
+                                    Get.toNamed(Routes.editProfileScreen),
+                                child: Image.asset(
+                                  AppImages().editIcon,
+                                  width: 20,
+                                  height: 20,
+                                  color: charcoalGray,
+                                ),
                               ),
                             ],
                           ),
@@ -137,16 +181,29 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                                 children: [
                                   Text(
                                     "WALLET BALANCE",
-                                    style: TextStyle(color: black, fontSize: 12, fontFamily: dmBold, letterSpacing: 0.5),
+                                    style: TextStyle(
+                                      color: black,
+                                      fontSize: 12,
+                                      fontFamily: dmBold,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
                                   SizedBox(height: 8),
                                   Text(
                                     "₹42.50",
-                                    style: TextStyle(color: black, fontSize: 32, fontFamily: natoBold),
+                                    style: TextStyle(
+                                      color: black,
+                                      fontSize: 32,
+                                      fontFamily: natoBold,
+                                    ),
                                   ),
                                 ],
                               ),
-                              Image.asset(AppImages().walletIcon, width: 44, height: 44),
+                              Image.asset(
+                                AppImages().walletIcon,
+                                width: 44,
+                                height: 44,
+                              ),
                             ],
                           ),
                         ),
@@ -156,7 +213,13 @@ class ProfileScreen extends GetView<ProfileScreenController> {
 
                     // Address Book Button Card
                     _buildCard(
-                      children: [_ProfileListItem(icon: AppImages().addressIcon, title: "Address Book", onTap: () {})],
+                      children: [
+                        _ProfileListItem(
+                          icon: AppImages().addressIcon,
+                          title: "Address Book",
+                          onTap: () {},
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 20),
 
@@ -165,9 +228,21 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                     const SizedBox(height: 8),
                     _buildCard(
                       children: [
-                        _ProfileListItem(icon: AppImages().orderIcon, title: "My Orders", onTap: () {}),
-                        const Divider(height: 1, thickness: 1, color: borderGray),
-                        _ProfileListItem(icon: AppImages().reservationIcon, title: "My Reservations", onTap: () {}),
+                        _ProfileListItem(
+                          icon: AppImages().orderIcon,
+                          title: "My Orders",
+                          onTap: () => Get.toNamed(Routes.myOrdersScreen),
+                        ),
+                        const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: borderGray,
+                        ),
+                        _ProfileListItem(
+                          icon: AppImages().reservationIcon,
+                          title: "My Reservations",
+                          onTap: () {},
+                        ),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -177,12 +252,36 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                     const SizedBox(height: 8),
                     _buildCard(
                       children: [
-                        _ProfileListItem(icon: AppImages().supportIcon, title: "Support Chat", onTap: () {}),
-                        const Divider(height: 1, thickness: 1, color: borderGray),
-                        _ProfileListItem(icon: AppImages().aboutIcon, title: "About Us", onTap: () {}),
-                        const Divider(height: 1, thickness: 1, color: borderGray),
-                        _ProfileListItem(icon: AppImages().faqIcon, title: "FAQ", onTap: () {}),
-                        const Divider(height: 1, thickness: 1, color: borderGray),
+                        _ProfileListItem(
+                          icon: AppImages().supportIcon,
+                          title: "Support Chat",
+                          onTap: () {},
+                        ),
+                        const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: borderGray,
+                        ),
+                        _ProfileListItem(
+                          icon: AppImages().aboutIcon,
+                          title: "About Us",
+                          onTap: () {},
+                        ),
+                        const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: borderGray,
+                        ),
+                        _ProfileListItem(
+                          icon: AppImages().faqIcon,
+                          title: "FAQ",
+                          onTap: () {},
+                        ),
+                        const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: borderGray,
+                        ),
                         _ProfileListItem(
                           icon: AppImages().logoutIcon,
                           title: "Log out",
@@ -212,7 +311,11 @@ class ProfileScreen extends GetView<ProfileScreenController> {
       padding: const EdgeInsets.only(left: 4.0),
       child: Text(
         title,
-        style: const TextStyle(color: charcoalGray, fontSize: 14, fontFamily: natoMedium),
+        style: const TextStyle(
+          color: charcoalGray,
+          fontSize: 14,
+          fontFamily: natoMedium,
+        ),
       ),
     );
   }
@@ -224,7 +327,14 @@ class ProfileScreen extends GetView<ProfileScreenController> {
       decoration: BoxDecoration(
         color: white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [BoxShadow(color: cardShadow, blurRadius: 8, spreadRadius: 0, offset: Offset(0, 2))],
+        boxShadow: const [
+          BoxShadow(
+            color: cardShadow,
+            blurRadius: 8,
+            spreadRadius: 0,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(mainAxisSize: MainAxisSize.min, children: children),

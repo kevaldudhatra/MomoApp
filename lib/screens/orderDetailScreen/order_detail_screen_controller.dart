@@ -1,26 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:momos/routes/app_pages.dart';
+import 'package:momos/screens/cartManagement/cart_controller.dart';
+import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
-
-class CartItem {
-  final String id;
-  final String name;
-  final String description;
-  final double price;
-  final RxInt quantity;
-  final bool isVeg;
-
-  CartItem({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.price,
-    required int quantity,
-    required this.isVeg,
-  }) : quantity = quantity.obs;
-}
 
 class SavedAddress {
   final String title;
@@ -34,7 +19,7 @@ class SavedAddress {
   });
 }
 
-/// Bottom Sheet Widget for selecting scheduled delivery date and time.
+// Bottom Sheet Widget for selecting scheduled delivery date and time.
 class DeliveryScheduleBottomSheet extends StatefulWidget {
   final String initialDate;
   final String initialTime;
@@ -51,7 +36,7 @@ class DeliveryScheduleBottomSheet extends StatefulWidget {
     required this.onClose,
   });
 
-  /// Helper static method to show the bottom sheet cleanly
+  // Helper static method to show the bottom sheet cleanly
   static Future<void> show(
     BuildContext context, {
     required String initialDate,
@@ -369,7 +354,7 @@ class _DeliveryScheduleBottomSheetState
   }
 }
 
-/// Bottom Sheet Widget for selecting a delivery address.
+// Bottom Sheet Widget for selecting a delivery address.
 class AddressSelectionBottomSheet extends StatefulWidget {
   final List<SavedAddress> addresses;
   final String selectedTitle;
@@ -386,7 +371,7 @@ class AddressSelectionBottomSheet extends StatefulWidget {
     required this.onClose,
   });
 
-  /// Helper static method to display the bottom sheet cleanly
+  // Helper static method to display the bottom sheet cleanly
   static Future<void> show(
     BuildContext context, {
     required List<SavedAddress> addresses,
@@ -622,7 +607,7 @@ class _AddressSelectionBottomSheetState
   }
 }
 
-/// Bottom Sheet Widget for displaying detailed bill breakdown.
+// Bottom Sheet Widget for displaying detailed bill breakdown.
 class BillDetailsBottomSheet extends StatelessWidget {
   final OrderDetailScreenController controller;
   final VoidCallback onClose;
@@ -633,7 +618,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
     required this.onClose,
   });
 
-  /// Helper static method to display the bottom sheet cleanly
+  // Helper static method to display the bottom sheet cleanly
   static Future<void> show(
     BuildContext context,
     OrderDetailScreenController controller, {
@@ -880,7 +865,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
   }
 }
 
-/// Bottom Sheet Widget for selecting a payment method.
+// Bottom Sheet Widget for selecting a payment method.
 class PaymentMethodBottomSheet extends StatelessWidget {
   final OrderDetailScreenController controller;
   final VoidCallback onClose;
@@ -891,7 +876,7 @@ class PaymentMethodBottomSheet extends StatelessWidget {
     required this.onClose,
   });
 
-  /// Helper static method to display the bottom sheet cleanly
+  // Helper static method to display the bottom sheet cleanly
   static Future<void> show(
     BuildContext context,
     OrderDetailScreenController controller, {
@@ -1111,9 +1096,13 @@ class PaymentMethodBottomSheet extends StatelessWidget {
 }
 
 class OrderDetailScreenController extends GetxController {
+  final CartController cartController = Get.find<CartController>();
+  RxList<CartItem> get cartItems => cartController.cartItems;
+  final OutletScreenController outletScreenController =
+      Get.find<OutletScreenController>();
+  RxList<MenuCategory> get categories => outletScreenController.categories;
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
-  final cartItems = <CartItem>[].obs;
   final userAddressList = <SavedAddress>[].obs;
   final promoDiscount = 0.0.obs;
   final deliveryTime = "Delivering now".obs;
@@ -1128,7 +1117,6 @@ class OrderDetailScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadMockCart();
     _loadAddress();
   }
 
@@ -1137,27 +1125,6 @@ class OrderDetailScreenController extends GetxController {
     cookingNoteController.dispose();
     promoCodeController.dispose();
     super.onClose();
-  }
-
-  void _loadMockCart() {
-    cartItems.assignAll([
-      CartItem(
-        id: "1",
-        name: "Smokey Chilli Paneer",
-        description: "Indulge in our spicy chilli panner flavor",
-        price: 350.0,
-        quantity: 2,
-        isVeg: true,
-      ),
-      CartItem(
-        id: "2",
-        name: "Smokey Chilli Paneer",
-        description: "Indulge in our spicy chilli panner flavor",
-        price: 350.0,
-        quantity: 1,
-        isVeg: true,
-      ),
-    ]);
   }
 
   void _loadAddress() {
@@ -1178,15 +1145,11 @@ class OrderDetailScreenController extends GetxController {
   }
 
   void incrementQuantity(CartItem item) {
-    item.quantity.value++;
+    outletScreenController.incrementQuantity(item.categoryName, item.id);
   }
 
   void decrementQuantity(CartItem item) {
-    if (item.quantity.value > 1) {
-      item.quantity.value--;
-    } else {
-      cartItems.remove(item);
-    }
+    outletScreenController.decrimentQuantity(item.categoryName, item.id);
   }
 
   void applyPromoCode() {
@@ -1196,6 +1159,7 @@ class OrderDetailScreenController extends GetxController {
         "Oops!",
         "Please enter a promocode.",
         snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
@@ -1230,23 +1194,27 @@ class OrderDetailScreenController extends GetxController {
       Get.snackbar(
         "Oops!",
         "Your cart is empty.",
+        icon: const Icon(Icons.error, color: Colors.red),
         snackPosition: SnackPosition.TOP,
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
       return;
     }
-
-    Get.snackbar(
-      "Success",
-      "Order placed successfully! Total: ₹${totalBill.toInt()}",
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: charcoalGray.withValues(alpha: 0.9),
-      colorText: Colors.white,
-    );
+    Get.offAndToNamed(Routes.homeScreen);
+    Future.delayed(const Duration(milliseconds: 300), () {
+      Get.snackbar(
+        "Success",
+        "Order placed successfully! Total: ₹${totalBill.toInt()}",
+        icon: const Icon(Icons.done, color: Colors.green),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+    });
   }
 
-  /// Shows the delivery schedule bottom sheet
+  // Shows the delivery schedule bottom sheet
   void showScheduleBottomSheet(BuildContext context) {
     DeliveryScheduleBottomSheet.show(
       context,
@@ -1265,7 +1233,7 @@ class OrderDetailScreenController extends GetxController {
     );
   }
 
-  /// Shows the address bottom sheet
+  // Shows the address bottom sheet
   void showAddressBottomSheet(BuildContext ctx) {
     AddressSelectionBottomSheet.show(
       ctx,
@@ -1282,22 +1250,19 @@ class OrderDetailScreenController extends GetxController {
     );
   }
 
-  /// Shows the bill details bottom sheet
+  // Shows the bill details bottom sheet
   void showBillDetailsBottomSheet(BuildContext context) {
     BillDetailsBottomSheet.show(context, this);
   }
 
-  /// Shows the payment method bottom sheet
+  // Shows the payment method bottom sheet
   void showPaymentMethodBottomSheet(BuildContext context) {
     PaymentMethodBottomSheet.show(context, this);
   }
 
-  /// Calculated values
-  double get subtotal => cartItems.fold(
-    0.0,
-    (sum, item) => sum + (item.price * item.quantity.value),
-  );
-
+  // Calculated values
+  double get subtotal =>
+      cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
   double get deliveryFee => 0.0;
 
   double get packagingCharge => 20.0;

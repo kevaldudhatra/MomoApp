@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 
 class CartItem {
-  final String id;
+  final int id;
+  final String categoryName;
   final String name;
+  final String description;
   final double price;
   final String image;
   final int quantity;
@@ -10,7 +12,9 @@ class CartItem {
 
   CartItem({
     required this.id,
+    required this.categoryName,
     required this.name,
+    required this.description,
     required this.price,
     required this.image,
     required this.quantity,
@@ -18,8 +22,10 @@ class CartItem {
   });
 
   CartItem copyWith({
-    String? id,
+    int? id,
+    String? categoryName,
     String? name,
+    String? description,
     double? price,
     String? image,
     int? quantity,
@@ -27,7 +33,9 @@ class CartItem {
   }) {
     return CartItem(
       id: id ?? this.id,
+      categoryName: categoryName ?? this.categoryName,
       name: name ?? this.name,
+      description: description ?? this.description,
       price: price ?? this.price,
       image: image ?? this.image,
       quantity: quantity ?? this.quantity,
@@ -37,40 +45,35 @@ class CartItem {
 }
 
 class CartController extends GetxController {
-  // RxList to maintain cart items reactively
   final cartItems = <CartItem>[].obs;
 
-  // Add an item to the cart, or increase its quantity if it already exists
-  void addItem({
-    required String id,
+  void addItemToCart({
+    required int id,
+    required String categoryName,
     required String name,
+    required String description,
     required double price,
     required String image,
     required bool isVeg,
   }) {
-    int index = cartItems.indexWhere((element) => element.id == id);
-    if (index >= 0) {
-      cartItems[index] = cartItems[index].copyWith(
-        quantity: cartItems[index].quantity + 1,
-      );
-    } else {
-      cartItems.add(
-        CartItem(
-          id: id,
-          name: name,
-          price: price,
-          image: image,
-          quantity: 1,
-          isVeg: isVeg,
-        ),
-      );
-    }
+    cartItems.add(
+      CartItem(
+        id: id,
+        categoryName: categoryName,
+        name: name,
+        description: description,
+        price: price,
+        image: image,
+        quantity: 0,
+        isVeg: isVeg,
+      ),
+    );
+    cartItems.refresh();
   }
 
-  // Getters for cart details
   bool get isEmpty => cartItems.isEmpty;
 
   int get totalItemCount {
-    return cartItems.fold(0, (sum, item) => sum + item.quantity);
+    return cartItems.length;
   }
 }
