@@ -43,6 +43,24 @@ import 'package:momos/screens/myOrdersScreen/my_orders_screen_controller.dart';
 import 'package:momos/screens/myOrdersScreen/my_orders_screen_view.dart';
 import 'package:momos/screens/orderStatusScreen/order_status_screen_controller.dart';
 import 'package:momos/screens/orderStatusScreen/order_status_screen_view.dart';
+import 'package:momos/screens/editProfileScreen/edit_profile_screen_controller.dart';
+import 'package:momos/screens/editProfileScreen/edit_profile_screen_view.dart';
+import 'package:momos/screens/changePasswordScreen/change_password_screen_controller.dart';
+import 'package:momos/screens/changePasswordScreen/change_password_screen_view.dart';
+import 'package:momos/screens/myWalletScreen/my_wallet_screen_controller.dart';
+import 'package:momos/screens/myWalletScreen/my_wallet_screen_view.dart';
+import 'package:momos/screens/addMoneyScreen/add_money_screen_controller.dart';
+import 'package:momos/screens/addMoneyScreen/add_money_screen_view.dart';
+import 'package:momos/screens/myReservationsScreen/my_reservations_screen_controller.dart';
+import 'package:momos/screens/myReservationsScreen/my_reservations_screen_view.dart';
+import 'package:momos/screens/reservationStatusScreen/reservation_status_screen_controller.dart';
+import 'package:momos/screens/reservationStatusScreen/reservation_status_screen_view.dart';
+import 'package:momos/screens/supportChatScreen/support_chat_screen_controller.dart';
+import 'package:momos/screens/supportChatScreen/support_chat_screen_view.dart';
+import 'package:momos/screens/aboutUsScreen/about_us_screen_controller.dart';
+import 'package:momos/screens/aboutUsScreen/about_us_screen_view.dart';
+import 'package:momos/screens/faqScreen/faq_screen_controller.dart';
+import 'package:momos/screens/faqScreen/faq_screen_view.dart';
 
 part 'app_routes.dart';
 
@@ -224,6 +242,79 @@ class AppPages {
         Get.lazyPut<OrderStatusScreenController>(
           () => OrderStatusScreenController(),
         );
+      }),
+    ),
+    GetPage(
+      name: Routes.editProfileScreen,
+      page: () => const EditProfileScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<EditProfileScreenController>(
+          () => EditProfileScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.changePasswordScreen,
+      page: () => const ChangePasswordScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<ChangePasswordScreenController>(
+          () => ChangePasswordScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.myWalletScreen,
+      page: () => const MyWalletScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<MyWalletScreenController>(() => MyWalletScreenController());
+      }),
+    ),
+    GetPage(
+      name: Routes.addMoneyScreen,
+      page: () => const AddMoneyScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<AddMoneyScreenController>(() => AddMoneyScreenController());
+      }),
+    ),
+    GetPage(
+      name: Routes.myReservationsScreen,
+      page: () => const MyReservationsScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<MyReservationsScreenController>(
+          () => MyReservationsScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.reservationStatusScreen,
+      page: () => const ReservationStatusScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<ReservationStatusScreenController>(
+          () => ReservationStatusScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.supportChatScreen,
+      page: () => const SupportChatScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<SupportChatScreenController>(
+          () => SupportChatScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.aboutUsScreen,
+      page: () => const AboutUsScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<AboutUsScreenController>(() => AboutUsScreenController());
+      }),
+    ),
+    GetPage(
+      name: Routes.faqScreen,
+      page: () => const FAQScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<FaqScreenController>(() => FaqScreenController());
       }),
     ),
   ];

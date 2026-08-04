@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:momos/routes/app_pages.dart';
-import 'package:momos/screens/accountAccessScreen/account_access_screen_controller.dart';
 import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
@@ -61,8 +59,6 @@ class ProfileScreen extends GetView<ProfileScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    final storage = GetStorage();
-
     return Scaffold(
       backgroundColor: background,
       body: Column(
@@ -171,40 +167,43 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                     // Wallet Balance Card
                     _buildCard(
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "WALLET BALANCE",
-                                    style: TextStyle(
-                                      color: black,
-                                      fontSize: 12,
-                                      fontFamily: dmBold,
-                                      letterSpacing: 0.5,
+                        InkWell(
+                          onTap: () => Get.toNamed(Routes.myWalletScreen),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "WALLET BALANCE",
+                                      style: TextStyle(
+                                        color: black,
+                                        fontSize: 12,
+                                        fontFamily: dmBold,
+                                        letterSpacing: 0.5,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    "₹42.50",
-                                    style: TextStyle(
-                                      color: black,
-                                      fontSize: 32,
-                                      fontFamily: natoBold,
+                                    SizedBox(height: 8),
+                                    Text(
+                                      "₹42.50",
+                                      style: TextStyle(
+                                        color: black,
+                                        fontSize: 32,
+                                        fontFamily: natoBold,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              Image.asset(
-                                AppImages().walletIcon,
-                                width: 44,
-                                height: 44,
-                              ),
-                            ],
+                                  ],
+                                ),
+                                Image.asset(
+                                  AppImages().walletIcon,
+                                  width: 44,
+                                  height: 44,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -217,7 +216,8 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                         _ProfileListItem(
                           icon: AppImages().addressIcon,
                           title: "Address Book",
-                          onTap: () {},
+                          onTap: () =>
+                              controller.showAddressBottomSheet(context),
                         ),
                       ],
                     ),
@@ -241,7 +241,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                         _ProfileListItem(
                           icon: AppImages().reservationIcon,
                           title: "My Reservations",
-                          onTap: () {},
+                          onTap: () => Get.toNamed(Routes.myReservationsScreen),
                         ),
                       ],
                     ),
@@ -255,7 +255,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                         _ProfileListItem(
                           icon: AppImages().supportIcon,
                           title: "Support Chat",
-                          onTap: () {},
+                          onTap: () => Get.toNamed(Routes.supportChatScreen),
                         ),
                         const Divider(
                           height: 1,
@@ -265,7 +265,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                         _ProfileListItem(
                           icon: AppImages().aboutIcon,
                           title: "About Us",
-                          onTap: () {},
+                          onTap: () => Get.toNamed(Routes.aboutUsScreen),
                         ),
                         const Divider(
                           height: 1,
@@ -275,7 +275,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                         _ProfileListItem(
                           icon: AppImages().faqIcon,
                           title: "FAQ",
-                          onTap: () {},
+                          onTap: () => Get.toNamed(Routes.faqScreen),
                         ),
                         const Divider(
                           height: 1,
@@ -285,12 +285,8 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                         _ProfileListItem(
                           icon: AppImages().logoutIcon,
                           title: "Log out",
-                          onTap: () async {
-                            final google = GoogleAuthService();
-                            await google.signOutWithGoogle();
-                            await storage.erase();
-                            Get.offAllNamed(Routes.startScreen);
-                          },
+                          onTap: () =>
+                              controller.showLogoutBottomSheet(context),
                         ),
                       ],
                     ),

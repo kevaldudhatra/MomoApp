@@ -60,6 +60,13 @@ class AppImages {
   final callIcon = '${images}callIcon.png';
   final calenderIcon = '${images}calenderIcon.png';
   final paymentIcon = '${images}paymentIcon.png';
+  final upIcon = '${images}upIcon.png';
+  final downIcon = '${images}downIcon.png';
+  final guestIcon = '${images}guestIcon.png';
+  final calendarTodayIcon = '${images}calendarTodayIcon.png';
+  final sendIcon = '${images}sendIcon.png';
+  final termsIcon = '${images}termsIcon.png';
+  final privacyIcon = '${images}privacyIcon.png';
 
   // loading view
   final loading = '${gifJson}loading.json';

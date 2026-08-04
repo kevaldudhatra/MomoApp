@@ -25,4 +25,12 @@ abstract class Routes {
   static const myOrdersScreen = '/myOrdersScreen';
   static const orderStatusScreen = '/orderStatusScreen';
   static const editProfileScreen = '/editProfileScreen';
+  static const changePasswordScreen = '/changePasswordScreen';
+  static const myWalletScreen = '/myWalletScreen';
+  static const addMoneyScreen = '/addMoneyScreen';
+  static const myReservationsScreen = '/myReservationsScreen';
+  static const reservationStatusScreen = '/reservationStatusScreen';
+  static const supportChatScreen = '/supportChatScreen';
+  static const aboutUsScreen = '/aboutUsScreen';
+  static const faqScreen = '/faqScreen';
 }

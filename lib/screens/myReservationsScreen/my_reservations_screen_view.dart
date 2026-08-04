@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:momos/screens/myOrdersScreen/my_orders_screen_controller.dart';
+import 'package:momos/routes/app_pages.dart';
+import 'package:momos/screens/myReservationsScreen/my_reservations_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
-import 'package:momos/routes/app_pages.dart';
 
-class MyOrdersScreen extends GetView<MyOrdersScreenController> {
-  const MyOrdersScreen({super.key});
+class MyReservationsScreen extends GetView<MyReservationsScreenController> {
+  const MyReservationsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
       child: Scaffold(
         backgroundColor: background,
         body: Obx(() {
-          final orders = controller.filteredOrders;
+          final reservations = controller.filteredReservations;
           return SizedBox(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
@@ -43,7 +43,7 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                       ),
                       const SizedBox(width: 16),
                       const Text(
-                        "Your orders",
+                        "Your Reservations",
                         style: TextStyle(
                           color: black,
                           fontSize: 20,
@@ -55,15 +55,15 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                 ),
                 const Divider(height: 1, thickness: 1, color: borderGray),
 
-                // Order Status Filter Tab Bar
+                // Reservations Status Filter Tab Bar
                 _buildTabBar(),
 
-                // Order List
+                // Reservations List
                 Expanded(
-                  child: orders.isEmpty
+                  child: reservations.isEmpty
                       ? Center(
                           child: Text(
-                            "No orders in '${controller.selectedStatus.value}'",
+                            "No reservations in '${controller.selectedStatus.value}'",
                             style: const TextStyle(
                               color: textSecondary,
                               fontSize: 16,
@@ -75,9 +75,9 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                           shrinkWrap: true,
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: orders.length,
+                          itemCount: reservations.length,
                           itemBuilder: (context, index) {
-                            return _buildOrderCard(orders[index]);
+                            return _buildReservationCard(reservations[index]);
                           },
                         ),
                 ),
@@ -93,7 +93,7 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
     return Container(
       color: white,
       height: 50,
-      margin: EdgeInsets.only(bottom: 15),
+      margin: const EdgeInsets.only(bottom: 15),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -140,9 +140,10 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
     );
   }
 
-  Widget _buildOrderCard(OrderModel order) {
+  Widget _buildReservationCard(ReservationModel reservation) {
     return GestureDetector(
-      onTap: () => Get.toNamed(Routes.orderStatusScreen, arguments: order),
+      onTap: () =>
+          Get.toNamed(Routes.reservationStatusScreen, arguments: reservation),
       behavior: HitTestBehavior.opaque,
       child: Container(
         margin: const EdgeInsets.only(bottom: 15),
@@ -170,7 +171,7 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: Image.network(
-                      order.restaurantImage,
+                      reservation.restaurantImage,
                       width: 44,
                       height: 44,
                       fit: BoxFit.cover,
@@ -190,7 +191,7 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          order.restaurantName,
+                          reservation.restaurantName,
                           style: const TextStyle(
                             color: black,
                             fontSize: 16,
@@ -199,7 +200,7 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          order.restaurantAddress,
+                          reservation.restaurantAddress,
                           style: const TextStyle(
                             color: textSecondary,
                             fontSize: 13,
@@ -215,111 +216,96 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
 
             const Divider(height: 1, thickness: 1, color: borderGray),
 
-            // Middle Section: Items List
+            // Middle Section: Booking Details Info Rows
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 12.0,
               ),
               child: Column(
-                children: order.items
-                    .map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              item.isVeg
-                                  ? AppImages().vegIcon
-                                  : AppImages().nonVegIcon,
-                              width: 16,
-                              height: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              "${item.quantity}  x  ${item.name}",
-                              style: const TextStyle(
-                                color: black,
-                                fontSize: 14,
-                                fontFamily: natoRegular,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow("Booking ID", reservation.id),
+                  _buildInfoRow("Guests", reservation.guests.toString()),
+                  _buildInfoRow("Scheduled Time", reservation.scheduledTime),
+                  _buildInfoRow("Placed Time", reservation.placedTime),
+                ],
               ),
             ),
 
             const Divider(height: 1, thickness: 1, color: borderGray),
 
-            // Bottom Section: Placed Date, Status Badge, Price & Right Arrow
+            // Bottom Section: Placed Date, Status Badge
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 12.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Left side: placed date + status badge
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Order placed on ${order.orderDate}",
-                        style: const TextStyle(
-                          color: textSecondary,
-                          fontSize: 13,
-                          fontFamily: natoRegular,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: white,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: borderGray, width: 1),
-                        ),
-                        child: Text(
-                          order.status,
-                          style: const TextStyle(
-                            color: charcoalGray,
-                            fontSize: 13,
-                            fontFamily: natoMedium,
-                          ),
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    "Booking status",
+                    style: TextStyle(
+                      color: charcoalGray,
+                      fontSize: 14,
+                      fontFamily: natoRegular,
+                    ),
                   ),
-                  // Right side: Total price & Right arrow icon
-                  Row(
-                    children: [
-                      Text(
-                        "₹${order.totalAmount.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 15,
-                          fontFamily: natoBold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Image.asset(
-                        AppImages().rightArrowIcon,
-                        width: 12,
-                        height: 12,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: borderGray, width: 1),
+                    ),
+                    child: Text(
+                      reservation.status,
+                      style: const TextStyle(
                         color: charcoalGray,
+                        fontSize: 13,
+                        fontFamily: natoMedium,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "$label:  ",
+            style: const TextStyle(
+              color: charcoalGray,
+              fontSize: 14,
+              fontFamily: natoRegular,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: black,
+                fontSize: 14,
+                fontFamily: natoMedium,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

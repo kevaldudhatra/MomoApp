@@ -27,6 +27,7 @@ class CustomTextField extends StatefulWidget {
   final int? maxLine;
   final Widget? suffixIcon;
   final Widget? prefixIcon;
+  final Color? fillColor;
 
   const CustomTextField({
     super.key,
@@ -53,6 +54,7 @@ class CustomTextField extends StatefulWidget {
     this.maxLine,
     this.suffixIcon,
     this.prefixIcon,
+    this.fillColor,
   });
 
   @override
@@ -117,7 +119,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
               fontFamily: natoRegular,
               fontSize: 16.0,
             ),
-            fillColor: white,
+            fillColor: widget.fillColor ?? white,
             disabledBorder: const OutlineInputBorder(
               borderRadius: BorderRadius.all(Radius.circular(8.0)),
               borderSide: BorderSide(color: lightGray),

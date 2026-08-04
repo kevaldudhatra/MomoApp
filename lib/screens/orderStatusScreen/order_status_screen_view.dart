@@ -135,6 +135,13 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
                     // Card 4: Payment Details
                     _buildPaymentCard(),
                     const SizedBox(height: 16),
+
+                    // Card 5: Feedback Section
+                    _buildFeedbackSection(),
+                    const SizedBox(height: 16),
+
+                    // Card 6: Download Invoice Button
+                    _buildDownloadInvoiceButton(),
                   ],
                 ),
               ),
@@ -719,6 +726,119 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFeedbackSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Feedback Received",
+          style: TextStyle(
+            color: charcoalGray,
+            fontSize: 14,
+            fontFamily: natoSemiBold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: cardShadow,
+                blurRadius: 8,
+                spreadRadius: 0,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                "YOU RATED",
+                style: TextStyle(
+                  color: textSecondary,
+                  fontSize: 11,
+                  fontFamily: natoMedium,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: Image.asset(
+                      AppImages().starIcon,
+                      width: 24,
+                      height: 24,
+                      color: index < 4 ? greenBadge : lightGray,
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "“Excellent food and ambiance!”",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: black,
+                  fontSize: 14,
+                  fontFamily: natoMedium,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDownloadInvoiceButton() {
+    return GestureDetector(
+      onTap: () => controller.downloadInvoice(),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: cardShadow,
+              blurRadius: 8,
+              spreadRadius: 0,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.file_download_outlined,
+              color: charcoalGray,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              "Download Invoice",
+              style: TextStyle(
+                color: black,
+                fontSize: 14,
+                fontFamily: natoSemiBold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
