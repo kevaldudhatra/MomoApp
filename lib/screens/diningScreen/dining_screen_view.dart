@@ -558,7 +558,7 @@ class DiningScreen extends GetView<DiningScreenController> {
         label: "Book a table",
         height: 45,
         width: double.infinity,
-        onTap: () => controller.bookTable(),
+        onTap: () => Get.toNamed(Routes.bookTableScreen),
       ),
     );
   }
@@ -790,7 +790,7 @@ class DiningScreen extends GetView<DiningScreenController> {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: () => controller.callRestaurant(),
+                onTap: () {},
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 15,

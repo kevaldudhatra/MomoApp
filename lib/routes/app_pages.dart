@@ -63,6 +63,10 @@ import 'package:momos/screens/faqScreen/faq_screen_controller.dart';
 import 'package:momos/screens/faqScreen/faq_screen_view.dart';
 import 'package:momos/screens/menuScreen/menu_screen_controller.dart';
 import 'package:momos/screens/menuScreen/menu_screen_view.dart';
+import 'package:momos/screens/bookTableScreen/book_table_screen_controller.dart';
+import 'package:momos/screens/bookTableScreen/book_table_screen_view.dart';
+import 'package:momos/screens/reviewBookingScreen/review_booking_screen_controller.dart';
+import 'package:momos/screens/reviewBookingScreen/review_booking_screen_view.dart';
 
 part 'app_routes.dart';
 
@@ -324,6 +328,24 @@ class AppPages {
       page: () => const MenuScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut<MenuScreenController>(() => MenuScreenController());
+      }),
+    ),
+    GetPage(
+      name: Routes.bookTableScreen,
+      page: () => const BookTableScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<BookTableScreenController>(
+          () => BookTableScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.reviewBookingScreen,
+      page: () => const ReviewBookingScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<ReviewBookingScreenController>(
+          () => ReviewBookingScreenController(),
+        );
       }),
     ),
   ];

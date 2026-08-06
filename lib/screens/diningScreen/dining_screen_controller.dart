@@ -57,10 +57,4 @@ class DiningScreenController extends GetxController {
       ),
     ]);
   }
-
-  void viewMenu() {}
-
-  void bookTable() {}
-
-  void callRestaurant() {}
 }
