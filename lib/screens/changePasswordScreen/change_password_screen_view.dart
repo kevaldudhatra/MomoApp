@@ -75,7 +75,6 @@ class ChangePasswordScreen extends GetView<ChangePasswordScreenController> {
                           CustomTextField(
                             labelText: "Current Password",
                             hintText: "Enter password",
-                            maxLine: 1,
                             textEditingController:
                                 controller.currentPasswordController,
                             obscureText:
@@ -86,12 +85,18 @@ class ChangePasswordScreen extends GetView<ChangePasswordScreenController> {
                               onTap: () {
                                 controller.toggleCurrentPasswordVisibility();
                               },
-                              child: Icon(
-                                controller.obscureCurrentPassword.value
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: charcoalGray,
-                                size: 20,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  right: 15,
+                                  left: 5,
+                                ),
+                                child: Icon(
+                                  controller.obscureCurrentPassword.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: charcoalGray,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),
@@ -101,7 +106,6 @@ class ChangePasswordScreen extends GetView<ChangePasswordScreenController> {
                           CustomTextField(
                             labelText: "New Password",
                             hintText: "Enter password",
-                            maxLine: 1,
                             textEditingController:
                                 controller.newPasswordController,
                             obscureText: controller.obscureNewPassword.value,
@@ -111,12 +115,18 @@ class ChangePasswordScreen extends GetView<ChangePasswordScreenController> {
                               onTap: () {
                                 controller.toggleNewPasswordVisibility();
                               },
-                              child: Icon(
-                                controller.obscureNewPassword.value
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: charcoalGray,
-                                size: 20,
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  right: 15,
+                                  left: 5,
+                                ),
+                                child: Icon(
+                                  controller.obscureNewPassword.value
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  color: charcoalGray,
+                                  size: 20,
+                                ),
                               ),
                             ),
                           ),

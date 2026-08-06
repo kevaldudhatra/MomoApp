@@ -44,7 +44,7 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                     ),
                     const SizedBox(width: 16),
                     const Text(
-                      "Momo I AM",
+                      "Momo I AM gol park",
                       style: TextStyle(
                         color: black,
                         fontSize: 20,

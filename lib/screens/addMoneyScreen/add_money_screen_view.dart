@@ -74,7 +74,6 @@ class AddMoneyScreen extends GetView<AddMoneyScreenController> {
                         CustomTextField(
                           labelText: "Enter Amount",
                           hintText: "Enter amount",
-                          maxLine: 1,
                           textEditingController: controller.amountController,
                           keyboardType: TextInputType.number,
                           textInputAction: TextInputAction.done,

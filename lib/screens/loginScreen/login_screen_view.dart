@@ -86,7 +86,6 @@ class LoginScreen extends GetView<LoginScreenController> {
                               CustomTextField(
                                 labelText: "Password",
                                 hintText: "Enter password",
-                                maxLine: 1,
                                 textEditingController:
                                     controller.passwordController,
                                 obscureText: controller.obscurePassword.value,
@@ -96,12 +95,18 @@ class LoginScreen extends GetView<LoginScreenController> {
                                   onTap: () {
                                     controller.togglePasswordVisibility();
                                   },
-                                  child: Icon(
-                                    controller.obscurePassword.value
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    color: charcoalGray,
-                                    size: 20,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                      right: 15,
+                                      left: 5,
+                                    ),
+                                    child: Icon(
+                                      controller.obscurePassword.value
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                      color: charcoalGray,
+                                      size: 20,
+                                    ),
                                   ),
                                 ),
                               ),

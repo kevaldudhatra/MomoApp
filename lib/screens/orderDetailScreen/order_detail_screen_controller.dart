@@ -1096,11 +1096,13 @@ class PaymentMethodBottomSheet extends StatelessWidget {
 }
 
 class OrderDetailScreenController extends GetxController {
-  final CartController cartController = Get.find<CartController>();
-  RxList<CartItem> get cartItems => cartController.cartItems;
-  final OutletScreenController outletScreenController =
-      Get.find<OutletScreenController>();
-  RxList<MenuCategory> get categories => outletScreenController.categories;
+  RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
+      ? Get.find<CartController>().cartItems
+      : <CartItem>[].obs;
+  RxList<MenuCategory> get categories =>
+      Get.isRegistered<OutletScreenController>()
+      ? Get.find<OutletScreenController>().categories
+      : <MenuCategory>[].obs;
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
   final userAddressList = <SavedAddress>[].obs;
@@ -1145,11 +1147,47 @@ class OrderDetailScreenController extends GetxController {
   }
 
   void incrementQuantity(CartItem item) {
-    outletScreenController.incrementQuantity(item.categoryName, item.id);
+    if (Get.isRegistered<OutletScreenController>()) {
+      Get.find<OutletScreenController>().incrementQuantity(
+        item.categoryName,
+        item.id,
+      );
+    } else {
+      int index = cartItems.indexWhere(
+        (element) =>
+            element.categoryName == item.categoryName && element.id == item.id,
+      );
+      if (index >= 0) {
+        cartItems[index] = cartItems[index].copyWith(
+          quantity: cartItems[index].quantity + 1,
+        );
+        cartItems.refresh();
+      }
+    }
   }
 
   void decrementQuantity(CartItem item) {
-    outletScreenController.decrimentQuantity(item.categoryName, item.id);
+    if (Get.isRegistered<OutletScreenController>()) {
+      Get.find<OutletScreenController>().decrimentQuantity(
+        item.categoryName,
+        item.id,
+      );
+    } else {
+      int index = cartItems.indexWhere(
+        (element) =>
+            element.categoryName == item.categoryName && element.id == item.id,
+      );
+      if (index >= 0) {
+        if (cartItems[index].quantity > 1) {
+          cartItems[index] = cartItems[index].copyWith(
+            quantity: cartItems[index].quantity - 1,
+          );
+        } else {
+          cartItems.removeAt(index);
+        }
+        cartItems.refresh();
+      }
+    }
   }
 
   void applyPromoCode() {

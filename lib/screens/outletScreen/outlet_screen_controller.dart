@@ -771,15 +771,16 @@ class _FoodItemDetailsBottomSheetState
 }
 
 class OutletScreenController extends GetxController {
-  final CartController cartController = Get.find<CartController>();
-  RxList<CartItem> get cartItems => cartController.cartItems;
+  RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
+      ? Get.find<CartController>().cartItems
+      : <CartItem>[].obs;
   final searchController = TextEditingController();
   final isVegSelected = false.obs;
   final isNonVegSelected = false.obs;
   final isBestsellerSelected = false.obs;
   final isNewSelected = false.obs;
   final isMenuOpen = false.obs;
-  final outletName = "Momo I AM";
+  final outletName = "Momo I AM gol park";
   final cuisines = "Chinese • Seafood • Thai • Pan-Asian";
   final isOpen = true;
   final rating = "4.2";

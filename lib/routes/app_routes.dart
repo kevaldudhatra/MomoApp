@@ -33,4 +33,5 @@ abstract class Routes {
   static const supportChatScreen = '/supportChatScreen';
   static const aboutUsScreen = '/aboutUsScreen';
   static const faqScreen = '/faqScreen';
+  static const menuScreen = '/menuScreen';
 }

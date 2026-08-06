@@ -61,6 +61,8 @@ import 'package:momos/screens/aboutUsScreen/about_us_screen_controller.dart';
 import 'package:momos/screens/aboutUsScreen/about_us_screen_view.dart';
 import 'package:momos/screens/faqScreen/faq_screen_controller.dart';
 import 'package:momos/screens/faqScreen/faq_screen_view.dart';
+import 'package:momos/screens/menuScreen/menu_screen_controller.dart';
+import 'package:momos/screens/menuScreen/menu_screen_view.dart';
 
 part 'app_routes.dart';
 
@@ -315,6 +317,13 @@ class AppPages {
       page: () => const FAQScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut<FaqScreenController>(() => FaqScreenController());
+      }),
+    ),
+    GetPage(
+      name: Routes.menuScreen,
+      page: () => const MenuScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<MenuScreenController>(() => MenuScreenController());
       }),
     ),
   ];

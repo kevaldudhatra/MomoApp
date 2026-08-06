@@ -229,9 +229,13 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                         textEditingController: controller.searchController,
                         keyboardType: TextInputType.webSearch,
                         textInputAction: TextInputAction.done,
-                        prefixIcon: Image.asset(
-                          AppImages().searchIcon,
-                          scale: 2.5,
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 5, left: 15),
+                          child: Image.asset(
+                            AppImages().searchIcon,
+                            height: 20,
+                            width: 20,
+                          ),
                         ),
                       ),
                     ],

@@ -38,12 +38,20 @@ class CreateAccountScreen extends GetView<CreateAccountScreenController> {
                 bottom: 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-                    image: DecorationImage(image: AssetImage(AppImages().fullBgImg), fit: BoxFit.cover),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    image: DecorationImage(
+                      image: AssetImage(AppImages().fullBgImg),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Obx(
@@ -56,19 +64,28 @@ class CreateAccountScreen extends GetView<CreateAccountScreenController> {
                             const Text(
                               "Create an Account",
                               textAlign: TextAlign.start,
-                              style: TextStyle(color: black, fontSize: 24, fontFamily: natoSemiBold),
+                              style: TextStyle(
+                                color: black,
+                                fontSize: 24,
+                                fontFamily: natoSemiBold,
+                              ),
                             ),
                             const SizedBox(height: 8),
                             const Text(
                               "Sign up to get started",
                               textAlign: TextAlign.start,
-                              style: TextStyle(color: charcoalGray, fontSize: 14, fontFamily: natoRegular),
+                              style: TextStyle(
+                                color: charcoalGray,
+                                fontSize: 14,
+                                fontFamily: natoRegular,
+                              ),
                             ),
                             const SizedBox(height: 25),
                             CustomTextField(
                               labelText: "Full Name",
                               hintText: "Enter your name",
-                              textEditingController: controller.fullNameController,
+                              textEditingController:
+                                  controller.fullNameController,
                               keyboardType: TextInputType.name,
                               textInputAction: TextInputAction.next,
                             ),
@@ -84,8 +101,8 @@ class CreateAccountScreen extends GetView<CreateAccountScreenController> {
                             CustomTextField(
                               labelText: "Password",
                               hintText: "Enter password",
-                              maxLine: 1,
-                              textEditingController: controller.passwordController,
+                              textEditingController:
+                                  controller.passwordController,
                               obscureText: controller.obscurePassword.value,
                               keyboardType: TextInputType.visiblePassword,
                               textInputAction: TextInputAction.next,
@@ -93,10 +110,18 @@ class CreateAccountScreen extends GetView<CreateAccountScreenController> {
                                 onTap: () {
                                   controller.togglePasswordVisibility();
                                 },
-                                child: Icon(
-                                  controller.obscurePassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  color: charcoalGray,
-                                  size: 20,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    right: 15,
+                                    left: 5,
+                                  ),
+                                  child: Icon(
+                                    controller.obscurePassword.value
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: charcoalGray,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
                             ),
@@ -104,19 +129,28 @@ class CreateAccountScreen extends GetView<CreateAccountScreenController> {
                             CustomTextField(
                               labelText: "Confirm Password",
                               hintText: "Enter password",
-                              maxLine: 1,
-                              textEditingController: controller.confirmPasswordController,
-                              obscureText: controller.obscureConfirmPassword.value,
+                              textEditingController:
+                                  controller.confirmPasswordController,
+                              obscureText:
+                                  controller.obscureConfirmPassword.value,
                               keyboardType: TextInputType.visiblePassword,
                               textInputAction: TextInputAction.done,
                               suffixIcon: GestureDetector(
                                 onTap: () {
                                   controller.toggleConfirmPasswordVisibility();
                                 },
-                                child: Icon(
-                                  controller.obscureConfirmPassword.value ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                  color: charcoalGray,
-                                  size: 20,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                    right: 15,
+                                    left: 5,
+                                  ),
+                                  child: Icon(
+                                    controller.obscureConfirmPassword.value
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: charcoalGray,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
                             ),
@@ -124,17 +158,30 @@ class CreateAccountScreen extends GetView<CreateAccountScreenController> {
                             Text.rich(
                               TextSpan(
                                 text: "I agree to momo i am's ",
-                                style: const TextStyle(color: charcoalGray, fontSize: 14, fontFamily: dmRegular, height: 1.4),
+                                style: const TextStyle(
+                                  color: charcoalGray,
+                                  fontSize: 14,
+                                  fontFamily: dmRegular,
+                                  height: 1.4,
+                                ),
                                 children: [
                                   TextSpan(
                                     text: "Terms & Conditions",
-                                    style: const TextStyle(color: blue, fontFamily: dmRegular, decoration: TextDecoration.underline),
+                                    style: const TextStyle(
+                                      color: blue,
+                                      fontFamily: dmRegular,
+                                      decoration: TextDecoration.underline,
+                                    ),
                                     recognizer: controller.termsRecognizer,
                                   ),
                                   const TextSpan(text: " and acknowledge the "),
                                   TextSpan(
                                     text: "privacy policy.",
-                                    style: const TextStyle(color: blue, fontFamily: dmRegular, decoration: TextDecoration.underline),
+                                    style: const TextStyle(
+                                      color: blue,
+                                      fontFamily: dmRegular,
+                                      decoration: TextDecoration.underline,
+                                    ),
                                     recognizer: controller.privacyRecognizer,
                                   ),
                                 ],

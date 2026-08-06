@@ -82,7 +82,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         SizedBox(height: widget.labelText != null ? 5.0 : 0.0),
         TextField(
           enabled: widget.enabled ?? true,
-          maxLines: widget.maxLine,
+          maxLines: widget.maxLine ?? 1,
           controller:
               widget.textEditingController ?? TextEditingController(text: ""),
           autocorrect: true,
@@ -106,6 +106,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
             counterText: "",
             suffixIcon: widget.suffixIcon,
             prefixIcon: widget.prefixIcon,
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 20,
+              minHeight: 20,
+            ),
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 20,
+              minHeight: 20,
+            ),
             contentPadding: EdgeInsets.only(
               bottom: widget.contentPaddingBottom ?? 10.0,
               top: widget.contentPaddingTop ?? 10.0,
