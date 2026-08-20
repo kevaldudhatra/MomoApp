@@ -26,17 +26,26 @@ class GoogleAuthService {
     try {
       await _googleSignIn.signOut();
       final GoogleSignInAccount account = await _googleSignIn.authenticate();
-      debugPrint("Email: ${account.email}");
-      debugPrint("Display Name: ${account.displayName}");
-      debugPrint("User ID: ${account.id}");
+      print("Email: ${account.email}");
+      print("Display Name: ${account.displayName}");
+      print("User ID: ${account.id}");
       Get.dialog(const LoadingDialog(), barrierDismissible: false);
       var response = await http.post(
         Uri.parse(isLogin ? ApiServices.login : ApiServices.register),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(
           isLogin
-              ? {"email": account.email, "googleToken": account.id, "loginType": "google"}
-              : {"email": account.email, "name": account.displayName, "googleToken": account.id, "loginType": "google"},
+              ? {
+                  "email": account.email,
+                  "googleToken": account.id,
+                  "loginType": "google",
+                }
+              : {
+                  "email": account.email,
+                  "name": account.displayName,
+                  "googleToken": account.id,
+                  "loginType": "google",
+                },
         ),
       );
       print('signInWithGoogle Response status: ${response.statusCode}');
@@ -46,7 +55,8 @@ class GoogleAuthService {
       }
       var data = jsonDecode(response.body);
       print("Google Data => $data");
-      if ((response.statusCode == 200 || response.statusCode == 201) && data["success"] == true) {
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data["success"] == true) {
         Get.snackbar(
           "Success",
           data["message"],
@@ -112,14 +122,22 @@ class AccountAccessScreenController extends GetxController {
   }
 
   Future<dynamic> userRegisterOrLoginUsingPhone() async {
-    print("userRegisterOrLoginUsingPhone input Data ${phoneNumber.value}, ${isLogin.value}");
+    print(
+      "userRegisterOrLoginUsingPhone input Data ${phoneNumber.value}, ${isLogin.value}",
+    );
     Get.dialog(const LoadingDialog(), barrierDismissible: false);
     var response = await http.post(
       Uri.parse(isLogin.value ? ApiServices.login : ApiServices.register),
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"countryCode": "+91", "phoneNumber": phoneNumber.value.trim(), "loginType": "phone"}),
+      body: jsonEncode({
+        "countryCode": "+91",
+        "phoneNumber": phoneNumber.value.trim(),
+        "loginType": "phone",
+      }),
     );
-    print('userRegisterOrLoginUsingPhone Response status: ${response.statusCode}');
+    print(
+      'userRegisterOrLoginUsingPhone Response status: ${response.statusCode}',
+    );
     print('userRegisterOrLoginUsingPhone Response body: ${response.body}');
     if (Get.isDialogOpen!) {
       Get.back();
@@ -140,7 +158,8 @@ class AccountAccessScreenController extends GetxController {
           "forLogin": isLogin.value,
           "phoneNumber": phoneNumber.value.trim(),
           "email": "",
-          "secretId": data["data"]?["user"]?["secretId"] ?? data["data"]?["secretId"],
+          "secretId":
+              data["data"]?["user"]?["secretId"] ?? data["data"]?["secretId"],
         },
       );
     } else {

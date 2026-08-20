@@ -368,7 +368,7 @@ class OutletScreen extends GetView<OutletScreenController> {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected ? orange.withValues(alpha: 0.1) : white,
@@ -422,7 +422,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                   ),
                   AnimatedRotation(
                     turns: category.isExpanded.value ? 0 : 0.5,
-                    duration: const Duration(milliseconds: 200),
+                    duration: const Duration(milliseconds: 250),
                     child: Image.asset(
                       AppImages().dropDownArrowIcon,
                       width: 25,

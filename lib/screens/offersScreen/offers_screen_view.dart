@@ -99,8 +99,8 @@ class OffersScreen extends GetView<OffersScreenController> {
                       opacity: offer.isActive ? 1.0 : 0.4,
                       child: Image.asset(
                         AppImages().giftIcon,
-                        width: 44,
-                        height: 44,
+                        width: 35,
+                        height: 35,
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -135,7 +135,7 @@ class OffersScreen extends GetView<OffersScreenController> {
                     // Accordion Arrow Icon
                     AnimatedRotation(
                       turns: offer.isExpanded.value ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 250),
                       child: Image.asset(
                         AppImages().dropDownArrowIcon,
                         width: 25,
@@ -202,7 +202,7 @@ class OffersScreen extends GetView<OffersScreenController> {
               crossFadeState: offer.isExpanded.value
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 250),
             ),
 
             // Divider and Apply Button

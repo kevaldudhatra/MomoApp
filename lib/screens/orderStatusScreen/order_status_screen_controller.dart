@@ -1,7 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:momos/screens/myOrdersScreen/my_orders_screen_controller.dart';
-import 'package:momos/utils/const_colors_key.dart';
 
 class OrderStatusScreenController extends GetxController {
   late final OrderModel order;
@@ -36,14 +34,5 @@ class OrderStatusScreenController extends GetxController {
     isBillDetailsExpanded.value = !isBillDetailsExpanded.value;
   }
 
-  void downloadInvoice() {
-    Get.snackbar(
-      "Download Started",
-      "Downloading invoice for order #${order.id}...",
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: charcoalGray.withValues(alpha: 0.9),
-      colorText: Colors.white,
-      icon: const Icon(Icons.download, color: Colors.green),
-    );
-  }
+  void downloadInvoice() {}
 }

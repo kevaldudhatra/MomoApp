@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/routes/app_pages.dart';
+import 'package:momos/screens/orderDetailScreen/order_detail_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
@@ -37,7 +38,12 @@ class GlobalCartButton extends StatelessWidget {
           bottom: bottomMargin,
         ),
         child: GestureDetector(
-          onTap: () => Get.toNamed(Routes.orderDetailScreen),
+          onTap: () {
+            if (Get.isRegistered<OrderDetailScreenController>()) {
+              Get.delete<OrderDetailScreenController>();
+            }
+            Get.toNamed(Routes.orderDetailScreen);
+          },
           child: Container(
             height: 55,
             width: double.infinity,

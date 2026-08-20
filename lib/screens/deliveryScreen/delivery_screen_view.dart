@@ -208,17 +208,22 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                               ],
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(7),
-                            alignment: Alignment.center,
-                            decoration: const BoxDecoration(
-                              color: white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Image.asset(
-                              AppImages().discountIcon,
-                              width: 18,
-                              height: 18,
+                          InkWell(
+                            onTap: () {
+                              Get.toNamed(Routes.offersScreen);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                color: white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Image.asset(
+                                AppImages().discountIcon,
+                                width: 18,
+                                height: 18,
+                              ),
                             ),
                           ),
                         ],
@@ -241,6 +246,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                     ],
                   ),
                 ),
+
                 controller.isSearchEmpty.value
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,7 +254,6 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                           const SizedBox(height: 20),
                           const CarouselSlider(),
                           const SizedBox(height: 20),
-
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
@@ -358,7 +363,6 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                               },
                             ),
                           ),
-
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Text(

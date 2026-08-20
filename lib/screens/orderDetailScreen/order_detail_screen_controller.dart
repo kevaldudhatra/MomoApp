@@ -1,23 +1,17 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
+import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
 import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
-
-class SavedAddress {
-  final String title;
-  final String subtitle;
-  final String icon;
-
-  SavedAddress({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
-}
+import 'package:momos/utils/const_key.dart';
+import 'package:http/http.dart' as http;
 
 // Bottom Sheet Widget for selecting scheduled delivery date and time.
 class DeliveryScheduleBottomSheet extends StatefulWidget {
@@ -358,6 +352,7 @@ class _DeliveryScheduleBottomSheetState
 class AddressSelectionBottomSheet extends StatefulWidget {
   final List<SavedAddress> addresses;
   final String selectedTitle;
+  final int selectedAddressId;
   final Function(SavedAddress address) onSelect;
   final VoidCallback onAddNewAddress;
   final VoidCallback onClose;
@@ -366,6 +361,7 @@ class AddressSelectionBottomSheet extends StatefulWidget {
     super.key,
     required this.addresses,
     required this.selectedTitle,
+    required this.selectedAddressId,
     required this.onSelect,
     required this.onAddNewAddress,
     required this.onClose,
@@ -376,6 +372,7 @@ class AddressSelectionBottomSheet extends StatefulWidget {
     BuildContext context, {
     required List<SavedAddress> addresses,
     required String selectedTitle,
+    required int selectedAddressId,
     required Function(SavedAddress address) onSelect,
     required VoidCallback onAddNewAddress,
     VoidCallback? onClose,
@@ -389,6 +386,7 @@ class AddressSelectionBottomSheet extends StatefulWidget {
         return AddressSelectionBottomSheet(
           addresses: addresses,
           selectedTitle: selectedTitle,
+          selectedAddressId: selectedAddressId,
           onSelect: onSelect,
           onAddNewAddress: onAddNewAddress,
           onClose: () {
@@ -407,11 +405,13 @@ class AddressSelectionBottomSheet extends StatefulWidget {
 
 class _AddressSelectionBottomSheetState
     extends State<AddressSelectionBottomSheet> {
+  int? selectedAddressId;
   String? selectedTitle;
 
   @override
   void initState() {
     super.initState();
+    selectedAddressId = widget.selectedAddressId;
     selectedTitle = widget.selectedTitle;
   }
 
@@ -504,26 +504,28 @@ class _AddressSelectionBottomSheetState
                       const SizedBox(height: 16),
 
                       // "Saved Address" Section Header
-                      const Text(
-                        "Saved Address",
-                        style: TextStyle(
-                          fontFamily: natoMedium,
-                          fontSize: 14,
-                          color: sectionHeaderColor,
-                        ),
-                      ),
+                      widget.addresses.isNotEmpty
+                          ? const Text(
+                              "Saved Address",
+                              style: TextStyle(
+                                fontFamily: natoMedium,
+                                fontSize: 14,
+                                color: sectionHeaderColor,
+                              ),
+                            )
+                          : Container(),
 
                       const SizedBox(height: 10),
 
                       // Saved Address cards list
                       Column(
                         children: widget.addresses.map((address) {
-                          final isSelected = selectedTitle == address.title;
-
+                          final isSelected = selectedAddressId == address.id;
                           return GestureDetector(
                             onTap: () {
                               setState(() {
-                                selectedTitle = address.title;
+                                selectedAddressId = address.id;
+                                selectedTitle = address.type;
                               });
                               widget.onSelect(address);
                             },
@@ -567,7 +569,7 @@ class _AddressSelectionBottomSheetState
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          address.title,
+                                          address.type,
                                           style: const TextStyle(
                                             fontFamily: natoBold,
                                             fontSize: 15,
@@ -576,7 +578,7 @@ class _AddressSelectionBottomSheetState
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          address.subtitle,
+                                          address.address,
                                           style: const TextStyle(
                                             fontFamily: natoRegular,
                                             fontSize: 13,
@@ -740,17 +742,6 @@ class BillDetailsBottomSheet extends StatelessWidget {
                           ),
                         );
 
-                        // Packaging Charge
-                        items.add(
-                          Padding(
-                            padding: const EdgeInsets.only(top: 16.0),
-                            child: _buildBillRow(
-                              label: "Packaging Charge",
-                              value: "₹${controller.packagingCharge.toInt()}",
-                            ),
-                          ),
-                        );
-
                         // Coupon Discount (only if > 0)
                         if (controller.promoDiscount.value > 0.0) {
                           items.add(
@@ -765,13 +756,35 @@ class BillDetailsBottomSheet extends StatelessWidget {
                           );
                         }
 
-                        // GST
+                        // Packaging Charge
                         items.add(
                           Padding(
                             padding: const EdgeInsets.only(top: 16.0),
                             child: _buildBillRow(
-                              label: "GST",
-                              value: "₹${controller.gst.toInt()}",
+                              label: "Packaging Charge",
+                              value: "₹${controller.packagingCharge.toInt()}",
+                            ),
+                          ),
+                        );
+
+                        // CGST
+                        items.add(
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16.0),
+                            child: _buildBillRow(
+                              label: "CGST(2.5%)",
+                              value: "₹${controller.cgst.toInt()}",
+                            ),
+                          ),
+                        );
+
+                        // SGST
+                        items.add(
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16.0),
+                            child: _buildBillRow(
+                              label: "SGST(2.5%)",
+                              value: "₹${controller.sgst.toInt()}",
                             ),
                           ),
                         );
@@ -1096,6 +1109,7 @@ class PaymentMethodBottomSheet extends StatelessWidget {
 }
 
 class OrderDetailScreenController extends GetxController {
+  final storage = GetStorage();
   RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
       ? Get.find<CartController>().cartItems
       : <CartItem>[].obs;
@@ -1110,16 +1124,15 @@ class OrderDetailScreenController extends GetxController {
   final deliveryTime = "Delivering now".obs;
   final selectedScheduleDate = "Tomorrow".obs;
   final selectedScheduleTime = "12:30 PM - 12:45 PM".obs;
-  final addressTitle = "Other".obs;
   final paymentMethod = "Cash on delivery".obs;
-  final addressSubtitle =
-      "201 Jaynath Complex, Gondal Rd, Makkam Chowk, Rajkot, Gujarat 360002"
-          .obs;
+  final selectedAddressId = 0.obs;
+  final addressTitle = "".obs;
+  final addressSubtitle = "".obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadAddress();
+    getUserAddress();
   }
 
   @override
@@ -1129,21 +1142,71 @@ class OrderDetailScreenController extends GetxController {
     super.onClose();
   }
 
-  void _loadAddress() {
-    userAddressList.assignAll([
-      SavedAddress(
-        title: "Home",
-        subtitle:
-            "Aditya Mehta, 123, Sunrise Apartments, Yagnik Road, Rajkot - 360001",
-        icon: AppImages().homeIcon,
-      ),
-      SavedAddress(
-        title: "Other",
-        subtitle:
-            "201 Jaynath Complex, Gondal Rd, Makkam Chowk, Rajkot, Gujarat 360002",
-        icon: AppImages().homeIcon,
-      ),
-    ]);
+  Future<void> getUserAddress() async {
+    try {
+      userAddressList.clear();
+      final response = await http.get(
+        Uri.parse(ApiServices.getUserAddress),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getUserAddress Response status: ${response.statusCode}');
+      print('getUserAddress Response body: ${response.body}');
+      if (response.statusCode != 200) {
+        userAddressList.clear();
+        return;
+      }
+      final data = jsonDecode(response.body);
+      if (data['success'] != true || data['data'] is! List) {
+        userAddressList.clear();
+        return;
+      }
+      final addresses = data['data'] as List;
+      userAddressList.assignAll(
+        addresses.map<SavedAddress>((address) {
+          final type = address['type']?.toString() ?? '';
+          final icon = switch (type) {
+            'Home' => AppImages().homeIcon,
+            'Work' => AppImages().workIcon,
+            _ => AppImages().locationIcon,
+          };
+          final subtitle =
+              [
+                    address['houseNo'],
+                    address['appartment'],
+                    address['landmark'],
+                    address['city'],
+                  ]
+                  .where(
+                    (value) =>
+                        value != null && value.toString().trim().isNotEmpty,
+                  )
+                  .join(', ');
+          final pinCode = address['pinCode']?.toString() ?? '';
+          return SavedAddress(
+            id: address['id'],
+            type: type,
+            address: '$subtitle - $pinCode.',
+            icon: icon,
+            isDefault: address['isDefault'],
+          );
+        }),
+      );
+      if (userAddressList.isNotEmpty) {
+        final defaultAddress = userAddressList.firstWhere(
+          (element) => element.isDefault,
+          orElse: () => userAddressList.first,
+        );
+        selectedAddressId.value = defaultAddress.id;
+        addressTitle.value = defaultAddress.type;
+        addressSubtitle.value = defaultAddress.address;
+      }
+    } catch (e) {
+      userAddressList.clear();
+      print('getUserAddress Error: $e');
+    }
   }
 
   void incrementQuantity(CartItem item) {
@@ -1240,7 +1303,7 @@ class OrderDetailScreenController extends GetxController {
       return;
     }
     Get.offAndToNamed(Routes.homeScreen);
-    Future.delayed(const Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       Get.snackbar(
         "Success",
         "Order placed successfully! Total: ₹${totalBill.toInt()}",
@@ -1277,13 +1340,21 @@ class OrderDetailScreenController extends GetxController {
       ctx,
       addresses: userAddressList,
       selectedTitle: addressTitle.value,
+      selectedAddressId: selectedAddressId.value,
       onSelect: (address) {
-        addressTitle.value = address.title;
-        addressSubtitle.value = address.subtitle;
+        selectedAddressId.value = address.id;
+        addressTitle.value = address.type;
+        addressSubtitle.value = address.address;
         Get.back();
       },
       onAddNewAddress: () {
         Get.back();
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (Get.isRegistered<AddressSelectionScreenController>()) {
+            Get.delete<AddressSelectionScreenController>();
+          }
+          Get.toNamed(Routes.addressSelectionScreen);
+        });
       },
     );
   }
@@ -1305,8 +1376,15 @@ class OrderDetailScreenController extends GetxController {
 
   double get packagingCharge => 20.0;
 
-  double get gst => 20.0;
+  double get cgst => 20.0;
+
+  double get sgst => 20.0;
 
   double get totalBill =>
-      subtotal + deliveryFee + packagingCharge + gst - promoDiscount.value;
+      subtotal +
+      deliveryFee +
+      packagingCharge +
+      cgst +
+      sgst -
+      promoDiscount.value;
 }

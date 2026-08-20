@@ -151,9 +151,18 @@ class AppPages {
       page: () => const HomeScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut<HomeScreenController>(() => HomeScreenController());
-        Get.lazyPut<DeliveryScreenController>(() => DeliveryScreenController());
-        Get.lazyPut<DiningScreenController>(() => DiningScreenController());
-        Get.lazyPut<ProfileScreenController>(() => ProfileScreenController());
+        Get.put<DeliveryScreenController>(
+          DeliveryScreenController(),
+          permanent: true,
+        );
+        Get.put<DiningScreenController>(
+          DiningScreenController(),
+          permanent: true,
+        );
+        Get.put<ProfileScreenController>(
+          ProfileScreenController(),
+          permanent: true,
+        );
       }),
     ),
     GetPage(

@@ -36,8 +36,6 @@ class DiningScreen extends GetView<DiningScreenController> {
                     Obx(
                       () => controller.activeTab.value == "Offers"
                           ? _buildCarouselSlider()
-                          : controller.activeTab.value == "Photos"
-                          ? _buildPhotosGrid()
                           : _buildReviewsSection(),
                     ),
 
@@ -325,98 +323,6 @@ class DiningScreen extends GetView<DiningScreenController> {
         ),
         const SizedBox(height: 20),
       ],
-    );
-  }
-
-  Widget _buildPhotosGrid() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 20),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Large left image
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    AppImages().outletOneImg,
-                    height: 176,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Two right images
-              Expanded(
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        AppImages().outletTwoImg,
-                        height: 84,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        AppImages().outletThreeImg,
-                        height: 84,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Bottom row of 3 images
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    AppImages().outletFourImg,
-                    height: 84,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    AppImages().outletFiveImg,
-                    height: 84,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    AppImages().outletSixImg,
-                    height: 84,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 

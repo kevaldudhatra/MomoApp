@@ -106,7 +106,7 @@ class FAQScreen extends GetView<FaqScreenController> {
                     const SizedBox(width: 12),
                     AnimatedRotation(
                       turns: item.isExpanded.value ? 0.5 : 0,
-                      duration: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 250),
                       child: Image.asset(
                         AppImages().dropDownArrowIcon,
                         width: 25,

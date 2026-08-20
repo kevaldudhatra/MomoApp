@@ -20,13 +20,12 @@ class DiningScreenController extends GetxController {
   final activeTab = "Offers".obs;
   final carouselPage = 0.obs;
   final reviewsList = <DiningReview>[].obs;
-
-  final List<String> tabOptions = ["Offers", "Photos", "Reviews"];
+  final List<String> tabOptions = ["Offers", "Reviews"];
 
   @override
   void onInit() {
-    super.onInit();
     _loadReviews();
+    super.onInit();
   }
 
   void _loadReviews() {

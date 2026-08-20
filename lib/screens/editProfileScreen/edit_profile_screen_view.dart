@@ -149,16 +149,23 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
                       const SizedBox(height: 20),
 
                       // Phone Number Input (Read-only)
-                      CustomTextField(
-                        labelText: "Phone Number",
-                        hintText: "Enter phone number",
-                        textEditingController: controller.phoneController,
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        readOnly: true,
-                        fillColor: background,
-                      ),
-                      const SizedBox(height: 20),
+                      controller.userData['loginType'] == 'phone'
+                          ? Column(
+                              children: [
+                                CustomTextField(
+                                  labelText: "Phone Number",
+                                  hintText: "Enter phone number",
+                                  textEditingController:
+                                      controller.phoneController,
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.done,
+                                  readOnly: true,
+                                  fillColor: background,
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+                            )
+                          : Container(),
 
                       // Change Password Link
                       Align(

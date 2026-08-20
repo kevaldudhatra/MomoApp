@@ -5,6 +5,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
+import 'package:momos/widgets/loading_view.dart';
 
 class AddressSelectionScreen extends GetView<AddressSelectionScreenController> {
   const AddressSelectionScreen({super.key});
@@ -52,126 +53,151 @@ class AddressSelectionScreen extends GetView<AddressSelectionScreenController> {
                 ),
               ),
               const Divider(height: 1, thickness: 1, color: borderGray),
-
-              // Scrollable Content
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Quick Actions Card (Current Location & Add New Address)
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: cardShadow,
-                                blurRadius: 8,
-                                spreadRadius: 0,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: Column(
-                            children: [
-                              // Current Location Row
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => controller.useCurrentLocation(),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Row(
-                                      children: [
-                                        Image.asset(
-                                          AppImages().currentLocationIcon,
-                                          width: 22,
-                                          height: 22,
-                                          color: orange,
-                                        ),
-                                        const SizedBox(width: 16),
-                                        const Text(
-                                          "Use my current location",
-                                          style: TextStyle(
-                                            color: orange,
-                                            fontSize: 15,
-                                            fontFamily: natoMedium,
+              Obx(
+                () => controller.mainLoading.value
+                    ? SizedBox(
+                        height: Get.height * 0.70,
+                        width: double.infinity,
+                        child: const Center(child: LoadingDialog()),
+                      )
+                    : Expanded(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Quick Actions Card (Current Location & Add New Address)
+                                Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: cardShadow,
+                                        blurRadius: 8,
+                                        spreadRadius: 0,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Column(
+                                    children: [
+                                      // Current Location Row
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () =>
+                                              controller.useCurrentLocation(),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: Row(
+                                              children: [
+                                                Image.asset(
+                                                  AppImages()
+                                                      .currentLocationIcon,
+                                                  width: 22,
+                                                  height: 22,
+                                                  color: orange,
+                                                ),
+                                                const SizedBox(width: 16),
+                                                const Text(
+                                                  "Use my current location",
+                                                  style: TextStyle(
+                                                    color: orange,
+                                                    fontSize: 15,
+                                                    fontFamily: natoMedium,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                      const Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color: borderGray,
+                                      ),
+                                      // Add New Address Row
+                                      Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () =>
+                                              controller.addNewAddress(),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: Row(
+                                              children: [
+                                                Image.asset(
+                                                  AppImages().addIcon,
+                                                  width: 20,
+                                                  height: 20,
+                                                  color: orange,
+                                                ),
+                                                const SizedBox(width: 16),
+                                                const Text(
+                                                  "Add new address",
+                                                  style: TextStyle(
+                                                    color: orange,
+                                                    fontSize: 15,
+                                                    fontFamily: natoMedium,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // List of Saved Address Cards
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 4.0),
+                                  child: Text(
+                                    "Saved Address",
+                                    style: const TextStyle(
+                                      color: charcoalGray,
+                                      fontSize: 14,
+                                      fontFamily: natoMedium,
                                     ),
                                   ),
                                 ),
-                              ),
-                              const Divider(
-                                height: 1,
-                                thickness: 1,
-                                color: borderGray,
-                              ),
-                              // Add New Address Row
-                              Material(
-                                color: Colors.transparent,
-                                child: InkWell(
-                                  onTap: () => controller.addNewAddress(),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Row(
-                                      children: [
-                                        Image.asset(
-                                          AppImages().addIcon,
-                                          width: 20,
-                                          height: 20,
-                                          color: orange,
-                                        ),
-                                        const SizedBox(width: 16),
-                                        const Text(
-                                          "Add new address",
-                                          style: TextStyle(
-                                            color: orange,
-                                            fontSize: 15,
-                                            fontFamily: natoMedium,
+                                const SizedBox(height: 8),
+                                controller.savedAddresses.isNotEmpty
+                                    ? Column(
+                                        children: controller.savedAddresses.map(
+                                          (address) {
+                                            return _buildAddressCard(address);
+                                          },
+                                        ).toList(),
+                                      )
+                                    : SizedBox(
+                                        height: Get.height * 0.35,
+                                        width: double.infinity,
+                                        child: Center(
+                                          child: Text(
+                                            "Oops!\nNo saved address found.",
+                                            style: TextStyle(
+                                              color: charcoalGray,
+                                              fontSize: 16,
+                                              fontFamily: natoMedium,
+                                            ),
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // List of Saved Address Cards
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4.0),
-                          child: Text(
-                            "Saved Address",
-                            style: const TextStyle(
-                              color: charcoalGray,
-                              fontSize: 14,
-                              fontFamily: natoMedium,
+                                      ),
+                              ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Obx(
-                          () => Column(
-                            children: controller.savedAddresses.map((address) {
-                              return _buildAddressCard(address);
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
               ),
             ],
           ),

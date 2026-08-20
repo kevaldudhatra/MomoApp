@@ -1,21 +1,28 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
+import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/utils/const_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/custom_text_field.dart';
+import 'package:momos/widgets/loading_view.dart';
+import 'package:http/http.dart' as http;
 
 class SearchAddressScreenController extends GetxController {
+  final storage = GetStorage();
   final searchController = TextEditingController();
   final houseNumberController = TextEditingController();
   final apartmentController = TextEditingController();
   final landmarkController = TextEditingController();
   final addressType = "Home".obs;
-  final addressTitle = "Ashoka Road".obs;
-  final addressSubtitle =
-      "Flat 3B, Ashirwad Tower, Justice Dwarka Nath Road".obs;
+  final addressTitle = "".obs;
+  final addressSubtitle = "".obs;
 
   @override
   void onClose() {
@@ -38,12 +45,16 @@ class SearchAddressScreenController extends GetxController {
 
     // Simulate location update
     Future.delayed(const Duration(milliseconds: 800), () {
-      addressTitle.value = "Current Location";
-      addressSubtitle.value = "Race Course Circle, Rajkot, Gujarat, 360001";
+      addressTitle.value = "Rajkot";
+      addressSubtitle.value =
+          "Galaxy complex, Near race course circle, Rajkot, Gujarat, 360001.";
+      houseNumberController.text = "Flat A1";
+      apartmentController.text = "Galaxy complex";
+      landmarkController.text = "Near race course circle";
     });
   }
 
-  void saveAddress() {
+  Future<void> saveAddress() async {
     if (houseNumberController.text.trim().isEmpty) {
       Get.snackbar(
         "Required Field",
@@ -67,11 +78,77 @@ class SearchAddressScreenController extends GetxController {
       return;
     }
 
-    // Success snackbar and close sheet
-    Get.back();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      Get.toNamed(Routes.addressSelectionScreen);
-    });
+    print("house Number : ${houseNumberController.text}");
+    print("apartment : ${apartmentController.text}");
+    print("landmark : ${landmarkController.text}");
+    print("addressType : ${addressType.value}");
+    print("addressTitle : ${addressTitle.value}");
+    print("addressSubtitle : ${addressSubtitle.value}");
+
+    await addUserAddress();
+  }
+
+  Future<void> addUserAddress() async {
+    try {
+      Get.dialog(const LoadingDialog(), barrierDismissible: false);
+      final response = await http.post(
+        Uri.parse(ApiServices.addUserAddress),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({
+          "address": apartmentController.text,
+          "type": addressType.value,
+          "latitude": 22.312842,
+          "longitude": 70.826378,
+          "houseNo": houseNumberController.text,
+          "appartment": apartmentController.text,
+          "landmark": landmarkController.text,
+          "city": "Rajkot",
+          "State": "Gujarat",
+          "country": "India",
+          "pinCode": 360003,
+          "isDefault": addressType.value == 'Home' ? true : false,
+        }),
+      );
+      print('addUserAddress Response status: ${response.statusCode}');
+      print('addUserAddress Response body: ${response.body}');
+      if (Get.isDialogOpen!) {
+        Get.back();
+      }
+      if (response.statusCode == 201) {
+        Get.back();
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (Get.isRegistered<AddressSelectionScreenController>()) {
+            Get.delete<AddressSelectionScreenController>();
+          }
+          Get.toNamed(Routes.addressSelectionScreen);
+        });
+      } else {
+        Get.snackbar(
+          "Error",
+          "Failed to add address",
+          snackPosition: SnackPosition.TOP,
+          icon: const Icon(Icons.error, color: Colors.red),
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('addUserAddress Error: $e');
+      if (Get.isDialogOpen!) {
+        Get.back();
+      }
+      Get.snackbar(
+        "Error",
+        "Failed to add address",
+        snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+    }
   }
 
   void showAddAddressBottomSheet(BuildContext context) {

@@ -109,7 +109,7 @@ class OffersScreenController extends GetxController {
     } else {
       // Navigate back passing the selected promo code
       Get.back(result: offer.code);
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 500), () {
         Get.snackbar(
           "Success",
           "Coupon code '${offer.code}' applied successfully!",

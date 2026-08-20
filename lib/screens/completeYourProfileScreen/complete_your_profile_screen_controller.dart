@@ -56,7 +56,7 @@ class CompleteYourProfileScreenController extends GetxController {
       );
       Get.dialog(const LoadingDialog(), barrierDismissible: false);
       var response = await http.put(
-        Uri.parse(ApiServices.updateProfile),
+        Uri.parse(ApiServices.getAndUpdateProfile),
         headers: {
           "Content-Type": "application/json",
           "Authorization": "${storage.read(userToken)}",

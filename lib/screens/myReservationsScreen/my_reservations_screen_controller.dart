@@ -24,7 +24,13 @@ class ReservationModel {
 
 class MyReservationsScreenController extends GetxController {
   final selectedStatus = "All".obs;
-  final statusOptions = ["All", "Pending", "Confirmed", "Cancelled"];
+  final statusOptions = [
+    "All",
+    "Pending",
+    "Confirmed",
+    "Completed",
+    "Cancelled",
+  ];
   final reservationsList = <ReservationModel>[].obs;
 
   @override
@@ -56,6 +62,17 @@ class MyReservationsScreenController extends GetxController {
         scheduledTime: "20/07/26, 07:00PM",
         placedTime: "20/07/26, 07:00PM",
         status: "Confirmed",
+      ),
+      ReservationModel(
+        id: "15312",
+        restaurantName: "Momo I AM",
+        restaurantAddress: "Alipore, Kolkata",
+        restaurantImage:
+            "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=150",
+        guests: 2,
+        scheduledTime: "20/07/26, 07:00PM",
+        placedTime: "20/07/26, 07:00PM",
+        status: "Completed",
       ),
       ReservationModel(
         id: "15312",

@@ -68,11 +68,6 @@ class AppImages {
   final termsIcon = '${images}termsIcon.png';
   final privacyIcon = '${images}privacyIcon.png';
   final outletOneImg = '${images}outletOneImg.png';
-  final outletTwoImg = '${images}outletTwoImg.png';
-  final outletThreeImg = '${images}outletThreeImg.png';
-  final outletFourImg = '${images}outletFourImg.png';
-  final outletFiveImg = '${images}outletFiveImg.png';
-  final outletSixImg = '${images}outletSixImg.png';
 
   // loading view
   final loading = '${gifJson}loading.json';

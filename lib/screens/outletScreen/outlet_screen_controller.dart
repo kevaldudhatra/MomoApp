@@ -178,7 +178,7 @@ class MenuPopupWidget extends StatelessWidget {
                           const SizedBox(width: 3),
                           AnimatedRotation(
                             turns: isExpanded ? 0.5 : 0.0,
-                            duration: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 250),
                             child: Image.asset(
                               AppImages().dropDownArrowIcon,
                               width: 20,
