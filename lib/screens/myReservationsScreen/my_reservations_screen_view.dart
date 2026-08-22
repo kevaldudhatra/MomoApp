@@ -60,25 +60,111 @@ class MyReservationsScreen extends GetView<MyReservationsScreenController> {
 
                 // Reservations List
                 Expanded(
-                  child: reservations.isEmpty
+                  child: controller.isLoading.value
+                      ? const Center(
+                          child: CircularProgressIndicator(color: orange),
+                        )
+                      : controller.hasError.value && reservations.isEmpty
                       ? Center(
-                          child: Text(
-                            "No reservations in '${controller.selectedStatus.value}'",
-                            style: const TextStyle(
-                              color: textSecondary,
-                              fontSize: 16,
-                              fontFamily: natoMedium,
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                controller.errorMessage.value.isNotEmpty
+                                    ? controller.errorMessage.value
+                                    : "Failed to load reservations",
+                                style: const TextStyle(
+                                  color: textSecondary,
+                                  fontSize: 15,
+                                  fontFamily: natoMedium,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: () => controller.fetchReservations(
+                                  page: 1,
+                                  isRefresh: true,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: orange,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "Retry",
+                                  style: TextStyle(
+                                    color: white,
+                                    fontFamily: natoMedium,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: reservations.length,
-                          itemBuilder: (context, index) {
-                            return _buildReservationCard(reservations[index]);
-                          },
+                      : reservations.isEmpty
+                      ? RefreshIndicator(
+                          onRefresh: () => controller.fetchReservations(
+                            page: 1,
+                            isRefresh: true,
+                          ),
+                          color: orange,
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.60,
+                                child: Center(
+                                  child: Text(
+                                    "You have no reservations at the moment.",
+                                    style: const TextStyle(
+                                      color: textSecondary,
+                                      fontSize: 16,
+                                      fontFamily: natoMedium,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: () => controller.fetchReservations(
+                            page: 1,
+                            isRefresh: true,
+                          ),
+                          color: orange,
+                          child: ListView.builder(
+                            controller: controller.scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount:
+                                reservations.length +
+                                (controller.isMoreLoading.value ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == reservations.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: orange,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return _buildReservationCard(reservations[index]);
+                            },
+                          ),
                         ),
                 ),
               ],

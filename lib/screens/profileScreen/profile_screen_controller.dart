@@ -167,7 +167,7 @@ class ProfileScreenController extends GetxController {
     try {
       userAddressList.clear();
       final response = await http.get(
-        Uri.parse(ApiServices.getUserAddress),
+        Uri.parse(ApiServices.userAddress),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': '${storage.read(userToken)}',

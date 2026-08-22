@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:momos/screens/searchAddressScreen/search_address_screen_controller.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/custom_text_field.dart';
+import 'package:momos/screens/searchAddressScreen/search_address_screen_controller.dart';
 
 class SearchAddressScreen extends GetView<SearchAddressScreenController> {
   const SearchAddressScreen({super.key});
@@ -58,41 +59,179 @@ class SearchAddressScreen extends GetView<SearchAddressScreenController> {
               Expanded(
                 child: Stack(
                   children: [
-                    // Map Background Image
-                    Positioned.fill(
-                      child: Image.asset(AppImages().mapImg, fit: BoxFit.cover),
+                    // Interactive Google Map
+                    Obx(
+                      () => GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: controller.selectedLocation.value,
+                          zoom: 15.0,
+                        ),
+                        onMapCreated: controller.onMapCreated,
+                        markers: controller.markers.toSet(),
+                        onTap: controller.onMapTapped,
+                        myLocationEnabled: false,
+                        myLocationButtonEnabled: false,
+                        zoomControlsEnabled: false,
+                        compassEnabled: true,
+                        mapToolbarEnabled: false,
+                      ),
                     ),
 
-                    // Floating Search Bar at the Top
+                    // Floating Search Bar & Autocomplete Suggestions at the Top
                     Positioned(
                       top: 16,
                       left: 16,
                       right: 16,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          boxShadow: const [
-                            BoxShadow(
-                              color: cardShadow,
-                              blurRadius: 8,
-                              spreadRadius: 0,
-                              offset: Offset(0, 2),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: cardShadow,
+                                  blurRadius: 8,
+                                  spreadRadius: 0,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: CustomTextField(
-                          hintText: "Search location",
-                          textEditingController: controller.searchController,
-                          keyboardType: TextInputType.webSearch,
-                          textInputAction: TextInputAction.done,
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.only(right: 5, left: 15),
-                            child: Image.asset(
-                              AppImages().searchIcon,
-                              height: 20,
-                              width: 20,
+                            child: CustomTextField(
+                              hintText: "Search location",
+                              textEditingController:
+                                  controller.searchController,
+                              keyboardType: TextInputType.webSearch,
+                              textInputAction: TextInputAction.done,
+                              onChanged: controller.onSearchChanged,
+                              prefixIcon: Padding(
+                                padding: const EdgeInsets.only(
+                                  right: 5,
+                                  left: 15,
+                                ),
+                                child: Image.asset(
+                                  AppImages().searchIcon,
+                                  height: 20,
+                                  width: 20,
+                                ),
+                              ),
+                              suffixIcon: Obx(() {
+                                if (controller.isSearchingPlaces.value) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(15),
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              orange,
+                                            ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                if (controller
+                                    .searchController
+                                    .text
+                                    .isNotEmpty) {
+                                  return GestureDetector(
+                                    onTap: controller.clearSearch,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 5,
+                                        right: 15,
+                                      ),
+                                      child: const Icon(
+                                        Icons.clear,
+                                        color: charcoalGray,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              }),
                             ),
                           ),
-                        ),
+
+                          // Places Suggestions List
+                          Obx(() {
+                            if (!controller.showSuggestions.value ||
+                                controller.placePredictions.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Container(
+                              margin: const EdgeInsets.only(top: 6),
+                              constraints: const BoxConstraints(maxHeight: 240),
+                              decoration: BoxDecoration(
+                                color: white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: cardShadow,
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: ListView.separated(
+                                  shrinkWrap: true,
+                                  padding: EdgeInsets.zero,
+                                  itemCount: controller.placePredictions.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color: borderGray,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final prediction =
+                                        controller.placePredictions[index];
+                                    return ListTile(
+                                      dense: true,
+                                      leading: const Icon(
+                                        Icons.location_on_outlined,
+                                        color: orange,
+                                        size: 22,
+                                      ),
+                                      title: Text(
+                                        prediction.mainText,
+                                        style: const TextStyle(
+                                          fontFamily: natoMedium,
+                                          fontSize: 14,
+                                          color: black,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      subtitle:
+                                          prediction.secondaryText.isNotEmpty
+                                          ? Text(
+                                              prediction.secondaryText,
+                                              style: const TextStyle(
+                                                fontFamily: natoRegular,
+                                                fontSize: 12,
+                                                color: charcoalGray,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            )
+                                          : null,
+                                      onTap: () {
+                                        FocusScope.of(context).unfocus();
+                                        controller.selectPlace(prediction);
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     ),
 

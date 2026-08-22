@@ -39,7 +39,7 @@ class AddressSelectionScreenController extends GetxController {
       mainLoading.value = true;
       savedAddresses.clear();
       final response = await http.get(
-        Uri.parse(ApiServices.getUserAddress),
+        Uri.parse(ApiServices.userAddress),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': '${storage.read(userToken)}',

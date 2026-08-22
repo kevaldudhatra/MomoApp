@@ -13,8 +13,80 @@ import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:http/http.dart' as http;
 
+// Models for dynamic delivery schedule and time slots
+class DeliverySlot {
+  final String start;
+  final String end;
+  final String label;
+  final bool isAvailable;
+  final int remaining;
+  final String? disabledReason;
+
+  const DeliverySlot({
+    required this.start,
+    required this.end,
+    required this.label,
+    this.isAvailable = true,
+    this.remaining = 0,
+    this.disabledReason,
+  });
+
+  factory DeliverySlot.fromJson(Map<String, dynamic> json) {
+    return DeliverySlot(
+      start: json['start']?.toString() ?? '',
+      end: json['end']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      isAvailable: json['isAvailable'] == true,
+      remaining: json['remaining'] is int
+          ? json['remaining']
+          : int.tryParse(json['remaining']?.toString() ?? '') ?? 0,
+      disabledReason: json['disabledReason']?.toString(),
+    );
+  }
+}
+
+class DeliveryDaySchedule {
+  final String date;
+  final String label;
+  final int day;
+  final String dayName;
+  final bool isOpen;
+  final List<DeliverySlot> slots;
+
+  const DeliveryDaySchedule({
+    required this.date,
+    required this.label,
+    required this.day,
+    required this.dayName,
+    required this.isOpen,
+    required this.slots,
+  });
+
+  factory DeliveryDaySchedule.fromJson(Map<String, dynamic> json) {
+    final rawSlots = json['slots'] as List<dynamic>? ?? [];
+    return DeliveryDaySchedule(
+      date: json['date']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      day: json['day'] is int
+          ? json['day']
+          : int.tryParse(json['day']?.toString() ?? '') ?? 0,
+      dayName: json['dayName']?.toString() ?? '',
+      isOpen: json['isOpen'] == true,
+      slots: rawSlots.map<DeliverySlot>((s) {
+        if (s is Map<String, dynamic>) {
+          return DeliverySlot.fromJson(s);
+        } else if (s is Map) {
+          return DeliverySlot.fromJson(Map<String, dynamic>.from(s));
+        }
+        return const DeliverySlot(start: '', end: '', label: '');
+      }).toList(),
+    );
+  }
+}
+
 // Bottom Sheet Widget for selecting scheduled delivery date and time.
 class DeliveryScheduleBottomSheet extends StatefulWidget {
+  final List<DeliveryDaySchedule> schedules;
   final String initialDate;
   final String initialTime;
   final Function(String selectedDate, String selectedTime) onConfirm;
@@ -23,6 +95,7 @@ class DeliveryScheduleBottomSheet extends StatefulWidget {
 
   const DeliveryScheduleBottomSheet({
     super.key,
+    required this.schedules,
     required this.initialDate,
     required this.initialTime,
     required this.onConfirm,
@@ -33,6 +106,7 @@ class DeliveryScheduleBottomSheet extends StatefulWidget {
   // Helper static method to show the bottom sheet cleanly
   static Future<void> show(
     BuildContext context, {
+    required List<DeliveryDaySchedule> schedules,
     required String initialDate,
     required String initialTime,
     required Function(String selectedDate, String selectedTime) onConfirm,
@@ -46,6 +120,7 @@ class DeliveryScheduleBottomSheet extends StatefulWidget {
       barrierColor: dialogBarrierColor,
       builder: (context) {
         return DeliveryScheduleBottomSheet(
+          schedules: schedules,
           initialDate: initialDate,
           initialTime: initialTime,
           onConfirm: onConfirm,
@@ -66,42 +141,89 @@ class DeliveryScheduleBottomSheet extends StatefulWidget {
 
 class _DeliveryScheduleBottomSheetState
     extends State<DeliveryScheduleBottomSheet> {
+  late List<DeliveryDaySchedule> _schedules;
+  late List<String> _daysList;
   late String _selectedDate;
   late int _selectedTimeIndex;
 
-  final List<String> _daysList = [
-    "Today",
-    "Tomorrow",
-    "Mon, 20 Jul",
-    "Tue, 21 Jul",
-    "Wed, 22 Jul",
-    "Thu, 23 Jul",
-  ];
+  List<DeliverySlot> get _currentSlots {
+    if (_schedules.isEmpty) return [];
+    final matchingDay = _schedules.firstWhereOrNull(
+      (s) => s.label == _selectedDate || s.date == _selectedDate,
+    );
+    return matchingDay?.slots ?? [];
+  }
 
-  // List of mock time slots
-  final List<String> _timeSlots = List.generate(
-    20,
-    (_) => "12:30 PM - 12:45 PM",
-  );
+  DeliveryDaySchedule? get _currentDaySchedule {
+    if (_schedules.isEmpty) return null;
+    return _schedules.firstWhereOrNull(
+      (s) => s.label == _selectedDate || s.date == _selectedDate,
+    );
+  }
 
   @override
   void initState() {
     super.initState();
+    _schedules = widget.schedules;
+    _daysList = _schedules
+        .map(
+          (s) => s.label.trim().isNotEmpty
+              ? s.label
+              : (s.dayName.isNotEmpty ? s.dayName : s.date),
+        )
+        .toList();
+
     _selectedDate = widget.initialDate;
-    if (_daysList.contains(_selectedDate) == false) {
-      _selectedDate = _daysList[1]; // Default to "Tomorrow" if not found
+    if (!_daysList.contains(_selectedDate)) {
+      final firstOpenWithSlots = _schedules.firstWhereOrNull(
+        (s) => s.isOpen && s.slots.any((slot) => slot.isAvailable),
+      );
+      if (firstOpenWithSlots != null) {
+        _selectedDate = firstOpenWithSlots.label.isNotEmpty
+            ? firstOpenWithSlots.label
+            : firstOpenWithSlots.date;
+      } else if (_daysList.isNotEmpty) {
+        _selectedDate = _daysList.first;
+      } else {
+        _selectedDate = "Today";
+      }
     }
 
-    _selectedTimeIndex = _timeSlots.indexOf(widget.initialTime);
-    if (_selectedTimeIndex == -1) {
-      _selectedTimeIndex =
-          2; // Default to index 2 (matching the screenshot selection)
+    _updateSelectedTimeIndex(initialTime: widget.initialTime);
+  }
+
+  void _updateSelectedTimeIndex({String? initialTime}) {
+    final slots = _currentSlots;
+    if (slots.isEmpty) {
+      _selectedTimeIndex = -1;
+      return;
     }
+
+    if (initialTime != null && initialTime.isNotEmpty) {
+      final index = slots.indexWhere((s) => s.label == initialTime);
+      if (index != -1 && slots[index].isAvailable) {
+        _selectedTimeIndex = index;
+        return;
+      }
+    }
+
+    final firstAvailable = slots.indexWhere((s) => s.isAvailable);
+    _selectedTimeIndex = firstAvailable != -1 ? firstAvailable : 0;
+  }
+
+  void _onDaySelected(String day) {
+    if (_selectedDate == day) return;
+    setState(() {
+      _selectedDate = day;
+      _updateSelectedTimeIndex();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final currentDay = _currentDaySchedule;
+    final slots = _currentSlots;
 
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
@@ -164,102 +286,206 @@ class _DeliveryScheduleBottomSheetState
                   ),
 
                   // Horizontal Days Selector Row
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(
-                      left: 20,
-                      right: 20,
-                      bottom: 16,
-                    ),
-                    child: Row(
-                      children: _daysList.map((day) {
-                        final isSelected = _selectedDate == day;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedDate = day;
-                            });
-                          },
-                          child: Container(
-                            margin: const EdgeInsets.only(right: 12),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected ? orange : white,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isSelected ? orange : borderGray,
-                                width: 1,
+                  if (_daysList.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      child: Text(
+                        "No delivery schedule available",
+                        style: TextStyle(
+                          fontFamily: natoRegular,
+                          fontSize: 14,
+                          color: textSecondary,
+                        ),
+                      ),
+                    )
+                  else
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        bottom: 16,
+                      ),
+                      child: Row(
+                        children: _schedules.map((schedule) {
+                          final dayLabel = schedule.label.trim().isNotEmpty
+                              ? schedule.label
+                              : (schedule.dayName.isNotEmpty
+                                    ? schedule.dayName
+                                    : schedule.date);
+                          final isSelected = _selectedDate == dayLabel;
+                          final isOpen = schedule.isOpen;
+
+                          return GestureDetector(
+                            onTap: () => _onDaySelected(dayLabel),
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected ? orange : white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isSelected ? orange : borderGray,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                dayLabel,
+                                style: TextStyle(
+                                  fontFamily: natoMedium,
+                                  fontSize: 14,
+                                  color: isSelected
+                                      ? white
+                                      : (isOpen ? charcoalGray : textSecondary),
+                                ),
                               ),
                             ),
-                            child: Text(
-                              day,
-                              style: TextStyle(
-                                fontFamily: natoMedium,
-                                fontSize: 14,
-                                color: isSelected ? white : charcoalGray,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        }).toList(),
+                      ),
                     ),
-                  ),
 
                   // Divider Line
                   const Divider(height: 1, thickness: 1, color: borderGray),
 
-                  // Scrollable Grid of Time Slots
+                  // Scrollable Grid of Time Slots or Status Message
                   Flexible(
-                    child: GridView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 4,
-                          ),
-                      itemCount: _timeSlots.length,
-                      itemBuilder: (context, index) {
-                        final slot = _timeSlots[index];
-                        final isSelected = _selectedTimeIndex == index;
-
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedTimeIndex = index;
-                            });
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: white,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isSelected ? orange : borderGray,
-                                width: isSelected ? 1.5 : 1,
+                    child: currentDay?.isOpen == false
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.store_mall_directory_outlined,
+                                    size: 40,
+                                    color: textSecondary,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    "Store is closed on this day",
+                                    style: TextStyle(
+                                      fontFamily: natoMedium,
+                                      fontSize: 15,
+                                      color: charcoalGray,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    "Please choose another delivery date",
+                                    style: TextStyle(
+                                      fontFamily: natoRegular,
+                                      fontSize: 13,
+                                      color: textSecondary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: Center(
-                              child: Text(
-                                slot,
-                                style: TextStyle(
-                                  fontFamily: isSelected
-                                      ? natoMedium
-                                      : natoRegular,
-                                  fontSize: 14,
-                                  color: isSelected ? orange : charcoalGray,
+                          )
+                        : slots.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.access_time_outlined,
+                                    size: 40,
+                                    color: textSecondary,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    "No time slots available",
+                                    style: TextStyle(
+                                      fontFamily: natoMedium,
+                                      fontSize: 15,
+                                      color: charcoalGray,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    "Please choose another delivery date",
+                                    style: TextStyle(
+                                      fontFamily: natoRegular,
+                                      fontSize: 13,
+                                      color: textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : GridView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 4,
                                 ),
-                              ),
-                            ),
+                            itemCount: slots.length,
+                            itemBuilder: (context, index) {
+                              final slot = slots[index];
+                              final isSelected = _selectedTimeIndex == index;
+                              final isAvailable = slot.isAvailable;
+
+                              return GestureDetector(
+                                onTap: isAvailable
+                                    ? () {
+                                        setState(() {
+                                          _selectedTimeIndex = index;
+                                        });
+                                      }
+                                    : null,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isAvailable
+                                        ? white
+                                        : segmentedBg.withValues(alpha: 0.5),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? orange
+                                          : (isAvailable
+                                                ? borderGray
+                                                : borderGray.withValues(
+                                                    alpha: 0.5,
+                                                  )),
+                                      width: isSelected ? 1.5 : 1,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      slot.label,
+                                      style: TextStyle(
+                                        fontFamily: isSelected
+                                            ? natoMedium
+                                            : natoRegular,
+                                        fontSize: 14,
+                                        color: isSelected
+                                            ? orange
+                                            : (isAvailable
+                                                  ? charcoalGray
+                                                  : lightGray),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
                   ),
 
                   // Bottom Action Buttons Area
@@ -308,8 +534,23 @@ class _DeliveryScheduleBottomSheetState
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
+                                if (slots.isEmpty ||
+                                    _selectedTimeIndex < 0 ||
+                                    _selectedTimeIndex >= slots.length ||
+                                    !slots[_selectedTimeIndex].isAvailable) {
+                                  Get.snackbar(
+                                    "Schedule Delivery",
+                                    "Please select an available delivery time slot",
+                                    snackPosition: SnackPosition.TOP,
+                                    backgroundColor: charcoalGray.withValues(
+                                      alpha: 0.9,
+                                    ),
+                                    colorText: Colors.white,
+                                  );
+                                  return;
+                                }
                                 final selectedTime =
-                                    _timeSlots[_selectedTimeIndex];
+                                    slots[_selectedTimeIndex].label;
                                 widget.onConfirm(_selectedDate, selectedTime);
                               },
                               behavior: HitTestBehavior.opaque,
@@ -318,7 +559,13 @@ class _DeliveryScheduleBottomSheetState
                                   vertical: 12,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: orange,
+                                  color:
+                                      (slots.isNotEmpty &&
+                                          _selectedTimeIndex >= 0 &&
+                                          _selectedTimeIndex < slots.length &&
+                                          slots[_selectedTimeIndex].isAvailable)
+                                      ? orange
+                                      : orange.withValues(alpha: 0.5),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Center(
@@ -1119,11 +1366,12 @@ class OrderDetailScreenController extends GetxController {
       : <MenuCategory>[].obs;
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
+  final scheduleList = <DeliveryDaySchedule>[].obs;
   final userAddressList = <SavedAddress>[].obs;
   final promoDiscount = 0.0.obs;
   final deliveryTime = "Delivering now".obs;
-  final selectedScheduleDate = "Tomorrow".obs;
-  final selectedScheduleTime = "12:30 PM - 12:45 PM".obs;
+  final selectedScheduleDate = "Today".obs;
+  final selectedScheduleTime = "".obs;
   final paymentMethod = "Cash on delivery".obs;
   final selectedAddressId = 0.obs;
   final addressTitle = "".obs;
@@ -1132,6 +1380,7 @@ class OrderDetailScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    getDeliverySlots(1);
     getUserAddress();
   }
 
@@ -1142,11 +1391,63 @@ class OrderDetailScreenController extends GetxController {
     super.onClose();
   }
 
+  Future<void> getDeliverySlots(int outletId) async {
+    try {
+      scheduleList.clear();
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getDeliverySlots.replaceAll(
+            '{outletId}',
+            outletId.toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getDeliverySlots Response status: ${response.statusCode}');
+      print('getDeliverySlots Response body: ${response.body}');
+      if (response.statusCode != 200) {
+        scheduleList.clear();
+        return;
+      }
+      final data = jsonDecode(response.body);
+      if (data['success'] != true ||
+          data['data'] == null ||
+          data['data']['dates'] is! List) {
+        scheduleList.clear();
+        return;
+      }
+      final schedule = data['data']['dates'] as List;
+      scheduleList.assignAll(
+        schedule.map<DeliveryDaySchedule>((e) {
+          if (e is Map<String, dynamic>) {
+            return DeliveryDaySchedule.fromJson(e);
+          } else if (e is Map) {
+            return DeliveryDaySchedule.fromJson(Map<String, dynamic>.from(e));
+          }
+          return const DeliveryDaySchedule(
+            date: '',
+            label: '',
+            day: 0,
+            dayName: '',
+            isOpen: false,
+            slots: [],
+          );
+        }).toList(),
+      );
+    } catch (e) {
+      scheduleList.clear();
+      print('getDeliverySlots Error: $e');
+    }
+  }
+
   Future<void> getUserAddress() async {
     try {
       userAddressList.clear();
       final response = await http.get(
-        Uri.parse(ApiServices.getUserAddress),
+        Uri.parse(ApiServices.userAddress),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': '${storage.read(userToken)}',
@@ -1319,6 +1620,7 @@ class OrderDetailScreenController extends GetxController {
   void showScheduleBottomSheet(BuildContext context) {
     DeliveryScheduleBottomSheet.show(
       context,
+      schedules: scheduleList,
       initialDate: selectedScheduleDate.value,
       initialTime: selectedScheduleTime.value,
       onConfirm: (date, time) {
@@ -1372,6 +1674,7 @@ class OrderDetailScreenController extends GetxController {
   // Calculated values
   double get subtotal =>
       cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
+
   double get deliveryFee => 0.0;
 
   double get packagingCharge => 20.0;

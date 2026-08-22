@@ -1,4 +1,10 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:momos/network/api_services.dart';
+import 'package:momos/utils/const_key.dart';
+import 'package:http/http.dart' as http;
 
 class ReservationModel {
   final String id;
@@ -20,9 +26,35 @@ class ReservationModel {
     required this.placedTime,
     required this.status,
   });
+
+  factory ReservationModel.fromJson(Map<String, dynamic> json) {
+    return ReservationModel(
+      id: json['id']?.toString() ?? '',
+      restaurantName: json['restaurantName']?.toString() ?? '',
+      restaurantAddress: json['restaurantAddress']?.toString() ?? '',
+      restaurantImage: json['restaurantImage']?.toString() ?? '',
+      guests: json['guests'] is int
+          ? json['guests']
+          : int.tryParse(json['guests']?.toString() ?? '') ?? 1,
+      scheduledTime: json['scheduledTime']?.toString() ?? '',
+      placedTime: json['placedTime']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
+    );
+  }
 }
 
 class MyReservationsScreenController extends GetxController {
+  final storage = GetStorage();
+  final scrollController = ScrollController();
+  final reservationsList = <ReservationModel>[].obs;
+  final isLoading = false.obs;
+  final isMoreLoading = false.obs;
+  final isNextPage = false.obs;
+  final activeCount = 0.obs;
+  final currentPage = 1.obs;
+  final limit = 10.obs;
+  final hasError = false.obs;
+  final errorMessage = "".obs;
   final selectedStatus = "All".obs;
   final statusOptions = [
     "All",
@@ -31,72 +63,115 @@ class MyReservationsScreenController extends GetxController {
     "Completed",
     "Cancelled",
   ];
-  final reservationsList = <ReservationModel>[].obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadMockReservations();
+    scrollController.addListener(_scrollListener);
+    fetchReservations(page: 1, isRefresh: true);
+    ever(selectedStatus, (_) {
+      fetchReservations(page: 1, isRefresh: true);
+    });
   }
 
-  void _loadMockReservations() {
-    reservationsList.assignAll([
-      ReservationModel(
-        id: "15312",
-        restaurantName: "Momo I AM",
-        restaurantAddress: "Alipore, Kolkata",
-        restaurantImage:
-            "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=150",
-        guests: 2,
-        scheduledTime: "20/07/26, 07:00PM",
-        placedTime: "20/07/26, 07:00PM",
-        status: "Pending",
-      ),
-      ReservationModel(
-        id: "15312",
-        restaurantName: "Momo I AM",
-        restaurantAddress: "Alipore, Kolkata",
-        restaurantImage:
-            "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=150",
-        guests: 2,
-        scheduledTime: "20/07/26, 07:00PM",
-        placedTime: "20/07/26, 07:00PM",
-        status: "Confirmed",
-      ),
-      ReservationModel(
-        id: "15312",
-        restaurantName: "Momo I AM",
-        restaurantAddress: "Alipore, Kolkata",
-        restaurantImage:
-            "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=150",
-        guests: 2,
-        scheduledTime: "20/07/26, 07:00PM",
-        placedTime: "20/07/26, 07:00PM",
-        status: "Completed",
-      ),
-      ReservationModel(
-        id: "15312",
-        restaurantName: "Momo I AM",
-        restaurantAddress: "Alipore, Kolkata",
-        restaurantImage:
-            "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&q=80&w=150",
-        guests: 2,
-        scheduledTime: "20/07/26, 07:00PM",
-        placedTime: "20/07/26, 07:00PM",
-        status: "Cancelled",
-      ),
-    ]);
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
+  }
+
+  void _scrollListener() {
+    if (scrollController.hasClients &&
+        scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 200) {
+      if (!isLoading.value && !isMoreLoading.value && isNextPage.value) {
+        fetchReservations(page: currentPage.value + 1);
+      }
+    }
+  }
+
+  Future<void> fetchReservations({int page = 1, bool isRefresh = false}) async {
+    if (isLoading.value || isMoreLoading.value) return;
+    if (isRefresh || page == 1) {
+      isLoading.value = true;
+      hasError.value = false;
+      errorMessage.value = "";
+    } else {
+      isMoreLoading.value = true;
+    }
+    try {
+      final statusParam = selectedStatus.value.toLowerCase() == 'all'
+          ? 'all'
+          : selectedStatus.value;
+      final url = ApiServices.getReservations
+          .replaceAll('{page}', page.toString())
+          .replaceAll('{status}', statusParam);
+
+      print('fetchReservations URL: $url');
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('fetchReservations Status: ${response.statusCode}');
+      print('fetchReservations Body: ${response.body}');
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'];
+          final rawReservations = data['reservations'] as List<dynamic>? ?? [];
+          final newItems = rawReservations.map<ReservationModel>((item) {
+            if (item is Map<String, dynamic>) {
+              return ReservationModel.fromJson(item);
+            } else if (item is Map) {
+              return ReservationModel.fromJson(Map<String, dynamic>.from(item));
+            }
+            return ReservationModel.fromJson({});
+          }).toList();
+          currentPage.value = data['page'] is int
+              ? data['page']
+              : int.tryParse(data['page']?.toString() ?? '') ?? page;
+          limit.value = data['limit'] is int
+              ? data['limit']
+              : int.tryParse(data['limit']?.toString() ?? '') ?? 10;
+          isNextPage.value = data['isNextPage'] == true;
+          activeCount.value = data['activeCount'] is int
+              ? data['activeCount']
+              : int.tryParse(data['activeCount']?.toString() ?? '') ?? 0;
+          if (isRefresh || page == 1) {
+            reservationsList.assignAll(newItems);
+          } else {
+            reservationsList.addAll(newItems);
+          }
+        } else {
+          if (isRefresh || page == 1) {
+            reservationsList.clear();
+          }
+          isNextPage.value = false;
+        }
+      } else {
+        hasError.value = true;
+        errorMessage.value = "Failed to fetch reservations";
+        if (isRefresh || page == 1) {
+          reservationsList.clear();
+        }
+      }
+    } catch (e) {
+      print('fetchReservations Error: $e');
+      hasError.value = true;
+      errorMessage.value = e.toString();
+      if (isRefresh || page == 1) {
+        reservationsList.clear();
+      }
+    } finally {
+      isLoading.value = false;
+      isMoreLoading.value = false;
+    }
   }
 
   List<ReservationModel> get filteredReservations {
-    if (selectedStatus.value == "All") {
-      return reservationsList;
-    }
-    return reservationsList
-        .where(
-          (res) =>
-              res.status.toLowerCase() == selectedStatus.value.toLowerCase(),
-        )
-        .toList();
+    return reservationsList;
   }
 }

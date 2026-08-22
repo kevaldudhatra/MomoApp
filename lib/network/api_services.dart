@@ -11,8 +11,11 @@ class ApiServices {
   static String forgotPassword = '$baseUrl/public/api/v1/user/forgot-password';
   static String resetPassword = '$baseUrl/api/v1/user/reset-password';
   static String getAndUpdateProfile = '$baseUrl/api/v1/user/profile';
-  static String getUserAddress = '$baseUrl/api/v1/user/addresses';
-  static String addUserAddress = '$baseUrl/api/v1/user/addresses';
+  static String userAddress = '$baseUrl/api/v1/user/addresses';
   static String verifyForgotOtp =
       '$baseUrl/public/api/v1/user/verify-forgot-password-otp';
+  static String getDeliverySlots =
+      '$baseUrl/api/v1/user/outlates/{outletId}/delivery-slots';
+  static String getReservations =
+      '$baseUrl/api/v1/user/reservations?limit=10&page={page}&status={status}';
 }
