@@ -6,6 +6,7 @@ import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
 import 'package:momos/screens/cartManagement/cart_controller.dart';
+import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
@@ -81,6 +82,37 @@ class DeliveryDaySchedule {
         return const DeliverySlot(start: '', end: '', label: '');
       }).toList(),
     );
+  }
+}
+
+// Model for dynamic payment methods
+class PaymentMethodItem {
+  final int id;
+  final String name;
+
+  PaymentMethodItem({required this.id, required this.name});
+
+  factory PaymentMethodItem.fromJson(Map<String, dynamic> json) {
+    return PaymentMethodItem(
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      name: json['name'],
+    );
+  }
+
+  String get iconPath {
+    final lowerName = name.toLowerCase();
+    if (lowerName.contains('cash')) {
+      return AppImages().codIcon;
+    } else if (lowerName.contains('wallet')) {
+      return AppImages().walletIcon;
+    } else if (lowerName.contains('phonepe')) {
+      return AppImages().phonePeIcon;
+    } else if (lowerName.contains('gpay')) {
+      return AppImages().gPeIcon;
+    }
+    return AppImages().paymentIcon;
   }
 }
 
@@ -1126,20 +1158,29 @@ class BillDetailsBottomSheet extends StatelessWidget {
 }
 
 // Bottom Sheet Widget for selecting a payment method.
-class PaymentMethodBottomSheet extends StatelessWidget {
-  final OrderDetailScreenController controller;
+class PaymentMethodBottomSheet extends StatefulWidget {
+  final List<PaymentMethodItem> paymentMethods;
+  final String selectedMethod;
+  final int selectedPaymentId;
+  final Function(PaymentMethodItem method) onSelect;
   final VoidCallback onClose;
 
   const PaymentMethodBottomSheet({
     super.key,
-    required this.controller,
+    required this.paymentMethods,
+    required this.selectedMethod,
+    required this.selectedPaymentId,
+    required this.onSelect,
     required this.onClose,
   });
 
   // Helper static method to display the bottom sheet cleanly
   static Future<void> show(
-    BuildContext context,
-    OrderDetailScreenController controller, {
+    BuildContext context, {
+    required List<PaymentMethodItem> paymentMethods,
+    required String selectedMethod,
+    required int selectedPaymentId,
+    required Function(PaymentMethodItem method) onSelect,
     VoidCallback? onClose,
   }) {
     return showModalBottomSheet(
@@ -1149,7 +1190,10 @@ class PaymentMethodBottomSheet extends StatelessWidget {
       barrierColor: dialogBarrierColor,
       builder: (context) {
         return PaymentMethodBottomSheet(
-          controller: controller,
+          paymentMethods: paymentMethods,
+          selectedMethod: selectedMethod,
+          selectedPaymentId: selectedPaymentId,
+          onSelect: onSelect,
           onClose: () {
             onClose?.call();
             Navigator.of(context).pop();
@@ -1157,6 +1201,22 @@ class PaymentMethodBottomSheet extends StatelessWidget {
         );
       },
     );
+  }
+
+  @override
+  State<PaymentMethodBottomSheet> createState() =>
+      _PaymentMethodBottomSheetState();
+}
+
+class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
+  int? selectedPaymentId;
+  String? selectedMethod;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedPaymentId = widget.selectedPaymentId;
+    selectedMethod = widget.selectedMethod;
   }
 
   @override
@@ -1170,7 +1230,7 @@ class PaymentMethodBottomSheet extends StatelessWidget {
         children: [
           // Floating Circular Close Button positioned above the bottom sheet
           GestureDetector(
-            onTap: onClose,
+            onTap: widget.onClose,
             behavior: HitTestBehavior.opaque,
             child: Container(
               width: 44,
@@ -1229,60 +1289,59 @@ class PaymentMethodBottomSheet extends StatelessWidget {
                       ),
 
                       // Card-like White Container for options
-                      Obx(() {
-                        final selectedMethod = controller.paymentMethod.value;
-                        return Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 18.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: white,
-                            borderRadius: BorderRadius.circular(16.0),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: cardShadow,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 18.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: white,
+                          borderRadius: BorderRadius.circular(16.0),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: cardShadow,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.paymentMethods.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20.0),
+                                child: Text(
+                                  "No payment methods available",
+                                  style: TextStyle(
+                                    fontFamily: natoRegular,
+                                    fontSize: 14,
+                                    color: charcoalGray,
+                                  ),
+                                ),
+                              )
+                            else
+                              ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: widget.paymentMethods.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 18),
+                                itemBuilder: (context, index) {
+                                  final method = widget.paymentMethods[index];
+                                  final isSelected =
+                                      selectedPaymentId == method.id;
+                                  return _buildPaymentRow(
+                                    context: context,
+                                    method: method,
+                                    isSelected: isSelected,
+                                  );
+                                },
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildPaymentRow(
-                                context: context,
-                                label: "Cash on delivery",
-                                iconPath: AppImages().codIcon,
-                                isSelected:
-                                    selectedMethod == "Cash on delivery",
-                              ),
-                              const SizedBox(height: 18),
-                              _buildPaymentRow(
-                                context: context,
-                                label: "Wallet",
-                                iconPath: AppImages().walletIcon,
-                                isSelected: selectedMethod == "Wallet",
-                              ),
-                              const SizedBox(height: 18),
-                              _buildPaymentRow(
-                                context: context,
-                                label: "Phonepe",
-                                iconPath: AppImages().phonePeIcon,
-                                isSelected: selectedMethod == "Phonepe",
-                              ),
-                              const SizedBox(height: 18),
-                              _buildPaymentRow(
-                                context: context,
-                                label: "G pay",
-                                iconPath: AppImages().gPeIcon,
-                                isSelected: selectedMethod == "G pay",
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -1296,22 +1355,24 @@ class PaymentMethodBottomSheet extends StatelessWidget {
 
   Widget _buildPaymentRow({
     required BuildContext context,
-    required String label,
-    required String iconPath,
+    required PaymentMethodItem method,
     required bool isSelected,
   }) {
     return GestureDetector(
       onTap: () {
-        controller.paymentMethod.value = label;
-        onClose();
+        setState(() {
+          selectedPaymentId = method.id;
+          selectedMethod = method.name;
+        });
+        widget.onSelect(method);
       },
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          Image.asset(iconPath, width: 24, height: 24),
+          Image.asset(method.iconPath, width: 24, height: 24),
           const SizedBox(width: 14),
           Text(
-            label,
+            method.name,
             style: const TextStyle(
               fontFamily: natoRegular,
               fontSize: 14,
@@ -1364,6 +1425,9 @@ class OrderDetailScreenController extends GetxController {
       Get.isRegistered<OutletScreenController>()
       ? Get.find<OutletScreenController>().categories
       : <MenuCategory>[].obs;
+  final outletId = Get.isRegistered<DeliveryScreenController>()
+      ? Get.find<DeliveryScreenController>().outlateDetails['id']
+      : 1;
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
   final scheduleList = <DeliveryDaySchedule>[].obs;
@@ -1372,7 +1436,9 @@ class OrderDetailScreenController extends GetxController {
   final deliveryTime = "Delivering now".obs;
   final selectedScheduleDate = "Today".obs;
   final selectedScheduleTime = "".obs;
-  final paymentMethod = "Cash on delivery".obs;
+  final paymentMethodList = <PaymentMethodItem>[].obs;
+  final selectedPaymentMethod = "".obs;
+  final selectedPaymentId = 0.obs;
   final selectedAddressId = 0.obs;
   final addressTitle = "".obs;
   final addressSubtitle = "".obs;
@@ -1380,8 +1446,9 @@ class OrderDetailScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    getDeliverySlots(1);
+    getDeliverySlots(outletId);
     getUserAddress();
+    getPaymentMethods(outletId);
   }
 
   @override
@@ -1507,6 +1574,53 @@ class OrderDetailScreenController extends GetxController {
     } catch (e) {
       userAddressList.clear();
       print('getUserAddress Error: $e');
+    }
+  }
+
+  Future<void> getPaymentMethods(int outletId) async {
+    try {
+      paymentMethodList.clear();
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getPaymentMethod.replaceAll(
+            '{outletId}',
+            outletId.toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getPaymentMethods Response status: ${response.statusCode}');
+      print('getPaymentMethods Response body: ${response.body}');
+      if (response.statusCode != 200) {
+        paymentMethodList.clear();
+        return;
+      }
+      final data = jsonDecode(response.body);
+      if (data['success'] != true || data['data'] is! List) {
+        paymentMethodList.clear();
+        return;
+      }
+      final paymentMethods = data['data'] as List;
+      paymentMethodList.assignAll(
+        paymentMethods.map<PaymentMethodItem>((method) {
+          return PaymentMethodItem.fromJson(method);
+        }),
+      );
+      print("payment method list => $paymentMethodList");
+      if (paymentMethodList.isNotEmpty) {
+        final defaultMethod = paymentMethodList.firstWhere(
+          (element) => element.name.toLowerCase() == 'cash on delivery',
+          orElse: () => paymentMethodList.first,
+        );
+        selectedPaymentMethod.value = defaultMethod.name;
+        selectedPaymentId.value = defaultMethod.id;
+      }
+    } catch (e) {
+      paymentMethodList.clear();
+      print('payment method list Error: $e');
     }
   }
 
@@ -1668,7 +1782,17 @@ class OrderDetailScreenController extends GetxController {
 
   // Shows the payment method bottom sheet
   void showPaymentMethodBottomSheet(BuildContext context) {
-    PaymentMethodBottomSheet.show(context, this);
+    PaymentMethodBottomSheet.show(
+      context,
+      paymentMethods: paymentMethodList,
+      selectedMethod: selectedPaymentMethod.value,
+      selectedPaymentId: selectedPaymentId.value,
+      onSelect: (method) {
+        selectedPaymentMethod.value = method.name;
+        selectedPaymentId.value = method.id;
+        Get.back();
+      },
+    );
   }
 
   // Calculated values

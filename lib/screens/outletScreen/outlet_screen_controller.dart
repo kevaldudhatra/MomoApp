@@ -105,7 +105,7 @@ class MenuPopupWidget extends StatelessWidget {
   }) {
     return showGeneralDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       barrierLabel: 'MenuPopup',
       barrierColor: dialogBarrierColor,
       transitionDuration: const Duration(milliseconds: 250),

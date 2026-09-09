@@ -67,7 +67,6 @@ class AppImages {
   final sendIcon = '${images}sendIcon.png';
   final termsIcon = '${images}termsIcon.png';
   final privacyIcon = '${images}privacyIcon.png';
-  final outletOneImg = '${images}outletOneImg.png';
 
   // loading view
   final loading = '${gifJson}loading.json';

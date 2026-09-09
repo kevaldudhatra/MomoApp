@@ -5,8 +5,6 @@ import 'package:momos/screens/createAccountScreen/create_account_screen_controll
 import 'package:momos/screens/createAccountScreen/create_account_screen_view.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_view.dart';
-import 'package:momos/screens/diningScreen/dining_screen_controller.dart';
-import 'package:momos/screens/diningScreen/dining_screen_view.dart';
 import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 import 'package:momos/screens/profileScreen/profile_screen_view.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
@@ -155,8 +153,8 @@ class AppPages {
           DeliveryScreenController(),
           permanent: true,
         );
-        Get.put<DiningScreenController>(
-          DiningScreenController(),
+        Get.put<BookTableScreenController>(
+          BookTableScreenController(),
           permanent: true,
         );
         Get.put<ProfileScreenController>(
@@ -170,13 +168,6 @@ class AppPages {
       page: () => const DeliveryScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut<DeliveryScreenController>(() => DeliveryScreenController());
-      }),
-    ),
-    GetPage(
-      name: Routes.diningScreen,
-      page: () => const DiningScreen(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut<DiningScreenController>(() => DiningScreenController());
       }),
     ),
     GetPage(

@@ -12,10 +12,15 @@ class ApiServices {
   static String resetPassword = '$baseUrl/api/v1/user/reset-password';
   static String getAndUpdateProfile = '$baseUrl/api/v1/user/profile';
   static String userAddress = '$baseUrl/api/v1/user/addresses';
+  static String tableReservations = '$baseUrl/api/v1/user/reservations';
   static String verifyForgotOtp =
       '$baseUrl/public/api/v1/user/verify-forgot-password-otp';
   static String getDeliverySlots =
       '$baseUrl/api/v1/user/outlates/{outletId}/delivery-slots';
+  static String getPaymentMethod =
+      '$baseUrl/api/v1/user/outlates/{outletId}/payment-methods';
   static String getReservations =
       '$baseUrl/api/v1/user/reservations?limit=10&page={page}&status={status}';
+  static String getOutlateByLocation =
+      '$baseUrl/api/v1/user/get-home-details?latitude={latitude}&longitude={longitude}';
 }

@@ -206,22 +206,45 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                         const SizedBox(height: 20),
 
                         // Delivery Details Section
-                        _buildSectionTitle("Delivery Details"),
-                        const SizedBox(height: 5),
-                        _buildDeliveryDetailsCard(context),
-                        const SizedBox(height: 20),
+                        Obx(
+                          () => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle("Delivery Details"),
+                              const SizedBox(height: 5),
+                              _buildDeliveryDetailsCard(context),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
 
                         // Total Bill Section
-                        _buildSectionTitle("Total Bill"),
-                        const SizedBox(height: 5),
-                        _buildTotalBillCard(context),
-                        const SizedBox(height: 20),
+                        Obx(
+                          () => controller.cartItems.isNotEmpty
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildSectionTitle("Total Bill"),
+                                    const SizedBox(height: 5),
+                                    _buildTotalBillCard(context),
+                                    const SizedBox(height: 20),
+                                  ],
+                                )
+                              : Container(),
+                        ),
 
                         // Payment Method Section
-                        _buildSectionTitle("Payment Method"),
-                        const SizedBox(height: 5),
-                        _buildPaymentMethodCard(context),
-                        const SizedBox(height: 30),
+                        Obx(
+                          () => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionTitle("Payment Method"),
+                              const SizedBox(height: 5),
+                              _buildPaymentMethodCard(context),
+                              const SizedBox(height: 30),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -395,14 +418,12 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Obx(
-                      () => Text(
-                        controller.deliveryTime.value,
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 14,
-                          fontFamily: natoBold,
-                        ),
+                    Text(
+                      controller.deliveryTime.value,
+                      style: const TextStyle(
+                        color: black,
+                        fontSize: 14,
+                        fontFamily: natoBold,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -430,59 +451,76 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
         // Row 2: Selected address
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Image.asset(
-                AppImages().addressIcon,
-                width: 20,
-                height: 20,
-                color: charcoalGray,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
+          child: controller.userAddressList.isNotEmpty
+              ? Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Obx(
-                      () => Text(
-                        controller.addressTitle.value,
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 14,
-                          fontFamily: natoBold,
-                        ),
-                      ),
+                    Image.asset(
+                      AppImages().addressIcon,
+                      width: 20,
+                      height: 20,
+                      color: charcoalGray,
                     ),
-                    const SizedBox(height: 4),
-                    Obx(
-                      () => Text(
-                        controller.addressSubtitle.value,
-                        style: const TextStyle(
-                          color: charcoalGray,
-                          fontSize: 13,
-                          fontFamily: natoRegular,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    GestureDetector(
-                      onTap: () => controller.showAddressBottomSheet(context),
-                      child: const Text(
-                        "Change",
-                        style: TextStyle(
-                          color: orange,
-                          fontSize: 13,
-                          fontFamily: natoMedium,
-                          decoration: TextDecoration.underline,
-                        ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            controller.addressTitle.value,
+                            style: const TextStyle(
+                              color: black,
+                              fontSize: 14,
+                              fontFamily: natoBold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            controller.addressSubtitle.value,
+                            style: const TextStyle(
+                              color: charcoalGray,
+                              fontSize: 13,
+                              fontFamily: natoRegular,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          GestureDetector(
+                            onTap: () =>
+                                controller.showAddressBottomSheet(context),
+                            child: const Text(
+                              "Change",
+                              style: TextStyle(
+                                color: orange,
+                                fontSize: 13,
+                                fontFamily: natoMedium,
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
+                )
+              : GestureDetector(
+                  onTap: () => controller.showAddressBottomSheet(context),
+                  child: Container(
+                    height: 35,
+                    decoration: BoxDecoration(
+                      color: orange,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      "Add Address",
+                      style: TextStyle(
+                        color: white,
+                        fontSize: 14,
+                        fontFamily: natoMedium,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
         ),
       ],
     );
@@ -516,14 +554,12 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                     fontFamily: natoMedium,
                   ),
                 ),
-                Obx(
-                  () => Text(
-                    "₹${controller.totalBill.toInt()}",
-                    style: const TextStyle(
-                      color: black,
-                      fontSize: 15,
-                      fontFamily: natoBold,
-                    ),
+                Text(
+                  "₹${controller.totalBill.toInt()}",
+                  style: const TextStyle(
+                    color: black,
+                    fontSize: 15,
+                    fontFamily: natoBold,
                   ),
                 ),
                 const Spacer(),
@@ -543,6 +579,12 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
 
   // Card details for Payment method
   Widget _buildPaymentMethodCard(BuildContext context) {
+    final selectedMethod = controller.selectedPaymentMethod.value;
+    final methodItem = controller.paymentMethodList.firstWhere(
+      (element) => element.name == selectedMethod,
+      orElse: () => PaymentMethodItem(id: 0, name: ''),
+    );
+    final iconPath = methodItem.iconPath;
     return _buildCard(
       children: [
         GestureDetector(
@@ -552,40 +594,27 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
               horizontal: 16.0,
               vertical: 14.0,
             ),
-            child: Obx(() {
-              final selectedMethod = controller.paymentMethod.value
-                  .toLowerCase();
-              String iconPath = AppImages().codIcon;
-              if (selectedMethod == "wallet") {
-                iconPath = AppImages().walletIcon;
-              } else if (selectedMethod == "phonepe") {
-                iconPath = AppImages().phonePeIcon;
-              } else if (selectedMethod == "g pay") {
-                iconPath = AppImages().gPeIcon;
-              }
-
-              return Row(
-                children: [
-                  Image.asset(iconPath, width: 20, height: 20),
-                  const SizedBox(width: 10),
-                  Text(
-                    controller.paymentMethod.value,
-                    style: const TextStyle(
-                      color: black,
-                      fontSize: 15,
-                      fontFamily: natoMedium,
-                    ),
+            child: Row(
+              children: [
+                Image.asset(iconPath, width: 20, height: 20),
+                const SizedBox(width: 10),
+                Text(
+                  controller.selectedPaymentMethod.value,
+                  style: const TextStyle(
+                    color: black,
+                    fontSize: 15,
+                    fontFamily: natoMedium,
                   ),
-                  const Spacer(),
-                  Image.asset(
-                    AppImages().dropDownArrowIcon,
-                    width: 20,
-                    height: 20,
-                    color: charcoalGray,
-                  ),
-                ],
-              );
-            }),
+                ),
+                const Spacer(),
+                Image.asset(
+                  AppImages().dropDownArrowIcon,
+                  width: 20,
+                  height: 20,
+                  color: charcoalGray,
+                ),
+              ],
+            ),
           ),
         ),
       ],

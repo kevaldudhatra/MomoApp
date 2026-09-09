@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:momos/screens/bookTableScreen/book_table_screen_view.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/screens/homeScreen/home_screen_controller.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_view.dart';
-import 'package:momos/screens/diningScreen/dining_screen_view.dart';
 import 'package:momos/screens/profileScreen/profile_screen_view.dart';
 
 class HomeScreen extends GetView<HomeScreenController> {
@@ -27,7 +27,7 @@ class HomeScreen extends GetView<HomeScreenController> {
               index: controller.selectedIndex.value,
               children: const [
                 DeliveryScreen(),
-                DiningScreen(),
+                BookTableScreen(),
                 ProfileScreen(),
               ],
             ),

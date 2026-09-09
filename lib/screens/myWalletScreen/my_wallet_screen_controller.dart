@@ -19,7 +19,7 @@ class TransactionModel {
 }
 
 class MyWalletScreenController extends GetxController {
-  final RxDouble balance = 42.50.obs;
+  final RxDouble balance = 0.0.obs;
   final RxList<TransactionModel> transactions = <TransactionModel>[].obs;
 
   @override

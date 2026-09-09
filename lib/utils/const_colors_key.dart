@@ -14,7 +14,6 @@ const cardShadow = Color(0x1A000000);
 const borderGray = Color(0xFFE5E9F0);
 const greenBadge = Color(0xFF0F8A42);
 const greenFree = Color(0xFF0F8A42);
-const redBadge = Color(0xFFD32F2F);
 const chipBorder = Color(0xFFE2E8F0);
 const dialogBarrierColor = Color(0x66000000);
 const textSecondary = Color(0xFF6B7280);

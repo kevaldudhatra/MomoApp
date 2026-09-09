@@ -13,7 +13,6 @@ abstract class Routes {
   static const completeYourProfileScreen = '/completeYourProfileScreen';
   static const homeScreen = '/homeScreen';
   static const deliveryScreen = '/deliveryScreen';
-  static const diningScreen = '/diningScreen';
   static const profileScreen = '/profileScreen';
   static const outletScreen = '/outletScreen';
   static const outletDetailScreen = '/outletDetailScreen';
