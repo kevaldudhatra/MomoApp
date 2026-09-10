@@ -1,6 +1,5 @@
 import 'package:get/get.dart';
 import 'package:momos/screens/bookTableScreen/book_table_screen_controller.dart';
-import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 
 class HomeScreenController extends GetxController {
@@ -8,9 +7,7 @@ class HomeScreenController extends GetxController {
 
   void changeIndex(int index) {
     selectedIndex.value = index;
-    if (index == 0) {
-      // Get.find<DeliveryScreenController>().onInit();
-    } else if (index == 1) {
+    if (index == 1) {
       Get.find<BookTableScreenController>().onInit();
     } else if (index == 2) {
       Get.find<ProfileScreenController>().onInit();

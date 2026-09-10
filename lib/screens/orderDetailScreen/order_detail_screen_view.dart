@@ -149,61 +149,126 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                         const SizedBox(height: 20),
 
                         // Offers Section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildSectionTitle("Offers"),
-                            GestureDetector(
-                              onTap: () {
-                                Get.toNamed(Routes.offersScreen);
-                              },
-                              child: const Text(
-                                "View all",
-                                style: TextStyle(
-                                  color: textSecondary,
-                                  fontSize: 13,
-                                  fontFamily: natoMedium,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomTextField(
-                                hintText: "Enter promocode",
-                                textEditingController:
-                                    controller.promoCodeController,
-                                keyboardType: TextInputType.text,
-                                textInputAction: TextInputAction.done,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            GestureDetector(
-                              onTap: () => controller.applyPromoCode(),
-                              child: Container(
-                                height: 35,
-                                width: 85,
-                                decoration: BoxDecoration(
-                                  color: orange,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  "Apply",
-                                  style: TextStyle(
-                                    color: white,
-                                    fontSize: 14,
-                                    fontFamily: natoMedium,
+                        Obx(
+                          () => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildSectionTitle("Offers"),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Get.toNamed(Routes.offersScreen);
+                                    },
+                                    child: const Text(
+                                      "View all",
+                                      style: TextStyle(
+                                        color: textSecondary,
+                                        fontSize: 13,
+                                        fontFamily: natoMedium,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 5),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: CustomTextField(
+                                      hintText: "Enter promocode",
+                                      textEditingController:
+                                          controller.promoCodeController,
+                                      keyboardType: TextInputType.text,
+                                      textInputAction: TextInputAction.done,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  GestureDetector(
+                                    onTap: () => controller.applyPromoCode(),
+                                    child: Container(
+                                      height: 35,
+                                      width: 85,
+                                      decoration: BoxDecoration(
+                                        color: orange,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: const Text(
+                                        "Apply",
+                                        style: TextStyle(
+                                          color: white,
+                                          fontSize: 14,
+                                          fontFamily: natoMedium,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              controller.isPromocodeApplied.value
+                                  ? Container(
+                                      margin: EdgeInsets.only(
+                                        top: 10,
+                                        bottom: 20,
+                                      ),
+                                      child: _buildCard(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  "Promocode applied",
+                                                  style: const TextStyle(
+                                                    color: black,
+                                                    fontSize: 15,
+                                                    fontFamily: natoMedium,
+                                                  ),
+                                                ),
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    controller
+                                                        .removePromocode();
+                                                  },
+                                                  child: Container(
+                                                    height: 35,
+                                                    width: 85,
+                                                    decoration: BoxDecoration(
+                                                      color: orange,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                    ),
+                                                    alignment: Alignment.center,
+                                                    child: const Text(
+                                                      "Remove",
+                                                      style: TextStyle(
+                                                        color: white,
+                                                        fontSize: 14,
+                                                        fontFamily: natoMedium,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : const SizedBox(height: 20),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 20),
 
                         // Delivery Details Section
                         Obx(
@@ -398,6 +463,7 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
     );
   }
 
+  // Card details for Delivery Details
   Widget _buildDeliveryDetailsCard(BuildContext context) {
     return _buildCard(
       children: [

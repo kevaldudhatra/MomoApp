@@ -7,6 +7,7 @@ import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/accountAccessScreen/account_access_screen_controller.dart';
 import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
 import 'package:momos/screens/orderDetailScreen/order_detail_screen_controller.dart';
+import 'package:momos/screens/searchAddressScreen/search_address_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
@@ -17,10 +18,10 @@ import 'package:http/http.dart' as http;
 class ProfileScreenController extends GetxController {
   final storage = GetStorage();
   RxBool mainLoading = false.obs;
-  final userAddressList = <SavedAddress>[].obs;
-  final userData = <String, dynamic>{}.obs;
-  final selectedAddressId = 0.obs;
-  final addressTitle = "".obs;
+  RxList<SavedAddress> userAddressList = <SavedAddress>[].obs;
+  RxMap<String, dynamic> userData = <String, dynamic>{}.obs;
+  RxInt selectedAddressId = 0.obs;
+  RxString addressTitle = "".obs;
 
   @override
   void onInit() {
@@ -39,20 +40,35 @@ class ProfileScreenController extends GetxController {
     AddressSelectionBottomSheet.show(
       ctx,
       addresses: userAddressList,
-      selectedTitle: addressTitle.value,
-      selectedAddressId: selectedAddressId.value,
+      selectedTitle: addressTitle,
+      selectedAddressId: selectedAddressId,
+      onDeleteAddress: (address) async {
+        bool isDeleted = await deleteUserAddress(address.id);
+        if (isDeleted) {
+          userAddressList.removeWhere((element) => element.id == address.id);
+          if (userAddressList.isNotEmpty) {
+            final defaultAddress = userAddressList.firstWhere(
+              (element) => element.isDefault,
+              orElse: () => userAddressList.first,
+            );
+            selectedAddressId.value = defaultAddress.id;
+            addressTitle.value = defaultAddress.type;
+          }
+        }
+      },
       onSelect: (address) {
         selectedAddressId.value = address.id;
         addressTitle.value = address.type;
         Get.back();
       },
-      onAddNewAddress: () {
-        Get.back();
+      onAddNewAddress: () async {
+        await storage.write(isFromProfile, true);
+        await storage.write(isFromOrder, false);
         Future.delayed(const Duration(milliseconds: 500), () {
-          if (Get.isRegistered<AddressSelectionScreenController>()) {
-            Get.delete<AddressSelectionScreenController>();
+          if (Get.isRegistered<SearchAddressScreenController>()) {
+            Get.delete<SearchAddressScreenController>();
           }
-          Get.toNamed(Routes.addressSelectionScreen);
+          Get.toNamed(Routes.searchAddressScreen);
         });
       },
     );
@@ -165,7 +181,6 @@ class ProfileScreenController extends GetxController {
 
   Future<void> getUserAddress() async {
     try {
-      userAddressList.clear();
       final response = await http.get(
         Uri.parse(ApiServices.userAddress),
         headers: {
@@ -226,6 +241,34 @@ class ProfileScreenController extends GetxController {
     } catch (e) {
       userAddressList.clear();
       print('getUserAddress Error: $e');
+    }
+  }
+
+  Future<bool> deleteUserAddress(int addressId) async {
+    try {
+      var response = await http.delete(
+        Uri.parse(
+          ApiServices.deleteUserAddress.replaceFirst(
+            "{addressId}",
+            addressId.toString(),
+          ),
+        ),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "${storage.read(userToken)}",
+        },
+      );
+      print('deleteUserAddress Response status: ${response.statusCode}');
+      print('deleteUserAddress Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('deleteUserAddress Error: $e');
+      return false;
     }
   }
 }

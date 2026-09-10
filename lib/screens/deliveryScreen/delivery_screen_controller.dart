@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/env.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_image_key.dart';
@@ -19,6 +20,8 @@ class DeliveryScreenController extends GetxController {
   final outlateDetails = {}.obs;
   final outletCategories = [].obs;
   final categories = <FoodItem>[].obs;
+  RxString selectedAddress = "Bidhannagar, Kolkata, West Bengal".obs;
+  RxString addressType = "Home".obs;
 
   @override
   void onInit() {
@@ -125,6 +128,7 @@ class DeliveryScreenController extends GetxController {
       );
 
       final currentLatLng = LatLng(position.latitude, position.longitude);
+      await getAddressFromLatLng(currentLatLng);
       await getOutletDetails(currentLatLng);
     } catch (e) {
       await getOutletDetails(LatLng(22.5687828, 88.4330432));
@@ -140,7 +144,32 @@ class DeliveryScreenController extends GetxController {
     }
   }
 
+  Future<void> getAddressFromLatLng(LatLng latLng) async {
+    try {
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latLng.latitude},${latLng.longitude}&key=$googleMapApiKey',
+      );
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'OK' &&
+            data['results'] is List &&
+            (data['results'] as List).isNotEmpty) {
+          final formatted =
+              data['results'][0]['formatted_address']?.toString() ?? '';
+          if (formatted.isNotEmpty) {
+            addressType.value = "Home";
+            selectedAddress.value = formatted;
+          }
+        }
+      }
+    } catch (e) {
+      print("Error fetching address from LatLng: $e");
+    }
+  }
+
   Future<void> getOutletDetails(LatLng latLng) async {
+    print('getOutletDetails Input: $latLng');
     try {
       outletCategories.clear();
       isLoading.value = true;

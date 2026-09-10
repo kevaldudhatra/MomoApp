@@ -7,7 +7,9 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/network/env.dart';
-import 'package:momos/routes/app_pages.dart';
+import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
+import 'package:momos/screens/orderDetailScreen/order_detail_screen_controller.dart';
+import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
@@ -15,7 +17,6 @@ import 'package:momos/utils/const_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/custom_text_field.dart';
 import 'package:momos/widgets/loading_view.dart';
-import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
 import 'package:http/http.dart' as http;
 
 class PlacePrediction {
@@ -453,11 +454,24 @@ class SearchAddressScreenController extends GetxController {
       }
       if (response.statusCode == 201) {
         Get.back();
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (Get.isRegistered<AddressSelectionScreenController>()) {
-            Get.delete<AddressSelectionScreenController>();
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          if (storage.read(isFromProfile) == true) {
+            storage.remove(isFromProfile);
+            if (Get.isRegistered<ProfileScreenController>()) {
+              await Get.find<ProfileScreenController>().getUserAddress();
+            }
+          } else if (storage.read(isFromOrder) == true) {
+            storage.remove(isFromOrder);
+            if (Get.isRegistered<OrderDetailScreenController>()) {
+              await Get.find<OrderDetailScreenController>().getUserAddress();
+            }
+          } else {
+            if (Get.isRegistered<AddressSelectionScreenController>()) {
+              await Get.find<AddressSelectionScreenController>()
+                  .getUserAddress();
+            }
           }
-          Get.toNamed(Routes.addressSelectionScreen);
+          Get.back();
         });
       } else {
         Get.snackbar(

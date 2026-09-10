@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
@@ -153,44 +154,74 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Image.asset(
-                                          AppImages().locationIcon,
-                                          width: 24,
-                                          height: 24,
-                                          color: white,
+                                InkWell(
+                                  onTap: () async {
+                                    final result = await Get.toNamed(
+                                      Routes.addressSelectionScreen,
+                                    );
+                                    if (result != null) {
+                                      controller.selectedAddress.value =
+                                          result!["selectedAddress"];
+                                      controller.addressType.value =
+                                          result["addressType"];
+                                      await controller.getOutletDetails(
+                                        LatLng(
+                                          result["latitude"],
+                                          result["longitude"],
                                         ),
-                                        const SizedBox(width: 2),
-                                        Text(
-                                          controller.outlateDetails.isNotEmpty
-                                              ? controller
-                                                    .outlateDetails['name']
-                                              : "Momo I AM RDB Sector 5",
-                                          style: const TextStyle(
-                                            fontFamily: natoSemiBold,
-                                            fontSize: 16,
+                                      );
+                                    }
+                                  },
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            AppImages().locationIcon,
+                                            width: 20,
+                                            height: 20,
                                             color: white,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      " ${controller.outlateDetails['address'] ?? "Bidhannagar"}, ${controller.outlateDetails['city'] ?? "Kolkata"}, ${controller.outlateDetails['state'] ?? "West Bengal"}",
-                                      style: TextStyle(
-                                        fontFamily: natoRegular,
-                                        fontSize: 12,
-                                        color: white.withValues(alpha: 0.85),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            controller.addressType.value,
+                                            style: const TextStyle(
+                                              fontFamily: natoSemiBold,
+                                              fontSize: 18,
+                                              color: white,
+                                            ),
+                                          ),
+                                          Image.asset(
+                                            AppImages().dropDownArrowIcon,
+                                            width: 22,
+                                            height: 22,
+                                            color: white,
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 3),
+                                      SizedBox(
+                                        width: Get.width - 70,
+                                        child: Text(
+                                          " ${controller.selectedAddress.value}",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontFamily: natoRegular,
+                                            fontSize: 12,
+                                            color: white.withValues(
+                                              alpha: 0.85,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 InkWell(
                                   onTap: () {
@@ -258,24 +289,35 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                           color: black,
                                         ),
                                       ),
-                                      Row(
-                                        children: [
-                                          Image.asset(
-                                            AppImages().timerIcon,
-                                            width: 16,
-                                            height: 16,
-                                            color: charcoalGray,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          const Text(
-                                            "34-39 mins",
-                                            style: TextStyle(
-                                              fontFamily: natoMedium,
-                                              fontSize: 13,
+                                      InkWell(
+                                        onTap: () {
+                                          FocusScope.of(context).unfocus();
+                                          Future.delayed(
+                                            Duration(milliseconds: 500),
+                                            () {
+                                              Get.toNamed(Routes.outletScreen);
+                                            },
+                                          );
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Image.asset(
+                                              AppImages().timerIcon,
+                                              width: 16,
+                                              height: 16,
                                               color: charcoalGray,
                                             ),
-                                          ),
-                                        ],
+                                            const SizedBox(width: 4),
+                                            const Text(
+                                              "34-39 mins",
+                                              style: TextStyle(
+                                                fontFamily: natoMedium,
+                                                fontSize: 13,
+                                                color: charcoalGray,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),

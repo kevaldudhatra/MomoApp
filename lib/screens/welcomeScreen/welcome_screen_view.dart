@@ -21,6 +21,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void initState() {
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (storage.hasData(loginTrue) && storage.read(loginTrue) == true) {
+        print("User Token => ${storage.read(userToken)}");
         Get.offAllNamed(Routes.homeScreen);
       }
     });

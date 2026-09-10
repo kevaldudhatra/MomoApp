@@ -8,6 +8,7 @@ import 'package:momos/screens/addressSelectionScreen/address_selection_screen_co
 import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
+import 'package:momos/screens/searchAddressScreen/search_address_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
@@ -628,34 +629,44 @@ class _DeliveryScheduleBottomSheetState
 }
 
 // Bottom Sheet Widget for selecting a delivery address.
-class AddressSelectionBottomSheet extends StatefulWidget {
-  final List<SavedAddress> addresses;
-  final String selectedTitle;
-  final int selectedAddressId;
+class AddressSelectionBottomSheet extends StatelessWidget {
+  final RxList<SavedAddress> addresses;
+  final RxString? selectedTitle;
+  final RxInt? selectedAddressId;
   final Function(SavedAddress address) onSelect;
   final VoidCallback onAddNewAddress;
+  final Function(SavedAddress address) onDeleteAddress;
   final VoidCallback onClose;
 
   const AddressSelectionBottomSheet({
     super.key,
     required this.addresses,
-    required this.selectedTitle,
-    required this.selectedAddressId,
+    this.selectedTitle,
+    this.selectedAddressId,
     required this.onSelect,
     required this.onAddNewAddress,
+    required this.onDeleteAddress,
     required this.onClose,
   });
 
   // Helper static method to display the bottom sheet cleanly
   static Future<void> show(
     BuildContext context, {
-    required List<SavedAddress> addresses,
-    required String selectedTitle,
-    required int selectedAddressId,
+    required RxList<SavedAddress> addresses,
+    dynamic selectedTitle,
+    dynamic selectedAddressId,
     required Function(SavedAddress address) onSelect,
+    required Function(SavedAddress address) onDeleteAddress,
     required VoidCallback onAddNewAddress,
     VoidCallback? onClose,
   }) {
+    final RxInt? rxSelectedAddressId = selectedAddressId is RxInt
+        ? selectedAddressId
+        : (selectedAddressId is int ? selectedAddressId.obs : null);
+    final RxString? rxSelectedTitle = selectedTitle is RxString
+        ? selectedTitle
+        : (selectedTitle is String ? selectedTitle.obs : null);
+
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -664,9 +675,10 @@ class AddressSelectionBottomSheet extends StatefulWidget {
       builder: (context) {
         return AddressSelectionBottomSheet(
           addresses: addresses,
-          selectedTitle: selectedTitle,
-          selectedAddressId: selectedAddressId,
+          selectedTitle: rxSelectedTitle,
+          selectedAddressId: rxSelectedAddressId,
           onSelect: onSelect,
+          onDeleteAddress: onDeleteAddress,
           onAddNewAddress: onAddNewAddress,
           onClose: () {
             onClose?.call();
@@ -675,23 +687,6 @@ class AddressSelectionBottomSheet extends StatefulWidget {
         );
       },
     );
-  }
-
-  @override
-  State<AddressSelectionBottomSheet> createState() =>
-      _AddressSelectionBottomSheetState();
-}
-
-class _AddressSelectionBottomSheetState
-    extends State<AddressSelectionBottomSheet> {
-  int? selectedAddressId;
-  String? selectedTitle;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedAddressId = widget.selectedAddressId;
-    selectedTitle = widget.selectedTitle;
   }
 
   @override
@@ -705,7 +700,7 @@ class _AddressSelectionBottomSheetState
         children: [
           // Floating Circular Close Button positioned above the bottom sheet
           GestureDetector(
-            onTap: widget.onClose,
+            onTap: onClose,
             behavior: HitTestBehavior.opaque,
             child: Container(
               width: 44,
@@ -752,12 +747,12 @@ class _AddressSelectionBottomSheetState
                     children: [
                       // Add New Address Button
                       GestureDetector(
-                        onTap: widget.onAddNewAddress,
+                        onTap: onAddNewAddress,
                         behavior: HitTestBehavior.opaque,
                         child: Container(
                           width: double.infinity,
                           height: 48,
-                          margin: EdgeInsets.only(top: 10),
+                          margin: const EdgeInsets.only(top: 10),
                           decoration: BoxDecoration(
                             color: orange,
                             borderRadius: BorderRadius.circular(12),
@@ -782,100 +777,132 @@ class _AddressSelectionBottomSheetState
 
                       const SizedBox(height: 16),
 
-                      // "Saved Address" Section Header
-                      widget.addresses.isNotEmpty
-                          ? const Text(
+                      // Reactive Saved Address list
+                      Obx(() {
+                        if (addresses.isEmpty) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24),
+                              child: Text(
+                                "No saved addresses found",
+                                style: TextStyle(
+                                  fontFamily: natoRegular,
+                                  fontSize: 14,
+                                  color: textSecondary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
                               "Saved Address",
                               style: TextStyle(
                                 fontFamily: natoMedium,
                                 fontSize: 14,
                                 color: sectionHeaderColor,
                               ),
-                            )
-                          : Container(),
-
-                      const SizedBox(height: 10),
-
-                      // Saved Address cards list
-                      Column(
-                        children: widget.addresses.map((address) {
-                          final isSelected = selectedAddressId == address.id;
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                selectedAddressId = address.id;
-                                selectedTitle = address.type;
-                              });
-                              widget.onSelect(address);
-                            },
-                            behavior: HitTestBehavior.opaque,
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? orange
-                                      : Colors.transparent,
-                                  width: isSelected ? 1.5 : 0,
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: cardShadow,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Address Icon
-                                  Image.asset(
-                                    address.icon,
-                                    width: 22,
-                                    height: 22,
-                                    color: isSelected ? orange : charcoalGray,
-                                  ),
-                                  const SizedBox(width: 12),
-
-                                  // Address Text Info
-                                  Expanded(
-                                    child: Column(
+                            ),
+                            const SizedBox(height: 10),
+                            Column(
+                              children: addresses.map((address) {
+                                final isSelected =
+                                    selectedAddressId?.value == address.id;
+                                return GestureDetector(
+                                  onTap: () {
+                                    selectedAddressId?.value = address.id;
+                                    selectedTitle?.value = address.type;
+                                    onSelect(address);
+                                  },
+                                  behavior: HitTestBehavior.opaque,
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? orange
+                                            : Colors.transparent,
+                                        width: isSelected ? 1.5 : 0,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: cardShadow,
+                                          blurRadius: 6,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text(
-                                          address.type,
-                                          style: const TextStyle(
-                                            fontFamily: natoBold,
-                                            fontSize: 15,
-                                            color: black,
+                                        // Address Icon
+                                        Image.asset(
+                                          address.icon,
+                                          width: 22,
+                                          height: 22,
+                                          color: isSelected
+                                              ? orange
+                                              : charcoalGray,
+                                        ),
+                                        const SizedBox(width: 12),
+
+                                        // Address Text Info
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                address.type,
+                                                style: const TextStyle(
+                                                  fontFamily: natoBold,
+                                                  fontSize: 15,
+                                                  color: black,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                address.address,
+                                                style: const TextStyle(
+                                                  fontFamily: natoRegular,
+                                                  fontSize: 13,
+                                                  color: textSecondary,
+                                                  height: 1.35,
+                                                ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          address.address,
-                                          style: const TextStyle(
-                                            fontFamily: natoRegular,
-                                            fontSize: 13,
-                                            color: textSecondary,
-                                            height: 1.35,
+                                        const SizedBox(width: 12),
+
+                                        // Delete Icon
+                                        GestureDetector(
+                                          onTap: () => onDeleteAddress(address),
+                                          child: Image.asset(
+                                            AppImages().deleteIcon,
+                                            width: 22,
+                                            height: 22,
+                                            color: orange,
                                           ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
+                                );
+                              }).toList(),
                             ),
-                          );
-                        }).toList(),
-                      ),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -1418,6 +1445,9 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
 
 class OrderDetailScreenController extends GetxController {
   final storage = GetStorage();
+  final outletId = Get.isRegistered<DeliveryScreenController>()
+      ? Get.find<DeliveryScreenController>().outlateDetails['id']
+      : 1;
   RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
       ? Get.find<CartController>().cartItems
       : <CartItem>[].obs;
@@ -1425,23 +1455,21 @@ class OrderDetailScreenController extends GetxController {
       Get.isRegistered<OutletScreenController>()
       ? Get.find<OutletScreenController>().categories
       : <MenuCategory>[].obs;
-  final outletId = Get.isRegistered<DeliveryScreenController>()
-      ? Get.find<DeliveryScreenController>().outlateDetails['id']
-      : 1;
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
-  final scheduleList = <DeliveryDaySchedule>[].obs;
-  final userAddressList = <SavedAddress>[].obs;
-  final promoDiscount = 0.0.obs;
-  final deliveryTime = "Delivering now".obs;
-  final selectedScheduleDate = "Today".obs;
-  final selectedScheduleTime = "".obs;
-  final paymentMethodList = <PaymentMethodItem>[].obs;
-  final selectedPaymentMethod = "".obs;
-  final selectedPaymentId = 0.obs;
-  final selectedAddressId = 0.obs;
-  final addressTitle = "".obs;
-  final addressSubtitle = "".obs;
+  RxList<DeliveryDaySchedule> scheduleList = <DeliveryDaySchedule>[].obs;
+  RxList<SavedAddress> userAddressList = <SavedAddress>[].obs;
+  RxDouble promoDiscount = 0.0.obs;
+  RxBool isPromocodeApplied = false.obs;
+  RxString deliveryTime = "Delivering now".obs;
+  RxString selectedScheduleDate = "Today".obs;
+  RxString selectedScheduleTime = "".obs;
+  RxList<PaymentMethodItem> paymentMethodList = <PaymentMethodItem>[].obs;
+  RxString selectedPaymentMethod = "".obs;
+  RxInt selectedPaymentId = 0.obs;
+  RxInt selectedAddressId = 0.obs;
+  RxString addressTitle = "".obs;
+  RxString addressSubtitle = "".obs;
 
   @override
   void onInit() {
@@ -1512,7 +1540,6 @@ class OrderDetailScreenController extends GetxController {
 
   Future<void> getUserAddress() async {
     try {
-      userAddressList.clear();
       final response = await http.get(
         Uri.parse(ApiServices.userAddress),
         headers: {
@@ -1577,6 +1604,34 @@ class OrderDetailScreenController extends GetxController {
     }
   }
 
+  Future<bool> deleteUserAddress(int addressId) async {
+    try {
+      var response = await http.delete(
+        Uri.parse(
+          ApiServices.deleteUserAddress.replaceFirst(
+            "{addressId}",
+            addressId.toString(),
+          ),
+        ),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "${storage.read(userToken)}",
+        },
+      );
+      print('deleteUserAddress Response status: ${response.statusCode}');
+      print('deleteUserAddress Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('deleteUserAddress Error: $e');
+      return false;
+    }
+  }
+
   Future<void> getPaymentMethods(int outletId) async {
     try {
       paymentMethodList.clear();
@@ -1622,6 +1677,87 @@ class OrderDetailScreenController extends GetxController {
       paymentMethodList.clear();
       print('payment method list Error: $e');
     }
+  }
+
+  // Shows the delivery schedule bottom sheet
+  void showScheduleBottomSheet(BuildContext context) {
+    DeliveryScheduleBottomSheet.show(
+      context,
+      schedules: scheduleList,
+      initialDate: selectedScheduleDate.value,
+      initialTime: selectedScheduleTime.value,
+      onConfirm: (date, time) {
+        selectedScheduleDate.value = date;
+        selectedScheduleTime.value = time;
+        deliveryTime.value = "Delivering on : $date, $time";
+        Get.back();
+      },
+      onDeliverNow: () {
+        deliveryTime.value = "Delivering now";
+        Get.back();
+      },
+    );
+  }
+
+  // Shows the address bottom sheet
+  void showAddressBottomSheet(BuildContext ctx) {
+    AddressSelectionBottomSheet.show(
+      ctx,
+      addresses: userAddressList,
+      selectedTitle: addressTitle,
+      selectedAddressId: selectedAddressId,
+      onDeleteAddress: (address) async {
+        bool isDeleted = await deleteUserAddress(address.id);
+        if (isDeleted) {
+          userAddressList.removeWhere((element) => element.id == address.id);
+          if (userAddressList.isNotEmpty) {
+            final defaultAddress = userAddressList.firstWhere(
+              (element) => element.isDefault,
+              orElse: () => userAddressList.first,
+            );
+            selectedAddressId.value = defaultAddress.id;
+            addressTitle.value = defaultAddress.type;
+            addressSubtitle.value = defaultAddress.address;
+          }
+        }
+      },
+      onSelect: (address) {
+        selectedAddressId.value = address.id;
+        addressTitle.value = address.type;
+        addressSubtitle.value = address.address;
+        Get.back();
+      },
+      onAddNewAddress: () async {
+        await storage.write(isFromOrder, true);
+        await storage.write(isFromProfile, false);
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (Get.isRegistered<SearchAddressScreenController>()) {
+            Get.delete<SearchAddressScreenController>();
+          }
+          Get.toNamed(Routes.searchAddressScreen);
+        });
+      },
+    );
+  }
+
+  // Shows the bill details bottom sheet
+  void showBillDetailsBottomSheet(BuildContext context) {
+    BillDetailsBottomSheet.show(context, this);
+  }
+
+  // Shows the payment method bottom sheet
+  void showPaymentMethodBottomSheet(BuildContext context) {
+    PaymentMethodBottomSheet.show(
+      context,
+      paymentMethods: paymentMethodList,
+      selectedMethod: selectedPaymentMethod.value,
+      selectedPaymentId: selectedPaymentId.value,
+      onSelect: (method) {
+        selectedPaymentMethod.value = method.name;
+        selectedPaymentId.value = method.id;
+        Get.back();
+      },
+    );
   }
 
   void incrementQuantity(CartItem item) {
@@ -1684,6 +1820,7 @@ class OrderDetailScreenController extends GetxController {
 
     // Example promo discount logic
     if (code.toLowerCase() == "momo50") {
+      isPromocodeApplied.value = true;
       promoDiscount.value = 50.0;
       Get.snackbar(
         "Success",
@@ -1694,6 +1831,8 @@ class OrderDetailScreenController extends GetxController {
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
     } else {
+      isPromocodeApplied.value = false;
+      promoDiscount.value = 0.0;
       Get.snackbar(
         "Oops!",
         "Invalid promocode. Try 'momo50'.",
@@ -1703,6 +1842,19 @@ class OrderDetailScreenController extends GetxController {
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
     }
+  }
+
+  void removePromocode() {
+    isPromocodeApplied.value = false;
+    promoDiscount.value = 0.0;
+    Get.snackbar(
+      "Success",
+      "Promocode removed successfully!",
+      icon: const Icon(Icons.done, color: Colors.green),
+      colorText: Colors.white,
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: charcoalGray.withValues(alpha: 0.9),
+    );
   }
 
   void placeOrder() {
@@ -1728,71 +1880,6 @@ class OrderDetailScreenController extends GetxController {
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
     });
-  }
-
-  // Shows the delivery schedule bottom sheet
-  void showScheduleBottomSheet(BuildContext context) {
-    DeliveryScheduleBottomSheet.show(
-      context,
-      schedules: scheduleList,
-      initialDate: selectedScheduleDate.value,
-      initialTime: selectedScheduleTime.value,
-      onConfirm: (date, time) {
-        selectedScheduleDate.value = date;
-        selectedScheduleTime.value = time;
-        deliveryTime.value = "Delivering on : $date, $time";
-        Get.back();
-      },
-      onDeliverNow: () {
-        deliveryTime.value = "Delivering now";
-        Get.back();
-      },
-    );
-  }
-
-  // Shows the address bottom sheet
-  void showAddressBottomSheet(BuildContext ctx) {
-    AddressSelectionBottomSheet.show(
-      ctx,
-      addresses: userAddressList,
-      selectedTitle: addressTitle.value,
-      selectedAddressId: selectedAddressId.value,
-      onSelect: (address) {
-        selectedAddressId.value = address.id;
-        addressTitle.value = address.type;
-        addressSubtitle.value = address.address;
-        Get.back();
-      },
-      onAddNewAddress: () {
-        Get.back();
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (Get.isRegistered<AddressSelectionScreenController>()) {
-            Get.delete<AddressSelectionScreenController>();
-          }
-          Get.toNamed(Routes.addressSelectionScreen);
-        });
-      },
-    );
-  }
-
-  // Shows the bill details bottom sheet
-  void showBillDetailsBottomSheet(BuildContext context) {
-    BillDetailsBottomSheet.show(context, this);
-  }
-
-  // Shows the payment method bottom sheet
-  void showPaymentMethodBottomSheet(BuildContext context) {
-    PaymentMethodBottomSheet.show(
-      context,
-      paymentMethods: paymentMethodList,
-      selectedMethod: selectedPaymentMethod.value,
-      selectedPaymentId: selectedPaymentId.value,
-      onSelect: (method) {
-        selectedPaymentMethod.value = method.name;
-        selectedPaymentId.value = method.id;
-        Get.back();
-      },
-    );
   }
 
   // Calculated values

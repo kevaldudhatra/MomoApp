@@ -4,6 +4,7 @@ import 'package:momos/screens/offersScreen/offers_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/widgets/loading_view.dart';
 
 class OffersScreen extends GetView<OffersScreenController> {
   const OffersScreen({super.key});
@@ -48,15 +49,17 @@ class OffersScreen extends GetView<OffersScreenController> {
             // Offers List
             Expanded(
               child: Obx(
-                () => ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: controller.offers.length,
-                  itemBuilder: (context, index) {
-                    final offer = controller.offers[index];
-                    return _buildOfferCard(offer);
-                  },
-                ),
+                () => controller.isLoading.value
+                    ? const Center(child: LoadingDialog())
+                    : ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.all(16.0),
+                        itemCount: controller.offers.length,
+                        itemBuilder: (context, index) {
+                          final offer = controller.offers[index];
+                          return _buildOfferCard(offer);
+                        },
+                      ),
               ),
             ),
           ],
@@ -208,14 +211,14 @@ class OffersScreen extends GetView<OffersScreenController> {
             // Divider and Apply Button
             const Divider(height: 1, thickness: 1, color: borderGray),
             GestureDetector(
-              onTap: () => controller.applyOffer(offer),
+              onTap: () => controller.copyOffer(offer),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 alignment: Alignment.center,
                 color: Colors.transparent,
                 child: Text(
-                  "Apply",
+                  "Copy",
                   style: TextStyle(
                     color: offer.isActive ? orange : orangeDisabled,
                     fontSize: 16,
