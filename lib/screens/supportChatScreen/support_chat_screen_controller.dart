@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:momos/network/socket_service.dart';
 
 class ChatMessage {
   final String text;
@@ -15,14 +16,42 @@ class SupportChatScreenController extends GetxController {
   final scrollController = ScrollController();
   final messagesList = <ChatMessage>[].obs;
 
+  /// Subscription bag to automatically clean up listeners on controller disposal
+  final SocketSubscriptionBag _socketBag = SocketSubscriptionBag();
+
   @override
   void onInit() {
     super.onInit();
     _loadInitialMessages();
+    _initSocketListeners();
+  }
+
+  void _initSocketListeners() {
+    if (!Get.isRegistered<SocketService>()) return;
+
+    // Listen for incoming live chat messages
+    final messageSubscription = SocketService.to.on(
+      SocketEvents.receiveMessage,
+      (dynamic data) {
+        final payload = ChatMessagePayload.fromJson(data);
+        messagesList.add(
+          ChatMessage(
+            text: payload.text,
+            isUser: payload.isUser,
+            time: payload.timestamp,
+          ),
+        );
+        _scrollToBottom();
+      },
+    );
+
+    _socketBag.add(messageSubscription);
   }
 
   @override
   void onClose() {
+    // Cancel all socket subscriptions to prevent memory leaks and zombie listeners
+    _socketBag.cancelAll();
     messageController.dispose();
     scrollController.dispose();
     super.onClose();
@@ -61,6 +90,18 @@ class SupportChatScreenController extends GetxController {
     messagesList.add(ChatMessage(text: text, isUser: true, time: timeStr));
     messageController.clear();
     _scrollToBottom();
+
+    // Emit live message event through centralized SocketService
+    if (Get.isRegistered<SocketService>()) {
+      SocketService.to.emit(
+        SocketEvents.sendMessage,
+        ChatMessagePayload(
+          text: text,
+          isUser: true,
+          timestamp: timeStr,
+        ).toJson(),
+      );
+    }
 
     // Mock incoming support response
     Timer(const Duration(seconds: 1), () {

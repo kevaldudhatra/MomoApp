@@ -6,20 +6,19 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/network/env.dart';
-import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
-import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:http/http.dart' as http;
 
 class DeliveryScreenController extends GetxController {
   final storage = GetStorage();
-  final isSearchEmpty = true.obs;
-  final isLoading = true.obs;
   final searchController = TextEditingController();
-  final outlateDetails = {}.obs;
-  final outletCategories = [].obs;
-  final categories = <FoodItem>[].obs;
+  RxBool isSearchEmpty = true.obs;
+  RxBool isLoading = true.obs;
+  RxMap<dynamic, dynamic> outlateDetails = {}.obs;
+  RxList<dynamic> outletBanners = [].obs;
+  RxList<dynamic> outletCategories = [].obs;
+  RxList<dynamic> outletTopPicks = [].obs;
   RxString selectedAddress = "Bidhannagar, Kolkata, West Bengal".obs;
   RxString addressType = "Home".obs;
 
@@ -28,42 +27,6 @@ class DeliveryScreenController extends GetxController {
     searchController.addListener(() {
       isSearchEmpty.value = searchController.text.isEmpty;
     });
-    categories.assignAll([
-      FoodItem(
-        id: 1,
-        name: "Smokey Chilli Paneer",
-        description: "Indulge in our spicy chilli panner flavor",
-        price: 350,
-        originalPrice: 450,
-        isVeg: true,
-        isBestseller: true,
-        customization: "Choice of noodles(veg/chicken/shrimp/mix)",
-        image: AppImages().menuItemOne,
-        hasCustomise: true,
-      ),
-      FoodItem(
-        id: 2,
-        name: "Smokey Chilli Paneer",
-        description: "Indulge in our spicy chilli panner flavor",
-        price: 350,
-        isVeg: true,
-        isBestseller: true,
-        customization: "Choice of noodles(veg/chicken/shrimp/mix)",
-        image: AppImages().menuItemOne,
-        hasCustomise: false,
-      ),
-      FoodItem(
-        id: 3,
-        name: "Smokey Chilli Paneer",
-        description: "Indulge in our spicy chilli panner flavor",
-        price: 350,
-        originalPrice: 450,
-        isVeg: true,
-        customization: "Choice of noodles(veg/chicken/shrimp/mix)",
-        image: AppImages().menuItemTwo,
-        hasCustomise: true,
-      ),
-    ]);
     getCurrentLocation();
     super.onInit();
   }
@@ -171,7 +134,9 @@ class DeliveryScreenController extends GetxController {
   Future<void> getOutletDetails(LatLng latLng) async {
     print('getOutletDetails Input: $latLng');
     try {
+      outletBanners.clear();
       outletCategories.clear();
+      outletTopPicks.clear();
       isLoading.value = true;
       final response = await http.get(
         Uri.parse(
@@ -188,14 +153,22 @@ class DeliveryScreenController extends GetxController {
       print('getOutletDetails Response body: ${response.body}');
       var data = jsonDecode(response.body);
       if (response.statusCode == 200 && data["success"] == true) {
-        outletCategories.addAll(data["data"]["categories"]);
-        outlateDetails.value = data["data"]["outlate"];
+        outlateDetails.value = data["data"]["outlate"] ?? {};
+        outletBanners.assignAll(data["data"]["banners"] ?? []);
+        outletCategories.addAll(data["data"]["categories"] ?? []);
+        outletTopPicks.addAll(data["data"]["topPicks"] ?? []);
       } else {
-        outletCategories.clear();
         outlateDetails.value = {};
+        outletBanners.clear();
+        outletCategories.clear();
+        outletTopPicks.clear();
       }
     } catch (e) {
       print('getOutletDetails Error: $e');
+      outlateDetails.value = {};
+      outletBanners.clear();
+      outletCategories.clear();
+      outletTopPicks.clear();
     } finally {
       isLoading.value = false;
     }

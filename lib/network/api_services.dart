@@ -3,7 +3,8 @@ import 'package:momos/network/env.dart';
 class ApiServices {
   // Live mode url //
   static String baseUrl = liveUrl;
-
+  static String socketUrl = socketLiveUrl;
+  static String connectSocket = '$baseUrl/api/v1/user/chat/connect-socket';
   static String verifyOtp = '$baseUrl/public/api/v1/user/otp-verify';
   static String resendOtp = '$baseUrl/public/api/v1/user/resend-otp';
   static String register = '$baseUrl/public/api/v1/user/register';
@@ -27,4 +28,9 @@ class ApiServices {
       '$baseUrl/api/v1/user/get-home-details?latitude={latitude}&longitude={longitude}';
   static String getAllOffers =
       '$baseUrl/api/v1/user/outlates/{outletId}/promocodes';
+  static String getFoodTypes = '$baseUrl/api/v1/user/outlates/{outletId}/types';
+  static String getFoodData =
+      '$baseUrl/api/v1/user/outlates/{outletId}/menu?typeId={typeId}';
+  static String getFoodItemDetails =
+      '$baseUrl/api/v1/user/outlates/{outletId}/menu/{itemId}';
 }

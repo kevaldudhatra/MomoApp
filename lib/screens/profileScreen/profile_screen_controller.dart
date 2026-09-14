@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/accountAccessScreen/account_access_screen_controller.dart';
 import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
@@ -145,6 +146,9 @@ class ProfileScreenController extends GetxController {
                         Get.back();
                         final google = GoogleAuthService();
                         await google.signOutWithGoogle();
+                        if (Get.isRegistered<SocketService>()) {
+                          SocketService.to.onLogout();
+                        }
                         final storage = GetStorage();
                         await storage.erase();
                         Get.offAllNamed(Routes.startScreen);

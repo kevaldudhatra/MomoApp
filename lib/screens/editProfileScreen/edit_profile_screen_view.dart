@@ -168,23 +168,25 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
                           : Container(),
 
                       // Change Password Link
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () {
-                            Get.toNamed(Routes.changePasswordScreen);
-                          },
-                          child: const Text(
-                            "Change Password ?",
-                            style: TextStyle(
-                              color: orange,
-                              fontSize: 14,
-                              fontFamily: natoMedium,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ),
+                      controller.userData['loginType'] == 'email'
+                          ? Align(
+                              alignment: Alignment.centerRight,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Get.toNamed(Routes.changePasswordScreen);
+                                },
+                                child: const Text(
+                                  "Change Password ?",
+                                  style: TextStyle(
+                                    color: orange,
+                                    fontSize: 14,
+                                    fontFamily: natoMedium,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(),
                       const SizedBox(height: 20),
 
                       // Save Changes Button

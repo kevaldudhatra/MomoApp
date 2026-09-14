@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:momos/widgets/loading_view.dart';
@@ -87,7 +88,11 @@ class LoginScreenController extends GetxController {
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
       await storage.write(loginTrue, true);
-      await storage.write(userToken, "Bearer ${data["data"]["token"]}");
+      final token = "Bearer ${data["data"]["token"]}";
+      await storage.write(userToken, token);
+      if (Get.isRegistered<SocketService>()) {
+        SocketService.to.onLogin(token);
+      }
       Get.offAllNamed(Routes.homeScreen);
     } else {
       Get.snackbar(

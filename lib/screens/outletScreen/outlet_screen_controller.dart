@@ -1,9 +1,15 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:momos/network/api_services.dart';
 import 'package:momos/screens/cartManagement/cart_controller.dart';
+import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/utils/const_key.dart';
+import 'package:http/http.dart' as http;
 
 class FoodItem {
   final int id;
@@ -74,17 +80,15 @@ class MenuCategory {
 }
 
 class MenuPopupCategoryItem {
+  final int catId;
   final String title;
   final int itemCount;
-  final List<MenuPopupCategoryItem>? subCategories;
-  final RxBool isExpanded;
 
   MenuPopupCategoryItem({
+    required this.catId,
     required this.title,
     required this.itemCount,
-    this.subCategories,
-    bool isExpanded = false,
-  }) : isExpanded = isExpanded.obs;
+  });
 }
 
 class MenuPopupWidget extends StatelessWidget {
@@ -135,174 +139,95 @@ class MenuPopupWidget extends StatelessWidget {
 
   // Builds a single category row (Parent & Subcategories)
   Widget _buildCategoryRow(MenuPopupCategoryItem category) {
-    final hasSubCategories =
-        category.subCategories != null && category.subCategories!.isNotEmpty;
-    return Obx(() {
-      final isExpanded = category.isExpanded.value;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Parent Category Row
-          GestureDetector(
-            onTap: () {
-              if (hasSubCategories) {
-                category.isExpanded.value = !category.isExpanded.value;
-              } else {
-                onCategorySelected?.call(category);
-              }
-            },
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              child: Row(
-                children: [
-                  // Title + Dropdown Icon
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            category.title,
-                            style: const TextStyle(
-                              color: black,
-                              fontSize: 16,
-                              fontFamily: natoMedium,
-                              height: 1.3,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (hasSubCategories) ...[
-                          const SizedBox(width: 3),
-                          AnimatedRotation(
-                            turns: isExpanded ? 0.5 : 0.0,
-                            duration: const Duration(milliseconds: 250),
-                            child: Image.asset(
-                              AppImages().dropDownArrowIcon,
-                              width: 20,
-                              height: 20,
-                              color: black,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  // Item Count
-                  Text(
-                    "${category.itemCount}",
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Parent Category Row
+        GestureDetector(
+          onTap: () {
+            onCategorySelected?.call(category);
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Row(
+              children: [
+                // Title + Dropdown Icon
+                Expanded(
+                  child: Text(
+                    category.title,
                     style: const TextStyle(
                       color: black,
                       fontSize: 16,
                       fontFamily: natoMedium,
+                      height: 1.3,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ],
-              ),
+                ),
+
+                const SizedBox(width: 12),
+
+                // Item Count
+                Text(
+                  "${category.itemCount}",
+                  style: const TextStyle(
+                    color: black,
+                    fontSize: 16,
+                    fontFamily: natoMedium,
+                  ),
+                ),
+              ],
             ),
           ),
-
-          // Subcategories List
-          if (hasSubCategories && isExpanded)
-            Padding(
-              padding: const EdgeInsets.only(left: 20, top: 2, bottom: 6),
-              child: Column(
-                children: category.subCategories!.map((subCat) {
-                  return GestureDetector(
-                    onTap: () => onCategorySelected?.call(subCat),
-                    behavior: HitTestBehavior.opaque,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              subCat.title,
-                              style: const TextStyle(
-                                color: charcoalGray,
-                                fontSize: 15,
-                                fontFamily: natoRegular,
-                                height: 1.3,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "${subCat.itemCount}",
-                            style: const TextStyle(
-                              color: charcoalGray,
-                              fontSize: 15,
-                              fontFamily: natoRegular,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-        ],
-      );
-    });
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    return PopScope(
-      canPop: false,
-      child: Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: screenHeight * 0.72,
-            maxWidth: screenWidth > 500 ? 400 : screenWidth * 0.88,
-          ),
-          decoration: BoxDecoration(
-            color: white,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [
-              BoxShadow(
-                color: cardShadow,
-                blurRadius: 24,
-                offset: Offset(0, 10),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Padding(
-              padding: const EdgeInsets.only(
-                top: 20,
-                left: 24,
-                right: 12,
-                bottom: 20,
-              ),
-              child: RawScrollbar(
-                thumbColor: lightGray,
-                radius: const Radius.circular(6),
-                thickness: 3,
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: categories
-                        .map((category) => _buildCategoryRow(category))
-                        .toList(),
-                  ),
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: screenHeight * 0.72,
+          maxWidth: screenWidth > 500 ? 400 : screenWidth * 0.88,
+        ),
+        decoration: BoxDecoration(
+          color: white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(color: cardShadow, blurRadius: 24, offset: Offset(0, 10)),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.only(
+              top: 20,
+              left: 24,
+              right: 12,
+              bottom: 20,
+            ),
+            child: RawScrollbar(
+              thumbColor: lightGray,
+              radius: const Radius.circular(6),
+              thickness: 3,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(right: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: categories
+                      .map((category) => _buildCategoryRow(category))
+                      .toList(),
                 ),
               ),
             ),
@@ -314,7 +239,7 @@ class MenuPopupWidget extends StatelessWidget {
 }
 
 class FoodItemDetailsBottomSheet extends StatefulWidget {
-  final FoodItem foodItem;
+  final dynamic foodItem;
   final VoidCallback? onClose;
 
   const FoodItemDetailsBottomSheet({
@@ -326,7 +251,7 @@ class FoodItemDetailsBottomSheet extends StatefulWidget {
   // Helper static method to display the bottom sheet cleanly
   static Future<void> show(
     BuildContext context, {
-    required FoodItem foodItem,
+    required dynamic foodItem,
     VoidCallback? onClose,
   }) {
     return showModalBottomSheet(
@@ -355,21 +280,49 @@ class FoodItemDetailsBottomSheet extends StatefulWidget {
 
 class _FoodItemDetailsBottomSheetState
     extends State<FoodItemDetailsBottomSheet> {
-  // Option lists tracking state
   int _selectedToppingIndex = 0;
-  final Set<int> _selectedAddons = {0};
+  final Set<int> _selectedAddons = {-1};
+  int quantity = 1;
+  double totalPrice = 0.0;
+  double itemPrice = 0.0;
 
   final List<Map<String, dynamic>> _customOptions = [
     {"name": "Regular (serves 1, 17.7 cm)", "price": 350},
-    {"name": "Regular (serves 1, 17.7 cm)", "price": 350},
-    {"name": "Regular (serves 1, 17.7 cm)", "price": 350},
+    {"name": "Regular (serves 1, 17.7 cm)", "price": 450},
+    {"name": "Regular (serves 1, 17.7 cm)", "price": 550},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    itemPrice = widget.foodItem["defaultPrice"]["comparePrice"] == 0
+        ? double.parse(
+            widget.foodItem["defaultPrice"]["sellingPrice"].toString(),
+          )
+        : double.parse(
+            widget.foodItem["defaultPrice"]["comparePrice"].toString(),
+          );
+    calculateFinalPrice();
+  }
+
+  void calculateFinalPrice() {
+    setState(() {
+      double finalItemPrice = itemPrice;
+      double addonPrice = 0;
+      for (int index in _selectedAddons) {
+        if (index != -1) {
+          addonPrice += _customOptions[index]["price"];
+        }
+      }
+      totalPrice = (finalItemPrice + addonPrice) * quantity;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     return Container(
-      constraints: BoxConstraints(maxHeight: screenHeight * 0.90),
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.85),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -407,359 +360,485 @@ class _FoodItemDetailsBottomSheetState
           Flexible(
             child: Container(
               width: double.infinity,
+              height: double.infinity,
               decoration: const BoxDecoration(
                 color: background,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SafeArea(
                 top: false,
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 1. Main Food Item Details Card
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: cardShadow,
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
+                child: Stack(
+                  children: [
+                    // Main Food Item View
+                    SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 65),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // 1. Main Food Item Details Card
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: cardShadow,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Food Image
-                            ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(16),
-                              ),
-                              child: Image.asset(
-                                AppImages().topPicksImg,
-                                width: double.infinity,
-                                height: 200,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Veg/Non-Veg Badge Icon
-                                  Image.asset(
-                                    widget.foodItem.isVeg
-                                        ? AppImages().vegIcon
-                                        : AppImages().nonVegIcon,
-                                    width: 20,
-                                    height: 20,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Food Image
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
                                   ),
-                                  const SizedBox(height: 8),
+                                  child: widget.foodItem["itemImage"] == null
+                                      ? Image.asset(
+                                          AppImages().momoImg,
+                                          width: double.infinity,
+                                          height: 200,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.network(
+                                          widget.foodItem["itemImage"],
+                                          width: double.infinity,
+                                          height: 200,
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Veg/Non-Veg Badge Icon
+                                      Image.asset(
+                                        AppImages().vegIcon,
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                      const SizedBox(height: 8),
 
-                                  // Food Item Title
-                                  Text(
-                                    widget.foodItem.name,
-                                    style: const TextStyle(
-                                      fontFamily: natoBold,
-                                      fontSize: 18,
-                                      color: black,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
+                                      // Food Item Title
+                                      Text(
+                                        widget.foodItem["name"],
+                                        style: const TextStyle(
+                                          fontFamily: natoBold,
+                                          fontSize: 18,
+                                          color: black,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
 
-                                  // Description text
-                                  Text(
-                                    "${widget.foodItem.description} ${widget.foodItem.description}",
-                                    style: const TextStyle(
-                                      fontFamily: natoRegular,
-                                      fontSize: 13.5,
-                                      color: textSecondary,
-                                      height: 1.35,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
+                                      // Description text
+                                      Text(
+                                        widget.foodItem["description"],
+                                        style: const TextStyle(
+                                          fontFamily: natoRegular,
+                                          fontSize: 13.5,
+                                          color: textSecondary,
+                                          height: 1.35,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
 
-                                  // Food Item Price
-                                  Text(
-                                    "₹${widget.foodItem.price.toInt()}",
-                                    style: const TextStyle(
-                                      fontFamily: natoBold,
-                                      fontSize: 16,
-                                      color: black,
-                                    ),
+                                      // Food Item Price
+                                      Text(
+                                        "₹${widget.foodItem["defaultPrice"]["comparePrice"] == 0 ? widget.foodItem["defaultPrice"]["sellingPrice"] : widget.foodItem["defaultPrice"]["comparePrice"]}",
+                                        style: const TextStyle(
+                                          fontFamily: natoBold,
+                                          fontSize: 16,
+                                          color: black,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
+                          ),
+                          const SizedBox(height: 12),
 
-                      // 2. Toppings Card (Radio selection)
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: cardShadow,
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
+                          // 2. Toppings Card (Radio selection)
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: cardShadow,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Toppings",
-                                    style: TextStyle(
-                                      fontFamily: natoBold,
-                                      fontSize: 15.5,
-                                      color: black,
-                                    ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Toppings",
+                                        style: TextStyle(
+                                          fontFamily: natoBold,
+                                          fontSize: 15.5,
+                                          color: black,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        "Required • select any 1 option",
+                                        style: TextStyle(
+                                          fontFamily: natoRegular,
+                                          fontSize: 13,
+                                          color: textSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "Required • select any 1 option",
-                                    style: TextStyle(
-                                      fontFamily: natoRegular,
-                                      fontSize: 13,
-                                      color: textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: borderGray,
-                            ),
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _customOptions.length,
-                              separatorBuilder: (context, index) =>
-                                  const Divider(
-                                    height: 1,
-                                    thickness: 1,
-                                    color: borderGray,
-                                  ),
-                              itemBuilder: (context, index) {
-                                final option = _customOptions[index];
-                                final isSelected =
-                                    _selectedToppingIndex == index;
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedToppingIndex = index;
-                                    });
+                                ),
+                                const Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: borderGray,
+                                ),
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _customOptions.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color: borderGray,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final option = _customOptions[index];
+                                    final isSelected =
+                                        _selectedToppingIndex == index;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedToppingIndex = index;
+                                          itemPrice = double.parse(
+                                            option["price"].toString(),
+                                          );
+                                          calculateFinalPrice();
+                                        });
+                                      },
+                                      behavior: HitTestBehavior.opaque,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 14,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                option["name"],
+                                                style: const TextStyle(
+                                                  fontFamily: natoRegular,
+                                                  fontSize: 14.5,
+                                                  color: black,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              "₹${option["price"]}",
+                                              style: const TextStyle(
+                                                fontFamily: natoBold,
+                                                fontSize: 14.5,
+                                                color: black,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+
+                                            // Custom Radio Button Widget
+                                            Container(
+                                              width: 20,
+                                              height: 20,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? orange
+                                                      : lightGray,
+                                                  width: isSelected ? 6 : 1.5,
+                                                ),
+                                                color: white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
                                   },
-                                  behavior: HitTestBehavior.opaque,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 14,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            option["name"],
-                                            style: const TextStyle(
-                                              fontFamily: natoRegular,
-                                              fontSize: 14.5,
-                                              color: black,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          "₹${option["price"]}",
-                                          style: const TextStyle(
-                                            fontFamily: natoBold,
-                                            fontSize: 14.5,
-                                            color: black,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-
-                                        // Custom Radio Button Widget
-                                        Container(
-                                          width: 20,
-                                          height: 20,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: isSelected
-                                                  ? orange
-                                                  : lightGray,
-                                              width: isSelected ? 6 : 1.5,
-                                            ),
-                                            color: white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // 3. Add-ons Card (Checkbox selection)
+                          Container(
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: cardShadow,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Add ons",
+                                        style: TextStyle(
+                                          fontFamily: natoBold,
+                                          fontSize: 15.5,
+                                          color: black,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        "Optional",
+                                        style: TextStyle(
+                                          fontFamily: natoRegular,
+                                          fontSize: 13,
+                                          color: textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: borderGray,
+                                ),
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _customOptions.length,
+                                  separatorBuilder: (context, index) =>
+                                      const Divider(
+                                        height: 1,
+                                        thickness: 1,
+                                        color: borderGray,
+                                      ),
+                                  itemBuilder: (context, index) {
+                                    final option = _customOptions[index];
+                                    final isSelected = _selectedAddons.contains(
+                                      index,
+                                    );
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          if (isSelected) {
+                                            _selectedAddons.remove(index);
+                                            calculateFinalPrice();
+                                          } else {
+                                            _selectedAddons.add(index);
+                                            calculateFinalPrice();
+                                          }
+                                        });
+                                      },
+                                      behavior: HitTestBehavior.opaque,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 14,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                option["name"],
+                                                style: const TextStyle(
+                                                  fontFamily: natoRegular,
+                                                  fontSize: 14.5,
+                                                  color: black,
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              "₹${option["price"]}",
+                                              style: const TextStyle(
+                                                fontFamily: natoBold,
+                                                fontSize: 14.5,
+                                                color: black,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+
+                                            // Custom Checkbox Widget
+                                            Container(
+                                              width: 20,
+                                              height: 20,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                                color: isSelected
+                                                    ? orange
+                                                    : white,
+                                                border: Border.all(
+                                                  color: isSelected
+                                                      ? orange
+                                                      : lightGray,
+                                                  width: 1.5,
+                                                ),
+                                              ),
+                                              child: isSelected
+                                                  ? const Icon(
+                                                      Icons.check,
+                                                      size: 14,
+                                                      color: white,
+                                                    )
+                                                  : null,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
+                    ),
 
-                      // 3. Add-ons Card (Checkbox selection)
-                      Container(
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: cardShadow,
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    // Cart Button
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      left: 0,
+                      child: Container(
+                        height: 55,
+                        width: MediaQuery.of(context).size.width,
+                        color: white,
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Padding(
-                              padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Add ons",
-                                    style: TextStyle(
-                                      fontFamily: natoBold,
-                                      fontSize: 15.5,
-                                      color: black,
-                                    ),
-                                  ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    "Optional",
-                                    style: TextStyle(
-                                      fontFamily: natoRegular,
-                                      fontSize: 13,
-                                      color: textSecondary,
-                                    ),
+                            Container(
+                              width: 70,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: orange, width: 1),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: cardShadow,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
                                   ),
                                 ],
                               ),
-                            ),
-                            const Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: borderGray,
-                            ),
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: _customOptions.length,
-                              separatorBuilder: (context, index) =>
-                                  const Divider(
-                                    height: 1,
-                                    thickness: 1,
-                                    color: borderGray,
-                                  ),
-                              itemBuilder: (context, index) {
-                                final option = _customOptions[index];
-                                final isSelected = _selectedAddons.contains(
-                                  index,
-                                );
-
-                                return GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selectedAddons.remove(index);
-                                      } else {
-                                        _selectedAddons.add(index);
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  InkWell(
+                                    onTap: () {
+                                      if (quantity > 1) {
+                                        setState(() {
+                                          quantity--;
+                                          calculateFinalPrice();
+                                        });
                                       }
-                                    });
-                                  },
-                                  behavior: HitTestBehavior.opaque,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 14,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            option["name"],
-                                            style: const TextStyle(
-                                              fontFamily: natoRegular,
-                                              fontSize: 14.5,
-                                              color: black,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          "₹${option["price"]}",
-                                          style: const TextStyle(
-                                            fontFamily: natoBold,
-                                            fontSize: 14.5,
-                                            color: black,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-
-                                        // Custom Checkbox Widget
-                                        Container(
-                                          width: 20,
-                                          height: 20,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                            color: isSelected ? orange : white,
-                                            border: Border.all(
-                                              color: isSelected
-                                                  ? orange
-                                                  : lightGray,
-                                              width: 1.5,
-                                            ),
-                                          ),
-                                          child: isSelected
-                                              ? const Icon(
-                                                  Icons.check,
-                                                  size: 14,
-                                                  color: white,
-                                                )
-                                              : null,
-                                        ),
-                                      ],
+                                    },
+                                    child: const Icon(
+                                      Icons.remove,
+                                      color: charcoalGray,
+                                      size: 16,
                                     ),
                                   ),
-                                );
-                              },
+                                  Text(
+                                    quantity.toString(),
+                                    style: const TextStyle(
+                                      color: charcoalGray,
+                                      fontSize: 14,
+                                      fontFamily: natoBold,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      setState(() {
+                                        quantity++;
+                                        calculateFinalPrice();
+                                      });
+                                    },
+                                    child: const Icon(
+                                      Icons.add,
+                                      color: charcoalGray,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Expanded(
+                              child: Container(
+                                height: 40,
+                                margin: EdgeInsets.only(left: 16),
+                                decoration: BoxDecoration(
+                                  color: orange,
+                                  borderRadius: BorderRadius.circular(8),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: cardShadow,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  "Add Item ₹${totalPrice.toStringAsFixed(2)}",
+                                  style: const TextStyle(
+                                    color: white,
+                                    fontSize: 14,
+                                    fontFamily: natoBold,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -771,28 +850,31 @@ class _FoodItemDetailsBottomSheetState
 }
 
 class OutletScreenController extends GetxController {
+  final storage = GetStorage();
+
   RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
       ? Get.find<CartController>().cartItems
       : <CartItem>[].obs;
+
+  RxMap<dynamic, dynamic> get outletDetails =>
+      Get.isRegistered<DeliveryScreenController>()
+      ? Get.find<DeliveryScreenController>().outlateDetails
+      : {}.obs;
+  RxBool isLoading = true.obs;
+  RxBool filterLoading = false.obs;
   final searchController = TextEditingController();
-  final isVegSelected = false.obs;
-  final isNonVegSelected = false.obs;
-  final isBestsellerSelected = false.obs;
-  final isNewSelected = false.obs;
-  final isMenuOpen = false.obs;
-  final outletName = "Momo I AM gol park";
-  final cuisines = "Chinese • Seafood • Thai • Pan-Asian";
-  final isOpen = true;
-  final rating = "4.2";
-  final reviewsCount = "(456 Reviews)";
-  final deliveryTime = "34-39 mins";
   final categories = <MenuCategory>[].obs;
-  final menuPopupCategories = <MenuPopupCategoryItem>[].obs;
+  RxBool isMenuOpen = false.obs;
+  RxMap<dynamic, dynamic> outletInfo = {}.obs;
+  RxList<MenuPopupCategoryItem> menuItems = <MenuPopupCategoryItem>[].obs;
+  RxList<dynamic> foodTypes = [].obs;
+  RxList<dynamic> foodItems = [].obs;
+  RxMap<dynamic, dynamic> foodItemsDetails = {}.obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadMenuData();
+    loadData();
   }
 
   @override
@@ -801,115 +883,159 @@ class OutletScreenController extends GetxController {
     super.onClose();
   }
 
-  void _loadMenuData() {
-    categories.assignAll([
-      MenuCategory(
-        title: "Bestseller",
-        items: [
-          FoodItem(
-            id: 1,
-            name: "Smokey Chilli Paneer",
-            description: "Indulge in our spicy chilli panner flavor",
-            price: 350,
-            quantity: 0,
-            originalPrice: 450,
-            isVeg: true,
-            isBestseller: true,
-            customization: "Choice of noodles(veg/chicken/shrimp/mix)",
-            image: AppImages().menuItemOne,
-            hasCustomise: true,
-          ),
-          FoodItem(
-            id: 2,
-            name: "Smokey Chilli Paneer",
-            description: "Indulge in our spicy chilli panner flavor",
-            price: 350,
-            quantity: 0,
-            isVeg: true,
-            isBestseller: true,
-            customization: "Choice of noodles(veg/chicken/shrimp/mix)",
-            image: AppImages().menuItemOne,
-            hasCustomise: false,
-          ),
-        ],
-      ),
-      MenuCategory(
-        title: "Items @ 149",
-        items: [
-          FoodItem(
-            id: 3,
-            name: "Smokey Chilli Paneer",
-            description: "Indulge in our spicy chilli panner flavor",
-            price: 350,
-            quantity: 0,
-            originalPrice: 450,
-            isVeg: true,
-            customization: "Choice of noodles(veg/chicken/shrimp/mix)",
-            image: AppImages().menuItemTwo,
-            hasCustomise: true,
-          ),
-        ],
-      ),
-    ]);
-    menuPopupCategories.assignAll([
-      MenuPopupCategoryItem(title: "Bestseller", itemCount: 5),
-      MenuPopupCategoryItem(title: "Items @149", itemCount: 12),
-      MenuPopupCategoryItem(title: "Items @299", itemCount: 20),
-      MenuPopupCategoryItem(title: "Classic veg bites", itemCount: 8),
-      MenuPopupCategoryItem(
-        title: "Soup",
-        itemCount: 15,
-        isExpanded: true,
-        subCategories: [
-          MenuPopupCategoryItem(title: "Veg soup", itemCount: 10),
-          MenuPopupCategoryItem(title: "Non-veg soup", itemCount: 5),
-        ],
-      ),
-      MenuPopupCategoryItem(
-        title: "Starter",
-        itemCount: 15,
-        isExpanded: false,
-        subCategories: [],
-      ),
-      MenuPopupCategoryItem(
-        title: "Drinks & Desserts",
-        itemCount: 15,
-        isExpanded: false,
-        subCategories: [],
-      ),
-      MenuPopupCategoryItem(title: "Items @149", itemCount: 5),
-    ]);
-  }
-
-  void toggleFilter(String filterType) {
-    switch (filterType) {
-      case 'veg':
-        isVegSelected.value = !isVegSelected.value;
-        break;
-      case 'nonveg':
-        isNonVegSelected.value = !isNonVegSelected.value;
-        break;
-      case 'bestseller':
-        isBestsellerSelected.value = !isBestsellerSelected.value;
-        break;
-      case 'new':
-        isNewSelected.value = !isNewSelected.value;
-        break;
+  Future<void> loadData() async {
+    isLoading.value = true;
+    try {
+      await getFoodData(outletId: outletDetails['id'], typeId: 0);
+      await getFoodTypes(outletId: outletDetails['id']);
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  void toggleCategory(MenuCategory category) {
-    category.isExpanded.value = !category.isExpanded.value;
+  Future<void> getFoodData({int? outletId, int? typeId}) async {
+    print('getFoodData Input: $outletId');
+    print('getFoodData Input: $typeId');
+    try {
+      menuItems.clear();
+      foodItems.clear();
+      filterLoading.value = true;
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getFoodData
+              .replaceAll('{outletId}', outletId.toString())
+              .replaceAll('{typeId}', typeId.toString()),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getFoodData Response status: ${response.statusCode}');
+      print('getFoodData Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        outletInfo.value = data["data"]["outlate"] ?? {};
+        for (var item in data["data"]["sections"] ?? []) {
+          menuItems.add(
+            MenuPopupCategoryItem(
+              catId: item["category"]["id"],
+              title: item["category"]["name"],
+              itemCount: item["itemCount"],
+            ),
+          );
+        }
+        for (var item in data["data"]["sections"] ?? []) {
+          foodItems.add({...item, "isExpanded": true});
+        }
+      } else {
+        outletInfo.value = {};
+        menuItems.clear();
+        foodItems.clear();
+      }
+    } catch (e) {
+      print('getFoodData Error: $e');
+      outletInfo.value = {};
+      menuItems.clear();
+      foodItems.clear();
+    } finally {
+      filterLoading.value = false;
+    }
+  }
+
+  Future<void> getFoodTypes({int? outletId}) async {
+    print('getFoodTypes Input: $outletId');
+    try {
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getFoodTypes.replaceAll(
+            '{outletId}',
+            outletId.toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getFoodTypes Response status: ${response.statusCode}');
+      print('getFoodTypes Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        for (var item in data["data"] ?? []) {
+          foodTypes.add({...item, "isSelected": false});
+        }
+      } else {
+        foodTypes.clear();
+      }
+    } catch (e) {
+      print('getFoodTypes Error: $e');
+      foodTypes.clear();
+    }
+  }
+
+  Future<void> getFoodItemDetails({int? outletId, int? itemId}) async {
+    print('getFoodItemDetails Input: $outletId, $itemId');
+    try {
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getFoodItemDetails
+              .replaceAll('{outletId}', outletId.toString())
+              .replaceAll('{itemId}', itemId.toString()),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getFoodItemDetails Response status: ${response.statusCode}');
+      print('getFoodItemDetails Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        foodItemsDetails.value = data["data"] ?? {};
+      } else {
+        foodItemsDetails.value = {};
+      }
+    } catch (e) {
+      print('getFoodItemDetails Error: $e');
+      foodItemsDetails.value = {};
+    }
+  }
+
+  Future<void> toggleFilter(dynamic foodType) async {
+    for (var item in foodTypes) {
+      if (item["id"] == foodType["id"]) {
+        item["isSelected"] = !item["isSelected"];
+        if (item["isSelected"]) {
+          await getFoodData(outletId: outletDetails['id'], typeId: item["id"]);
+        } else {
+          await getFoodData(outletId: outletDetails['id'], typeId: 0);
+        }
+      } else {
+        item["isSelected"] = false;
+      }
+    }
+    foodTypes.refresh();
+  }
+
+  void toggleCategory(dynamic category) {
+    category["isExpanded"] = !(category["isExpanded"] ?? false);
+    foodItems.refresh();
   }
 
   void showMenuPopup(BuildContext context) {
+    isMenuOpen.value = true;
     MenuPopupWidget.show(
       context,
-      categories: menuPopupCategories,
+      categories: menuItems,
       onCategorySelected: (selectedCategory) {
-        isMenuOpen.value = false;
+        print(
+          "Selected Item from Menu Popup : ${selectedCategory.title} ${selectedCategory.itemCount}",
+        );
       },
-    );
+    ).then((_) {
+      isMenuOpen.value = false;
+    });
   }
 
   void incrementQuantity(String categoryTitle, int itemId) {

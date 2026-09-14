@@ -68,6 +68,7 @@ class AppImages {
   final termsIcon = '${images}termsIcon.png';
   final privacyIcon = '${images}privacyIcon.png';
   final deleteIcon = '${images}deleteIcon.png';
+  final momoImg = '${images}momoImg.png';
 
   // loading view
   final loading = '${gifJson}loading.json';

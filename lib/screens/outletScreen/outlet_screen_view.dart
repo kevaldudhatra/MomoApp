@@ -5,8 +5,9 @@ import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
-import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/screens/cartManagement/cart_button.dart';
+import 'package:momos/widgets/loading_view.dart';
+import 'package:readmore_flutter/readmore_flutter.dart';
 
 class OutletScreen extends GetView<OutletScreenController> {
   const OutletScreen({super.key});
@@ -25,8 +26,11 @@ class OutletScreen extends GetView<OutletScreenController> {
         floatingActionButton: Obx(
           () => GestureDetector(
             onTap: () {
-              controller.isMenuOpen.value = true;
-              controller.showMenuPopup(context);
+              if (controller.isMenuOpen.value) {
+                Navigator.of(context).pop();
+              } else {
+                controller.showMenuPopup(context);
+              }
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -76,281 +80,302 @@ class OutletScreen extends GetView<OutletScreenController> {
           width: MediaQuery.of(context).size.width,
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Outlet info view
-                Stack(
-                  alignment: AlignmentDirectional.topCenter,
-                  children: [
-                    Container(
-                      height: 150,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
-                        ),
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            orangeGradientStart,
-                            orangeGradientEnd,
-                            orangeGradientStart,
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: black.withValues(alpha: 0.15),
-                            blurRadius: 15,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(
-                        top: 20,
-                        left: 16,
-                        right: 16,
-                        bottom: 20,
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          GestureDetector(
-                            onTap: () => Get.back(),
-                            child: Image.asset(
-                              AppImages().backArrowIcon,
-                              width: 18,
-                              height: 18,
-                              color: white,
-                            ),
-                          ),
-                          const Spacer(),
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {},
-                                child: Image.asset(
-                                  AppImages().shareIcon,
-                                  width: 22,
-                                  height: 22,
-                                  color: white,
+            child: Obx(
+              () => controller.isLoading.value
+                  ? SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.85,
+                      child: const Center(child: LoadingDialog()),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Outlet info view
+                        Stack(
+                          alignment: AlignmentDirectional.topCenter,
+                          children: [
+                            Container(
+                              height: 150,
+                              decoration: BoxDecoration(
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(20),
+                                  bottomRight: Radius.circular(20),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              GestureDetector(
-                                onTap: () {
-                                  Get.toNamed(Routes.outletDetailScreen);
-                                },
-                                child: Image.asset(
-                                  AppImages().infoIcon,
-                                  width: 22,
-                                  height: 22,
-                                  color: white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      margin: EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                        bottom: 20,
-                        top: 60,
-                      ),
-                      decoration: BoxDecoration(
-                        color: white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: cardShadow,
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Outlet Thumbnail Image
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.asset(
-                                  AppImages().topPicksImg,
-                                  width: 85,
-                                  height: 85,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              // Title, Cuisines & Open Badge
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      controller.outletName,
-                                      style: const TextStyle(
-                                        color: black,
-                                        fontSize: 18,
-                                        fontFamily: natoBold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      controller.cuisines,
-                                      style: const TextStyle(
-                                        color: charcoalGray,
-                                        fontSize: 13,
-                                        fontFamily: natoRegular,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    // Open Status Badge
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 3,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: greenBadge,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Text(
-                                        "Open",
-                                        style: TextStyle(
-                                          color: white,
-                                          fontSize: 11,
-                                          fontFamily: natoMedium,
-                                        ),
-                                      ),
-                                    ),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    orangeGradientStart,
+                                    orangeGradientEnd,
+                                    orangeGradientStart,
                                   ],
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: black.withValues(alpha: 0.15),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          const Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: borderGray,
-                          ),
-                          const SizedBox(height: 12),
-                          // Rating & Delivery Time Row
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Star Rating & Reviews
-                              Image.asset(
-                                AppImages().starIcon,
-                                width: 18,
-                                height: 18,
-                                color: greenBadge,
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(
+                                top: 20,
+                                left: 16,
+                                right: 16,
+                                bottom: 20,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                controller.rating,
-                                style: const TextStyle(
-                                  color: black,
-                                  fontSize: 14,
-                                  fontFamily: natoBold,
-                                ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => Get.back(),
+                                    child: Image.asset(
+                                      AppImages().backArrowIcon,
+                                      width: 18,
+                                      height: 18,
+                                      color: white,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Row(
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {},
+                                        child: Image.asset(
+                                          AppImages().shareIcon,
+                                          width: 22,
+                                          height: 22,
+                                          color: white,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Get.toNamed(
+                                            Routes.outletDetailScreen,
+                                          );
+                                        },
+                                        child: Image.asset(
+                                          AppImages().infoIcon,
+                                          width: 22,
+                                          height: 22,
+                                          color: white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                controller.reviewsCount,
-                                style: const TextStyle(
-                                  color: charcoalGray,
-                                  fontSize: 13,
-                                  fontFamily: natoRegular,
-                                ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                bottom: 20,
+                                top: 60,
                               ),
-                              const Spacer(),
-                              // Delivery Time
-                              Image.asset(
-                                AppImages().timerIcon,
-                                width: 18,
-                                height: 18,
-                                color: charcoalGray,
+                              decoration: BoxDecoration(
+                                color: white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: cardShadow,
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                controller.deliveryTime,
-                                style: const TextStyle(
-                                  color: black,
-                                  fontSize: 13,
-                                  fontFamily: natoMedium,
-                                ),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Outlet Thumbnail Image
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child:
+                                            controller
+                                                    .outletInfo['brandLogo'] ==
+                                                null
+                                            ? Image.asset(
+                                                AppImages().momoImg,
+                                                width: 85,
+                                                height: 85,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Image.network(
+                                                controller
+                                                    .outletInfo['brandLogo'],
+                                                width: 85,
+                                                height: 85,
+                                                fit: BoxFit.cover,
+                                              ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      // Title, Cuisines & Open Badge
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              controller.outletInfo['name'],
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: black,
+                                                fontSize: 18,
+                                                fontFamily: natoBold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              "Chinese • Seafood • Thai • Pan-Asian",
+                                              style: const TextStyle(
+                                                color: charcoalGray,
+                                                fontSize: 13,
+                                                fontFamily: natoRegular,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            // Open Status Badge
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 3,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    controller
+                                                        .outletInfo['isOpen']
+                                                    ? greenBadge
+                                                    : Colors.red,
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                controller.outletInfo['isOpen']
+                                                    ? "Open"
+                                                    : "Closed",
+                                                style: TextStyle(
+                                                  color: white,
+                                                  fontSize: 11,
+                                                  fontFamily: natoMedium,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  const Divider(
+                                    height: 1,
+                                    thickness: 1,
+                                    color: borderGray,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  // Rating & Delivery Time Row
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      // Star Rating & Reviews
+                                      Image.asset(
+                                        AppImages().starIcon,
+                                        width: 18,
+                                        height: 18,
+                                        color: greenBadge,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        controller.outletInfo['averageRate']
+                                            .toString(),
+                                        style: const TextStyle(
+                                          color: black,
+                                          fontSize: 14,
+                                          fontFamily: natoBold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        "(${controller.outletInfo['totalRatings']} Reviews)",
+                                        style: const TextStyle(
+                                          color: charcoalGray,
+                                          fontSize: 13,
+                                          fontFamily: natoRegular,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                            ),
+                          ],
+                        ),
 
-                // Horizontal Filter Chips Row
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Obx(
-                    () => Row(
-                      children: [
-                        _buildFilterChip(
-                          label: "Veg",
-                          icon: AppImages().vegIcon,
-                          isSelected: controller.isVegSelected.value,
-                          onTap: () => controller.toggleFilter('veg'),
+                        // Horizontal Filter Chips Row
+                        SizedBox(
+                          height: 40,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: controller.foodTypes.length,
+                            separatorBuilder: (context, index) {
+                              return const SizedBox(width: 10);
+                            },
+                            itemBuilder: (context, index) {
+                              final item = controller.foodTypes[index];
+                              return _buildFilterChip(item);
+                            },
+                          ),
                         ),
-                        const SizedBox(width: 10),
-                        _buildFilterChip(
-                          label: "Non veg",
-                          icon: AppImages().nonVegIcon,
-                          isSelected: controller.isNonVegSelected.value,
-                          onTap: () => controller.toggleFilter('nonveg'),
-                        ),
-                        const SizedBox(width: 10),
-                        _buildFilterChip(
-                          label: "Bestseller",
-                          icon: AppImages().bestsellerIcon,
-                          isSelected: controller.isBestsellerSelected.value,
-                          onTap: () => controller.toggleFilter('bestseller'),
-                        ),
-                        const SizedBox(width: 10),
-                        _buildFilterChip(
-                          label: "New",
-                          isSelected: controller.isNewSelected.value,
-                          onTap: () => controller.toggleFilter('new'),
-                        ),
+
+                        // Menu Categories List
+                        controller.filterLoading.value
+                            ? SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.40,
+                                child: const Center(child: LoadingDialog()),
+                              )
+                            : controller.foodItems.isEmpty
+                            ? SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.45,
+                                child: Center(
+                                  child: Text(
+                                    "Oops!\nNo Items Found",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontFamily: natoBold,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Column(
+                                children: controller.foodItems
+                                    .map(
+                                      (category) => _buildCategorySection(
+                                        context,
+                                        category,
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+
+                        SizedBox(height: 50),
                       ],
                     ),
-                  ),
-                ),
-
-                // Menu Categories List
-                Obx(
-                  () => Column(
-                    children: controller.categories
-                        .map((category) => _buildCategorySection(category))
-                        .toList(),
-                  ),
-                ),
-
-                SizedBox(height: 50),
-              ],
             ),
           ),
         ),
@@ -359,99 +384,102 @@ class OutletScreen extends GetView<OutletScreenController> {
   }
 
   // Single Filter Chip Widget
-  Widget _buildFilterChip({
-    required String label,
-    String? icon,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildFilterChip(dynamic foodType) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => controller.toggleFilter(foodType),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: isSelected ? orange.withValues(alpha: 0.1) : white,
+          color: foodType["isSelected"] ? orange.withValues(alpha: 0.1) : white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? orange : chipBorder, width: 1),
+          border: Border.all(
+            color: foodType["isSelected"] ? orange : chipBorder,
+            width: 1,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Image.asset(icon, width: 16, height: 16),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? orange : black,
-                fontSize: 13,
-                fontFamily: isSelected ? natoSemiBold : natoMedium,
-              ),
-            ),
-          ],
+        alignment: Alignment.center,
+        child: Text(
+          foodType["name"],
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: foodType["isSelected"] ? orange : black,
+            fontSize: 13.5,
+            fontFamily: foodType["isSelected"] ? natoSemiBold : natoMedium,
+          ),
         ),
       ),
     );
   }
 
   // Category Section Widget
-  Widget _buildCategorySection(MenuCategory category) {
-    return Obx(
-      () => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Category Header Bar
-          GestureDetector(
-            onTap: () => controller.toggleCategory(category),
-            child: Container(
-              margin: EdgeInsets.only(top: 20),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: white,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    category.title,
-                    style: const TextStyle(
-                      color: black,
-                      fontSize: 18,
-                      fontFamily: natoBold,
-                    ),
+  Widget _buildCategorySection(BuildContext context, dynamic category) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Category Header Bar
+        GestureDetector(
+          onTap: () => controller.toggleCategory(category),
+          child: Container(
+            margin: EdgeInsets.only(top: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  category["category"]["name"],
+                  style: const TextStyle(
+                    color: black,
+                    fontSize: 18,
+                    fontFamily: natoBold,
                   ),
-                  AnimatedRotation(
-                    turns: category.isExpanded.value ? 0 : 0.5,
-                    duration: const Duration(milliseconds: 250),
-                    child: Image.asset(
-                      AppImages().dropDownArrowIcon,
-                      width: 25,
-                      height: 25,
-                      color: black,
-                    ),
+                ),
+                AnimatedRotation(
+                  turns: category["isExpanded"] ? 0 : 0.5,
+                  duration: const Duration(milliseconds: 250),
+                  child: Image.asset(
+                    AppImages().dropDownArrowIcon,
+                    width: 25,
+                    height: 25,
+                    color: black,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
+        ),
 
-          const Divider(height: 1, thickness: 1, color: borderGray),
+        const Divider(height: 1, thickness: 1, color: borderGray),
 
-          // Food Item Cards inside Category
-          if (category.isExpanded.value)
-            ...category.items.map(
-              (item) => _buildFoodItemCard(item, category.title),
-            ),
-        ],
-      ),
+        // Food Item Cards inside Category
+        if (category["isExpanded"])
+          ...category["items"].map(
+            (item) =>
+                _buildFoodItemCard(context, item, category["category"]["name"]),
+          ),
+      ],
     );
   }
 
   // Single Food Item Card Widget
-  Widget _buildFoodItemCard(FoodItem item, String categoryName) {
+  Widget _buildFoodItemCard(
+    BuildContext context,
+    dynamic item,
+    String categoryName,
+  ) {
     return GestureDetector(
       onTap: () {
-        FoodItemDetailsBottomSheet.show(Get.context!, foodItem: item);
+        controller
+            .getFoodItemDetails(outletId: item["outlateId"], itemId: item["id"])
+            .then(
+              (value) => {
+                FoodItemDetailsBottomSheet.show(
+                  Get.context!,
+                  foodItem: controller.foodItemsDetails,
+                ),
+              },
+            );
       },
       child: Container(
         color: white,
@@ -467,18 +495,12 @@ class OutletScreen extends GetView<OutletScreenController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Veg / Non-Veg Indicator
-                      Image.asset(
-                        item.isVeg
-                            ? AppImages().vegIcon
-                            : AppImages().nonVegIcon,
-                        width: 16,
-                        height: 16,
-                      ),
+                      Image.asset(AppImages().vegIcon, width: 16, height: 16),
                       const SizedBox(height: 6),
 
                       // Item Name
                       Text(
-                        item.name,
+                        item["name"],
                         style: const TextStyle(
                           color: black,
                           fontSize: 16,
@@ -487,32 +509,30 @@ class OutletScreen extends GetView<OutletScreenController> {
                       ),
                       const SizedBox(height: 4),
 
-                      // Item Description
-                      Text(
-                        item.description,
-                        style: const TextStyle(
-                          color: charcoalGray,
-                          fontSize: 13,
-                          fontFamily: natoRegular,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
                       // Price & Strikethrough Discount Price
                       Row(
                         children: [
-                          Text(
-                            "₹${item.price.toInt()}",
-                            style: const TextStyle(
-                              color: black,
-                              fontSize: 15,
-                              fontFamily: natoBold,
-                            ),
-                          ),
-                          if (item.originalPrice != null) ...[
+                          item["defaultPrice"]["comparePrice"] == 0
+                              ? Text(
+                                  "₹${item["defaultPrice"]["sellingPrice"]}",
+                                  style: const TextStyle(
+                                    color: black,
+                                    fontSize: 15,
+                                    fontFamily: natoBold,
+                                  ),
+                                )
+                              : Text(
+                                  "₹${item["defaultPrice"]["comparePrice"]}",
+                                  style: const TextStyle(
+                                    color: black,
+                                    fontSize: 15,
+                                    fontFamily: natoBold,
+                                  ),
+                                ),
+                          if (item["defaultPrice"]["comparePrice"] != 0) ...[
                             const SizedBox(width: 8),
                             Text(
-                              "₹${item.originalPrice!.toInt()}",
+                              "₹${item["defaultPrice"]["sellingPrice"]}",
                               style: const TextStyle(
                                 color: charcoalGray,
                                 fontSize: 15,
@@ -523,29 +543,39 @@ class OutletScreen extends GetView<OutletScreenController> {
                           ],
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
 
-                      // Customization text
-                      Text(
-                        item.customization,
-                        style: const TextStyle(
-                          color: charcoalGray,
-                          fontSize: 12,
-                          fontFamily: natoRegular,
+                      // Item Description
+                      Theme(
+                        data: Theme.of(context).copyWith(
+                          textButtonTheme: TextButtonThemeData(
+                            style: TextButton.styleFrom(
+                              minimumSize: Size.zero,
+                              padding: EdgeInsets.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              visualDensity: VisualDensity.compact,
+                              splashFactory: NoSplash.splashFactory,
+                              overlayColor: Colors.transparent,
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Read More Link
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          "Read More",
-                          style: TextStyle(
+                        child: ReadMore(
+                          item["description"] ?? "",
+                          style: const TextStyle(
                             color: charcoalGray,
-                            fontSize: 12,
+                            fontSize: 13,
+                            fontFamily: natoRegular,
+                          ),
+                          minLines: 2,
+                          readMoreText: 'Read more',
+                          readLessText: 'Read less',
+                          readMoreStyle: const TextStyle(
+                            color: charcoalGray,
+                            fontSize: 13,
                             fontFamily: natoMedium,
                           ),
+                          readMoreIconVisible: false,
+                          alignCenter: false,
                         ),
                       ),
                     ],
@@ -565,16 +595,23 @@ class OutletScreen extends GetView<OutletScreenController> {
                           // Food Image
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
-                              item.image,
-                              width: 110,
-                              height: 110,
-                              fit: BoxFit.cover,
-                            ),
+                            child: item["itemImage"] == null
+                                ? Image.asset(
+                                    AppImages().momoImg,
+                                    width: 110,
+                                    height: 110,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    item["itemImage"],
+                                    width: 110,
+                                    height: 110,
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
 
                           // Add Button (Overlapping)
-                          item.quantity > 0
+                          item["cartCount"] > 0
                               ? Positioned(
                                   bottom: 0,
                                   child: Container(
@@ -604,11 +641,11 @@ class OutletScreen extends GetView<OutletScreenController> {
                                       children: [
                                         InkWell(
                                           onTap: () {
-                                            Get.find<OutletScreenController>()
-                                                .decrimentQuantity(
-                                                  categoryName,
-                                                  item.id,
-                                                );
+                                            // Get.find<OutletScreenController>()
+                                            //     .decrimentQuantity(
+                                            //       categoryName,
+                                            //       item.id,
+                                            //     );
                                           },
                                           child: const Icon(
                                             Icons.remove,
@@ -617,7 +654,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                                           ),
                                         ),
                                         Text(
-                                          item.quantity.toString(),
+                                          item["cartCount"].toString(),
                                           style: const TextStyle(
                                             color: charcoalGray,
                                             fontSize: 14,
@@ -626,11 +663,11 @@ class OutletScreen extends GetView<OutletScreenController> {
                                         ),
                                         InkWell(
                                           onTap: () {
-                                            Get.find<OutletScreenController>()
-                                                .incrementQuantity(
-                                                  categoryName,
-                                                  item.id,
-                                                );
+                                            // Get.find<OutletScreenController>()
+                                            //     .incrementQuantity(
+                                            //       categoryName,
+                                            //       item.id,
+                                            //     );
                                           },
                                           child: const Icon(
                                             Icons.add,
@@ -646,20 +683,38 @@ class OutletScreen extends GetView<OutletScreenController> {
                                   bottom: 0,
                                   child: InkWell(
                                     onTap: () {
-                                      Get.find<CartController>().addItemToCart(
-                                        id: item.id,
-                                        categoryName: categoryName,
-                                        name: item.name,
-                                        description: item.description,
-                                        price: item.price,
-                                        image: item.image,
-                                        isVeg: item.isVeg,
-                                      );
-                                      Get.find<OutletScreenController>()
-                                          .incrementQuantity(
-                                            categoryName,
-                                            item.id,
-                                          );
+                                      if (item["hasCustomisation"]) {
+                                        controller
+                                            .getFoodItemDetails(
+                                              outletId: item["outlateId"],
+                                              itemId: item["id"],
+                                            )
+                                            .then(
+                                              (value) => {
+                                                FoodItemDetailsBottomSheet.show(
+                                                  Get.context!,
+                                                  foodItem: controller
+                                                      .foodItemsDetails,
+                                                ),
+                                              },
+                                            );
+                                      } else {
+                                        print("Add item into cart");
+                                      }
+                                      // Get.find<CartController>().addItemToCart(
+                                      //   id: item.id,
+                                      //   categoryName: categoryName,
+                                      //   name: item.name,
+                                      //   description: item.description,
+                                      //   price: item.price,
+                                      //   image: item.image,
+                                      //   isVeg: item.isVeg,
+                                      // );
+                                      // Get.find<OutletScreenController>()
+                                      //     .incrementQuantity(
+                                      //       categoryName,
+                                      //       item.id,
+                                      //     );
                                     },
                                     child: Container(
                                       width: 70,
@@ -691,7 +746,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                       ),
                     ),
                     const SizedBox(height: 5),
-                    if (item.hasCustomise)
+                    if (item["hasCustomisation"])
                       const Text(
                         "Customise",
                         style: TextStyle(

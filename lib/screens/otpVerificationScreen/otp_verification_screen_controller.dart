@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_key.dart';
@@ -43,12 +44,18 @@ class OtpVerificationScreenController extends GetxController {
   }
 
   Future<dynamic> otpVerification() async {
-    print("otpVerification input Data => ${secretId.value}, ${otpCode.value}, ${isLogin.value}");
+    print(
+      "otpVerification input Data => ${secretId.value}, ${otpCode.value}, ${isLogin.value}",
+    );
     Get.dialog(const LoadingDialog(), barrierDismissible: false);
     var response = await http.post(
       Uri.parse(ApiServices.verifyOtp),
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"secretId": secretId.value, "otp": otpCode.value, "type": isLogin.value ? "login" : "register"}),
+      body: jsonEncode({
+        "secretId": secretId.value,
+        "otp": otpCode.value,
+        "type": isLogin.value ? "login" : "register",
+      }),
     );
     print('otpVerification Response status: ${response.statusCode}');
     print('otpVerification Response body: ${response.body}');
@@ -56,10 +63,18 @@ class OtpVerificationScreenController extends GetxController {
       Get.back();
     }
     var data = jsonDecode(response.body);
-    if (response.statusCode == 200 && data["success"] == true && data["data"]["user"]["isProfileComplete"] == false) {
-      await storage.write(userToken, "Bearer ${data["data"]["token"]}");
+    if (response.statusCode == 200 &&
+        data["success"] == true &&
+        data["data"]["user"]["isProfileComplete"] == false) {
+      final token = "Bearer ${data["data"]["token"]}";
+      await storage.write(userToken, token);
+      if (Get.isRegistered<SocketService>()) {
+        SocketService.to.onLogin(token);
+      }
       Get.toNamed(Routes.completeYourProfileScreen);
-    } else if (response.statusCode == 200 && data["success"] == true && data["data"]["user"]["isProfileComplete"] == true) {
+    } else if (response.statusCode == 200 &&
+        data["success"] == true &&
+        data["data"]["user"]["isProfileComplete"] == true) {
       Get.snackbar(
         "Success",
         data["message"],
@@ -69,7 +84,11 @@ class OtpVerificationScreenController extends GetxController {
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
       await storage.write(loginTrue, true);
-      await storage.write(userToken, "Bearer ${data["data"]["token"]}");
+      final token = "Bearer ${data["data"]["token"]}";
+      await storage.write(userToken, token);
+      if (Get.isRegistered<SocketService>()) {
+        SocketService.to.onLogin(token);
+      }
       Get.offAllNamed(Routes.homeScreen);
     } else {
       Get.snackbar(
@@ -84,12 +103,17 @@ class OtpVerificationScreenController extends GetxController {
   }
 
   Future<dynamic> resendOtp() async {
-    print("resendOtp input Data => ${secretId.value}, ${isLogin.value}, ${email.value}, ${phoneNumber.value}");
+    print(
+      "resendOtp input Data => ${secretId.value}, ${isLogin.value}, ${email.value}, ${phoneNumber.value}",
+    );
     Get.dialog(const LoadingDialog(), barrierDismissible: false);
     var response = await http.post(
       Uri.parse(ApiServices.resendOtp),
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"secretId": secretId.value, "type": email.value != "" ? "email" : "phone"}),
+      body: jsonEncode({
+        "secretId": secretId.value,
+        "type": email.value != "" ? "email" : "phone",
+      }),
     );
     print('resendOtp Response status: ${response.statusCode}');
     print('resendOtp Response body: ${response.body}');
@@ -106,7 +130,8 @@ class OtpVerificationScreenController extends GetxController {
         snackPosition: SnackPosition.TOP,
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
-      secretId.value = data["data"]?["user"]?["secretId"] ?? data["data"]?["secretId"];
+      secretId.value =
+          data["data"]?["user"]?["secretId"] ?? data["data"]?["secretId"];
     } else {
       Get.snackbar(
         "Oops!",
