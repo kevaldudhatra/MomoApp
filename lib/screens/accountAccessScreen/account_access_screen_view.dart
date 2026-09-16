@@ -2,14 +2,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/screens/accountAccessScreen/account_access_screen_controller.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class AccountAccessScreen extends GetView<AccountAccessScreenController> {
   const AccountAccessScreen({super.key});
@@ -310,22 +308,11 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                       decoration: TextDecoration.underline,
                                     ),
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
-                                        final Uri uri = Uri.parse(
-                                          ApiServices.termsAndConditionUrl,
+                                      ..onTap = () {
+                                        Get.toNamed(
+                                          Routes.privacyAndTermsScreen,
+                                          arguments: {"isPrivacy": false},
                                         );
-                                        if (await canLaunchUrl(uri)) {
-                                          await launchUrl(
-                                            uri,
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        } else {
-                                          Get.snackbar(
-                                            'Error',
-                                            'Unable to open terms and conditions',
-                                          );
-                                        }
                                       },
                                   ),
                                   const TextSpan(text: " and acknowledge the "),
@@ -337,22 +324,11 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                       decoration: TextDecoration.underline,
                                     ),
                                     recognizer: TapGestureRecognizer()
-                                      ..onTap = () async {
-                                        final Uri uri = Uri.parse(
-                                          ApiServices.privacyPolicyUrl,
+                                      ..onTap = () {
+                                        Get.toNamed(
+                                          Routes.privacyAndTermsScreen,
+                                          arguments: {"isPrivacy": true},
                                         );
-                                        if (await canLaunchUrl(uri)) {
-                                          await launchUrl(
-                                            uri,
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        } else {
-                                          Get.snackbar(
-                                            'Error',
-                                            'Unable to open privacy policy',
-                                          );
-                                        }
                                       },
                                   ),
                                 ],

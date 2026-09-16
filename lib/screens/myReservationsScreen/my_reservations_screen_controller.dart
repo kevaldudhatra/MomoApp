@@ -2,9 +2,22 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:http/http.dart' as http;
+
+String formatDateTime(String date, String time) {
+  final inputFormat = DateFormat('yyyy-MM-dd HH:mm');
+  final outputFormat = DateFormat('dd/MM/yy, hh:mma');
+  final dateTime = inputFormat.parse('$date $time');
+  return outputFormat.format(dateTime);
+}
+
+String formatReservationDateTime(String value) {
+  final dateTime = DateTime.parse(value).toLocal();
+  return DateFormat('dd/MM/yy, hh:mma').format(dateTime);
+}
 
 class ReservationModel {
   final String id;
@@ -15,6 +28,7 @@ class ReservationModel {
   final String scheduledTime;
   final String placedTime;
   final String status;
+  final String phoneNumber;
 
   ReservationModel({
     required this.id,
@@ -25,20 +39,23 @@ class ReservationModel {
     required this.scheduledTime,
     required this.placedTime,
     required this.status,
+    required this.phoneNumber,
   });
 
   factory ReservationModel.fromJson(Map<String, dynamic> json) {
     return ReservationModel(
-      id: json['id']?.toString() ?? '',
-      restaurantName: json['restaurantName']?.toString() ?? '',
-      restaurantAddress: json['restaurantAddress']?.toString() ?? '',
-      restaurantImage: json['restaurantImage']?.toString() ?? '',
-      guests: json['guests'] is int
-          ? json['guests']
-          : int.tryParse(json['guests']?.toString() ?? '') ?? 1,
-      scheduledTime: json['scheduledTime']?.toString() ?? '',
-      placedTime: json['placedTime']?.toString() ?? '',
-      status: json['status']?.toString() ?? '',
+      id: json['id'].toString(),
+      restaurantName: json['outlate']['name'].toString(),
+      restaurantAddress:
+          "${json['outlate']['address']?.toString()}, ${json['outlate']['city']?.toString()}, ${json['outlate']['state']?.toString()}",
+      restaurantImage: json['outlate']['brandLogo']?.toString() ?? '',
+      guests: json['guestCount'] is int
+          ? json['guestCount']
+          : int.tryParse(json['guestCount'].toString()),
+      scheduledTime: formatDateTime(json['bookingDate'], json['bookingTime']),
+      placedTime: formatReservationDateTime(json['placedAt']),
+      status: json['status'].toString(),
+      phoneNumber: json['outlate']['phoneNo'].toString(),
     );
   }
 }

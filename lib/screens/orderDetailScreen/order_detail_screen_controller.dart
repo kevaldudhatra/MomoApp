@@ -1040,7 +1040,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                               value: isDeliveryFree
                                   ? "FREE"
                                   : "₹${controller.deliveryFee.toInt()}",
-                              valueColor: isDeliveryFree ? greenFree : black,
+                              valueColor: isDeliveryFree ? greenBadge : black,
                               valueFontFamily: isDeliveryFree
                                   ? natoBold
                                   : natoRegular,

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:momos/routes/app_pages.dart';
-import 'package:momos/screens/myReservationsScreen/my_reservations_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/screens/myReservationsScreen/my_reservations_screen_controller.dart';
 
 class MyReservationsScreen extends GetView<MyReservationsScreenController> {
   const MyReservationsScreen({super.key});
@@ -263,7 +263,7 @@ class MyReservationsScreen extends GetView<MyReservationsScreenController> {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Image.asset(
-                          AppImages().foodItemOne,
+                          AppImages().momoImg,
                           width: 44,
                           height: 44,
                           fit: BoxFit.cover,
@@ -350,9 +350,17 @@ class MyReservationsScreen extends GetView<MyReservationsScreenController> {
                       border: Border.all(color: borderGray, width: 1),
                     ),
                     child: Text(
-                      reservation.status,
-                      style: const TextStyle(
-                        color: charcoalGray,
+                      '${reservation.status[0].toUpperCase()}${reservation.status.substring(1)}',
+                      style: TextStyle(
+                        color: reservation.status == 'pending'
+                            ? charcoalGray
+                            : reservation.status == 'confirmed'
+                            ? blue
+                            : reservation.status == 'completed'
+                            ? greenBadge
+                            : reservation.status == 'cancelled'
+                            ? red
+                            : charcoalGray,
                         fontSize: 13,
                         fontFamily: natoMedium,
                       ),

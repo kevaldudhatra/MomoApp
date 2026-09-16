@@ -5,6 +5,8 @@ import 'package:momos/screens/createAccountScreen/create_account_screen_controll
 import 'package:momos/screens/createAccountScreen/create_account_screen_view.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_view.dart';
+import 'package:momos/screens/privacyAndTermsScreen/privacy_and_terms_screen_controller.dart';
+import 'package:momos/screens/privacyAndTermsScreen/privacy_and_terms_screen_view.dart';
 import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 import 'package:momos/screens/profileScreen/profile_screen_view.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
@@ -59,8 +61,6 @@ import 'package:momos/screens/aboutUsScreen/about_us_screen_controller.dart';
 import 'package:momos/screens/aboutUsScreen/about_us_screen_view.dart';
 import 'package:momos/screens/faqScreen/faq_screen_controller.dart';
 import 'package:momos/screens/faqScreen/faq_screen_view.dart';
-import 'package:momos/screens/menuScreen/menu_screen_controller.dart';
-import 'package:momos/screens/menuScreen/menu_screen_view.dart';
 import 'package:momos/screens/bookTableScreen/book_table_screen_controller.dart';
 import 'package:momos/screens/bookTableScreen/book_table_screen_view.dart';
 import 'package:momos/screens/reviewBookingScreen/review_booking_screen_controller.dart';
@@ -324,13 +324,6 @@ class AppPages {
       }),
     ),
     GetPage(
-      name: Routes.menuScreen,
-      page: () => const MenuScreen(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut<MenuScreenController>(() => MenuScreenController());
-      }),
-    ),
-    GetPage(
       name: Routes.bookTableScreen,
       page: () => const BookTableScreen(),
       binding: BindingsBuilder(() {
@@ -345,6 +338,15 @@ class AppPages {
       binding: BindingsBuilder(() {
         Get.lazyPut<ReviewBookingScreenController>(
           () => ReviewBookingScreenController(),
+        );
+      }),
+    ),
+    GetPage(
+      name: Routes.privacyAndTermsScreen,
+      page: () => const PrivacyAndTermsScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<PrivacyAndTermsScreenController>(
+          () => PrivacyAndTermsScreenController(),
         );
       }),
     ),

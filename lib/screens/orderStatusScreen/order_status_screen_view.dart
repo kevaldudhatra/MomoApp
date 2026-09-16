@@ -556,7 +556,7 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
                 "Delivery Charge",
                 "FREE",
                 textStyle: const TextStyle(
-                  color: greenFree,
+                  color: greenBadge,
                   fontSize: 14,
                   fontFamily: natoMedium,
                 ),

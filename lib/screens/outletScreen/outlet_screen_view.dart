@@ -255,7 +255,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                                                     controller
                                                         .outletInfo['isOpen']
                                                     ? greenBadge
-                                                    : Colors.red,
+                                                    : red,
                                                 borderRadius:
                                                     BorderRadius.circular(12),
                                               ),

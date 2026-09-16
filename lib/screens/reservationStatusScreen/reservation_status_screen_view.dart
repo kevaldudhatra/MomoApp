@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/reservationStatusScreen/reservation_status_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ReservationStatusScreen
     extends GetView<ReservationStatusScreenController> {
@@ -88,7 +90,7 @@ class ReservationStatusScreen
                   ),
                   const SizedBox(height: 15),
                   Text(
-                    "booking ${reservation.status}",
+                    "Booking ${reservation.status}",
                     style: TextStyle(
                       color: white,
                       fontSize: 22,
@@ -186,12 +188,12 @@ class ReservationStatusScreen
                                 color: charcoalGray,
                               ),
                               const SizedBox(width: 12),
-                              const Expanded(
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Momo I AM",
+                                      reservation.restaurantName,
                                       style: TextStyle(
                                         color: black,
                                         fontSize: 15,
@@ -200,7 +202,7 @@ class ReservationStatusScreen
                                     ),
                                     SizedBox(height: 4),
                                     Text(
-                                      "Aditya Mehta, 23 Sunrise Apartments, Yagnik...",
+                                      reservation.restaurantAddress,
                                       style: TextStyle(
                                         color: textSecondary,
                                         fontSize: 13,
@@ -270,7 +272,7 @@ class ReservationStatusScreen
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     return Image.asset(
-                                      AppImages().foodItemOne,
+                                      AppImages().momoImg,
                                       width: 44,
                                       height: 44,
                                       fit: BoxFit.cover,
@@ -338,7 +340,9 @@ class ReservationStatusScreen
 
                               // Chat Icon
                               InkWell(
-                                onTap: () {},
+                                onTap: () {
+                                  Get.toNamed(Routes.supportChatScreen);
+                                },
                                 child: Container(
                                   width: 40,
                                   height: 40,
@@ -362,7 +366,20 @@ class ReservationStatusScreen
 
                               // Call Icon
                               InkWell(
-                                onTap: () {},
+                                onTap: () async {
+                                  final Uri uri = Uri(
+                                    scheme: 'tel',
+                                    path: "+91 ${reservation.phoneNumber}",
+                                  );
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  } else {
+                                    Get.snackbar(
+                                      'Error',
+                                      'Unable to open phone dialer',
+                                    );
+                                  }
+                                },
                                 child: Container(
                                   width: 40,
                                   height: 40,

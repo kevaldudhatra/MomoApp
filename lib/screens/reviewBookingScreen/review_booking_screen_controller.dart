@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -31,7 +30,7 @@ class ReviewBookingScreenController extends GetxController {
       final deliveryController = Get.find<DeliveryScreenController>();
       return "${deliveryController.outlateDetails['address']}, ${deliveryController.outlateDetails['city']}, ${deliveryController.outlateDetails['state']} - ${deliveryController.outlateDetails['pinCode']}";
     } catch (_) {
-      return "Bidhannagar, Kolkata, West Bengal - 700091";
+      return "";
     }
   }
 
@@ -46,7 +45,7 @@ class ReviewBookingScreenController extends GetxController {
       }
       return date;
     } catch (_) {
-      return "Today at 11:30 AM";
+      return "";
     }
   }
 
@@ -55,7 +54,7 @@ class ReviewBookingScreenController extends GetxController {
       final bookTableController = Get.find<BookTableScreenController>();
       return "${bookTableController.selectedGuests.value} guests";
     } catch (_) {
-      return "1 guests";
+      return "";
     }
   }
 
@@ -113,10 +112,10 @@ class ReviewBookingScreenController extends GetxController {
         Get.back();
       }
       var data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data['status'] == true) {
+      if (response.statusCode == 201 && data['success'] == true) {
         Get.snackbar(
           "Booking Confirmed",
-          "Your table reservation at $restaurantName has been confirmed!",
+          data['message'],
           snackPosition: SnackPosition.TOP,
           icon: const Icon(Icons.done, color: Colors.green),
           backgroundColor: charcoalGray.withValues(alpha: 0.9),

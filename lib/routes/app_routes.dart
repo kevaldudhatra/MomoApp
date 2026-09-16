@@ -32,7 +32,7 @@ abstract class Routes {
   static const supportChatScreen = '/supportChatScreen';
   static const aboutUsScreen = '/aboutUsScreen';
   static const faqScreen = '/faqScreen';
-  static const menuScreen = '/menuScreen';
   static const bookTableScreen = '/bookTableScreen';
   static const reviewBookingScreen = '/reviewBookingScreen';
+  static const privacyAndTermsScreen = '/privacyAndTermsScreen';
 }
