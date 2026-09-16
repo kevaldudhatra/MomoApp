@@ -4,6 +4,8 @@ class ApiServices {
   // Live mode url //
   static String baseUrl = liveUrl;
   static String socketUrl = socketLiveUrl;
+  static String termsAndConditionUrl = 'https://momoiamofficial.com/terms';
+  static String privacyPolicyUrl = 'https://momoiamofficial.com/privacy';
   static String connectSocket = '$baseUrl/api/v1/user/chat/connect-socket';
   static String verifyOtp = '$baseUrl/public/api/v1/user/otp-verify';
   static String resendOtp = '$baseUrl/public/api/v1/user/resend-otp';
@@ -33,4 +35,8 @@ class ApiServices {
       '$baseUrl/api/v1/user/outlates/{outletId}/menu?typeId={typeId}';
   static String getFoodItemDetails =
       '$baseUrl/api/v1/user/outlates/{outletId}/menu/{itemId}';
+  static String getAllOutlateDetails =
+      '$baseUrl/api/v1/user/outlates/{outletID}';
+  static String getOutletReview =
+      '$baseUrl/api/v1/user/outlates/{outletID}/ratings';
 }

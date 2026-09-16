@@ -1,12 +1,15 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/screens/accountAccessScreen/account_access_screen_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AccountAccessScreen extends GetView<AccountAccessScreenController> {
   const AccountAccessScreen({super.key});
@@ -39,12 +42,20 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                 bottom: 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-                    image: DecorationImage(image: AssetImage(AppImages().fullBgImg), fit: BoxFit.cover),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    image: DecorationImage(
+                      image: AssetImage(AppImages().fullBgImg),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Obx(
@@ -55,22 +66,34 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                           children: [
                             const SizedBox(height: 30),
                             Text(
-                              controller.isLogin.value ? "Welcome Back!" : "Create an Account",
+                              controller.isLogin.value
+                                  ? "Welcome Back!"
+                                  : "Create an Account",
                               textAlign: TextAlign.start,
-                              style: const TextStyle(color: black, fontSize: 24, fontFamily: natoSemiBold),
+                              style: const TextStyle(
+                                color: black,
+                                fontSize: 24,
+                                fontFamily: natoSemiBold,
+                              ),
                             ),
                             const SizedBox(height: 30),
                             const Text(
                               "Phone Number",
                               textAlign: TextAlign.start,
-                              style: TextStyle(color: charcoalGray, fontSize: 15, fontFamily: natoSemiBold),
+                              style: TextStyle(
+                                color: charcoalGray,
+                                fontSize: 15,
+                                fontFamily: natoSemiBold,
+                              ),
                             ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
                                 Container(
                                   height: 48,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: white,
                                     border: Border.all(color: lightGray),
@@ -79,13 +102,24 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Text("🇮🇳", style: TextStyle(fontSize: 18)),
+                                      const Text(
+                                        "🇮🇳",
+                                        style: TextStyle(fontSize: 18),
+                                      ),
                                       const SizedBox(width: 5),
-                                      Container(height: 18, width: 1, color: lightGray),
+                                      Container(
+                                        height: 18,
+                                        width: 1,
+                                        color: lightGray,
+                                      ),
                                       const SizedBox(width: 8),
                                       const Text(
                                         "+91",
-                                        style: TextStyle(color: black, fontSize: 16, fontFamily: natoRegular),
+                                        style: TextStyle(
+                                          color: black,
+                                          fontSize: 16,
+                                          fontFamily: natoRegular,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -97,23 +131,45 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                     child: TextField(
                                       controller: controller.currentNumber,
                                       keyboardType: TextInputType.phone,
-                                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(10),
+                                      ],
                                       cursorColor: black,
                                       cursorHeight: 18,
-                                      style: const TextStyle(color: black, fontSize: 16.0, fontFamily: natoRegular),
+                                      style: const TextStyle(
+                                        color: black,
+                                        fontSize: 16.0,
+                                        fontFamily: natoRegular,
+                                      ),
                                       decoration: const InputDecoration(
-                                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: 10.0,
+                                          horizontal: 15.0,
+                                        ),
                                         filled: true,
                                         hintText: "Enter your phone number",
-                                        hintStyle: TextStyle(color: lightGray, fontFamily: natoRegular, fontSize: 16.0),
+                                        hintStyle: TextStyle(
+                                          color: lightGray,
+                                          fontFamily: natoRegular,
+                                          fontSize: 16.0,
+                                        ),
                                         fillColor: white,
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                                          borderSide: BorderSide(color: lightGray),
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(5.0),
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: lightGray,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                                          borderSide: BorderSide(color: lightGray),
+                                          borderRadius: BorderRadius.all(
+                                            Radius.circular(5.0),
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: lightGray,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -125,7 +181,8 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                             CustomButton(
                               width: MediaQuery.of(context).size.width,
                               label: "Get OTP",
-                              isEnabled: controller.phoneNumber.value.length == 10,
+                              isEnabled:
+                                  controller.phoneNumber.value.length == 10,
                               onTap: () {
                                 if (controller.phoneNumber.value.length == 10) {
                                   controller.userRegisterOrLoginUsingPhone();
@@ -135,15 +192,27 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                             const SizedBox(height: 35),
                             Row(
                               children: [
-                                Expanded(child: Container(height: 1, color: lightGray)),
+                                Expanded(
+                                  child: Container(height: 1, color: lightGray),
+                                ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 15,
+                                  ),
                                   child: Text(
-                                    controller.isLogin.value ? "or log in with" : "or sign up with",
-                                    style: const TextStyle(color: charcoalGray, fontSize: 14, fontFamily: natoRegular),
+                                    controller.isLogin.value
+                                        ? "or log in with"
+                                        : "or sign up with",
+                                    style: const TextStyle(
+                                      color: charcoalGray,
+                                      fontSize: 14,
+                                      fontFamily: natoRegular,
+                                    ),
                                   ),
                                 ),
-                                Expanded(child: Container(height: 1, color: lightGray)),
+                                Expanded(
+                                  child: Container(height: 1, color: lightGray),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 30),
@@ -151,7 +220,9 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                               onTap: () async {
                                 final google = GoogleAuthService();
                                 await google.initialize();
-                                await google.signInWithGoogle(isLogin: controller.isLogin.value);
+                                await google.signInWithGoogle(
+                                  isLogin: controller.isLogin.value,
+                                );
                               },
                               child: Container(
                                 height: 48,
@@ -164,11 +235,19 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Image.asset(AppImages().googleIcon, height: 24, width: 24),
+                                    Image.asset(
+                                      AppImages().googleIcon,
+                                      height: 24,
+                                      width: 24,
+                                    ),
                                     const SizedBox(width: 12),
                                     const Text(
                                       "Continue with google",
-                                      style: TextStyle(color: charcoalGray, fontSize: 16, fontFamily: natoRegular),
+                                      style: TextStyle(
+                                        color: charcoalGray,
+                                        fontSize: 16,
+                                        fontFamily: natoRegular,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -194,17 +273,92 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Image.asset(AppImages().emailIcon, height: 24, width: 24),
+                                    Image.asset(
+                                      AppImages().emailIcon,
+                                      height: 24,
+                                      width: 24,
+                                    ),
                                     const SizedBox(width: 12),
                                     const Text(
                                       "Continue with Email",
-                                      style: TextStyle(color: charcoalGray, fontSize: 16, fontFamily: natoRegular),
+                                      style: TextStyle(
+                                        color: charcoalGray,
+                                        fontSize: 16,
+                                        fontFamily: natoRegular,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 50),
+                            const SizedBox(height: 30),
+                            Text.rich(
+                              TextSpan(
+                                text: "I agree to momo i am's ",
+                                style: const TextStyle(
+                                  color: charcoalGray,
+                                  fontSize: 14,
+                                  fontFamily: dmRegular,
+                                  height: 1.4,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: "Terms & Conditions",
+                                    style: const TextStyle(
+                                      color: blue,
+                                      fontFamily: dmRegular,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () async {
+                                        final Uri uri = Uri.parse(
+                                          ApiServices.termsAndConditionUrl,
+                                        );
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(
+                                            uri,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        } else {
+                                          Get.snackbar(
+                                            'Error',
+                                            'Unable to open terms and conditions',
+                                          );
+                                        }
+                                      },
+                                  ),
+                                  const TextSpan(text: " and acknowledge the "),
+                                  TextSpan(
+                                    text: "Privacy Policy.",
+                                    style: const TextStyle(
+                                      color: blue,
+                                      fontFamily: dmRegular,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () async {
+                                        final Uri uri = Uri.parse(
+                                          ApiServices.privacyPolicyUrl,
+                                        );
+                                        if (await canLaunchUrl(uri)) {
+                                          await launchUrl(
+                                            uri,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        } else {
+                                          Get.snackbar(
+                                            'Error',
+                                            'Unable to open privacy policy',
+                                          );
+                                        }
+                                      },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 40),
                             Center(
                               child: GestureDetector(
                                 onTap: () {
@@ -212,12 +366,24 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                 },
                                 child: Text.rich(
                                   TextSpan(
-                                    text: controller.isLogin.value ? "Don't have an account? " : "Already have an account? ",
-                                    style: const TextStyle(color: charcoalGray, fontSize: 14, fontFamily: natoRegular),
+                                    text: controller.isLogin.value
+                                        ? "Don't have an account? "
+                                        : "Already have an account? ",
+                                    style: const TextStyle(
+                                      color: charcoalGray,
+                                      fontSize: 14,
+                                      fontFamily: natoRegular,
+                                    ),
                                     children: [
                                       TextSpan(
-                                        text: controller.isLogin.value ? "Sign Up" : "Log In",
-                                        style: const TextStyle(color: blue, fontFamily: natoSemiBold, decoration: TextDecoration.underline),
+                                        text: controller.isLogin.value
+                                            ? "Sign Up"
+                                            : "Log In",
+                                        style: const TextStyle(
+                                          color: blue,
+                                          fontFamily: natoSemiBold,
+                                          decoration: TextDecoration.underline,
+                                        ),
                                       ),
                                     ],
                                   ),

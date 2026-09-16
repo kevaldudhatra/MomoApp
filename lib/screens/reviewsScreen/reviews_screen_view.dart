@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
 import 'package:momos/screens/outletDetailScreen/outlet_detail_screen_controller.dart';
 import 'package:momos/screens/reviewsScreen/reviews_screen_controller.dart';
@@ -51,15 +52,29 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
             // Scrollable Reviews List
             Expanded(
               child: Obx(
-                () => ListView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(top: 12, bottom: 24),
-                  itemCount: controller.reviews.length,
-                  itemBuilder: (context, index) {
-                    final review = controller.reviews[index];
-                    return _buildReviewCard(review);
-                  },
-                ),
+                () => controller.reviews.isNotEmpty
+                    ? ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 12, bottom: 24),
+                        itemCount: controller.reviews.length,
+                        itemBuilder: (context, index) {
+                          final review = controller.reviews[index];
+                          return _buildReviewCard(review);
+                        },
+                      )
+                    : Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16, bottom: 16),
+                          child: Text(
+                            "No reviews yet",
+                            style: TextStyle(
+                              fontFamily: natoMedium,
+                              fontSize: 15,
+                              color: sectionHeaderColor,
+                            ),
+                          ),
+                        ),
+                      ),
               ),
             ),
           ],
@@ -80,7 +95,7 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top User Row: Avatar Circle, User Name, Time Ago
+          // Top Row: Avatar, User Name, Time Ago
           Row(
             children: [
               Container(
@@ -125,23 +140,17 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
           // Rating Stars Row
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: List.generate(
-                review.rating,
-                (index) => Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: Image.asset(
-                    AppImages().starIcon,
-                    width: 15,
-                    height: 15,
-                    color: greenBadge,
-                  ),
-                ),
-              ),
+            child: RatingBarIndicator(
+              rating: double.tryParse(review.rating.toString()) ?? 0.0,
+              itemBuilder: (context, index) =>
+                  const Icon(Icons.star, color: greenBadge),
+              itemCount: 5,
+              itemSize: 24.0,
+              direction: Axis.horizontal,
             ),
           ),
 
-          // Review Comment Text
+          // Review Comment Content Text
           Text(
             review.comment,
             style: const TextStyle(

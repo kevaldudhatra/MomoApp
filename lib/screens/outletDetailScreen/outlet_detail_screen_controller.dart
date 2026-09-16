@@ -1,14 +1,22 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:momos/network/api_services.dart';
+import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/utils/const_key.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 class OutletReview {
   final String userName;
   final String userInitial;
   final String timeAgo;
-  final int rating;
+  final double rating;
   final String comment;
 
   OutletReview({
@@ -23,7 +31,7 @@ class OutletReview {
 // Data model representing opening hours for a day
 class DayOpeningHours {
   final String day;
-  final List<String> timeSlots;
+  final String timeSlots;
 
   DayOpeningHours({required this.day, required this.timeSlots});
 }
@@ -178,21 +186,16 @@ class OpeningHoursBottomSheet extends StatelessWidget {
               ),
 
               // Time Slots List
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: dayItem.timeSlots.map((slot) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      slot,
-                      style: const TextStyle(
-                        fontFamily: natoRegular,
-                        fontSize: 14.5,
-                        color: black,
-                      ),
-                    ),
-                  );
-                }).toList(),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  dayItem.timeSlots,
+                  style: const TextStyle(
+                    fontFamily: natoRegular,
+                    fontSize: 14.5,
+                    color: black,
+                  ),
+                ),
               ),
             ],
           ),
@@ -205,15 +208,19 @@ class OpeningHoursBottomSheet extends StatelessWidget {
 }
 
 class OutletDetailScreenController extends GetxController {
-  final outletName = "Chowman Gouribari".obs;
-  final fullAddress =
-      "Liitle russel st, Ho chi minhi sarashni roas,opp. Indiam Post office,kolkata Liitle russel st, Ho"
-          .obs;
-  final contactNumber = "09830158945".obs;
-  final openingStatus = "Closed right now".obs;
-  final openingHoursInfo = "Opens at 12:00 PM".obs;
-  final reviews = <OutletReview>[].obs;
-  final openingHoursList = <DayOpeningHours>[].obs;
+  final storage = GetStorage();
+  RxBool isLoading = true.obs;
+  RxString outletName = "".obs;
+  RxString fullAddress = "".obs;
+  RxString contactNumber = "".obs;
+  RxString openingStatus = "".obs;
+  RxString openingHoursInfo = "".obs;
+  RxList<DayOpeningHours> openingHoursList = <DayOpeningHours>[].obs;
+  RxList<OutletReview> reviews = <OutletReview>[].obs;
+  Rx<LatLng> outletLocation = LatLng(0, 0).obs;
+  final outletId = Get.isRegistered<DeliveryScreenController>()
+      ? Get.find<DeliveryScreenController>().outlateDetails['id']
+      : 0;
 
   @override
   void onInit() {
@@ -221,66 +228,135 @@ class OutletDetailScreenController extends GetxController {
     _loadOutletDetails();
   }
 
-  void _loadOutletDetails() {
-    reviews.assignAll([
-      OutletReview(
-        userName: "Sandipan",
-        userInitial: "S",
-        timeAgo: "16h ago",
-        rating: 5,
-        comment:
-            "Great experience as always! The food was delivered hot and the quality was top-notch. Truly one of the best Chinese restaurants in the area.",
-      ),
-      OutletReview(
-        userName: "Sandipan",
-        userInitial: "S",
-        timeAgo: "16h ago",
-        rating: 5,
-        comment:
-            "Great experience as always! The food was delivered hot and the quality was top-notch. Truly one of the best Chinese restaurants in the area.",
-      ),
-      OutletReview(
-        userName: "Sandipan",
-        userInitial: "S",
-        timeAgo: "16h ago",
-        rating: 5,
-        comment:
-            "Great experience as always! The food was delivered hot and the quality was top-notch. Truly one of the best Chinese restaurants in the area.",
-      ),
-    ]);
-    openingHoursList.assignAll([
-      DayOpeningHours(
-        day: "Monday",
-        timeSlots: ["12:30 PM - 12:45 PM", "12:30 PM - 12:45 PM"],
-      ),
-      DayOpeningHours(
-        day: "Tuesday",
-        timeSlots: ["12:30 PM - 12:45 PM", "12:30 PM - 12:45 PM"],
-      ),
-      DayOpeningHours(
-        day: "Wednesday",
-        timeSlots: ["12:30 PM - 12:45 PM", "12:30 PM - 12:45 PM"],
-      ),
-      DayOpeningHours(
-        day: "Thursday",
-        timeSlots: ["12:30 PM - 12:45 PM", "12:30 PM - 12:45 PM"],
-      ),
-      DayOpeningHours(
-        day: "Friday",
-        timeSlots: ["12:30 PM - 12:45 PM", "12:30 PM - 12:45 PM"],
-      ),
-      DayOpeningHours(
-        day: "Saturday",
-        timeSlots: ["12:30 PM - 12:45 PM", "12:30 PM - 12:45 PM"],
-      ),
-      DayOpeningHours(
-        day: "Sunday",
-        timeSlots: ["12:30 PM - 12:45 PM", "12:30 PM - 12:45 PM"],
-      ),
-    ]);
+  void _loadOutletDetails() async {
+    try {
+      isLoading.value = true;
+      await Future.wait([
+        getOutletDetails(outletID: outletId),
+        getOutletReview(outletID: outletId),
+      ]);
+    } catch (e) {
+      print('loadOutletDetails Error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  String timeAgo(String dateString) {
+    final date = DateTime.parse(dateString).toLocal();
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    if (difference.inSeconds < 60) {
+      return '${difference.inSeconds}s ago';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${date.day}/${date.month}/${date.year}';
+    }
   }
 
   void showOpeningHoursBottomSheet(BuildContext context) {
     OpeningHoursBottomSheet.show(context, openingHours: openingHoursList);
+  }
+
+  Future<void> makePhoneCall() async {
+    final Uri uri = Uri(scheme: 'tel', path: contactNumber.value);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      Get.snackbar('Error', 'Unable to open phone dialer');
+    }
+  }
+
+  Future<void> getOutletDetails({int? outletID}) async {
+    try {
+      openingHoursList.clear();
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getAllOutlateDetails.replaceAll(
+            '{outletID}',
+            '$outletID',
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getOutletDetails Response status: ${response.statusCode}');
+      print('getOutletDetails Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        outletLocation.value = LatLng(
+          data['data']['latitude'],
+          data['data']['longitude'],
+        );
+        outletName.value = data['data']['name'] ?? '';
+        fullAddress.value =
+            "${data['data']['address']}, ${data['data']['city']}, ${data['data']['state']} - ${data['data']['pinCode']}, ${data['data']['country']}";
+        contactNumber.value =
+            "${data['data']['countryCode']}${data['data']['phoneNo']}";
+        openingStatus.value = data['data']['isOpen'] == true
+            ? "Open"
+            : "Closed";
+        openingHoursInfo.value = data['data']['isOpen'] == true
+            ? "Available Now"
+            : "Not Available";
+        openingHoursList.assignAll(
+          data['data']['openingHours'].map<DayOpeningHours>((e) {
+            return DayOpeningHours(
+              day: e['dayName'],
+              timeSlots: e['hours'].isNotEmpty
+                  ? e['hours'][0]['display']
+                  : 'Closed',
+            );
+          }).toList(),
+        );
+      }
+    } catch (e) {
+      print('getOutletDetails Error: $e');
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> getOutletReview({int? outletID}) async {
+    try {
+      reviews.clear();
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getOutletReview.replaceAll('{outletID}', '$outletID'),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getOutletReview Response status: ${response.statusCode}');
+      print('getOutletReview Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        reviews.assignAll(
+          data['data']['ratings'].map<OutletReview>((e) {
+            return OutletReview(
+              userName: e['user']['name'],
+              userInitial: e['user']['name'].substring(0, 1).toString(),
+              timeAgo: timeAgo(e['createdAt']),
+              rating: double.parse(e['rate'].toString()),
+              comment: e['message'] ?? "",
+            );
+          }).toList(),
+        );
+      } else {
+        reviews.clear();
+      }
+    } catch (e) {
+      print('getOutletReview Error: $e');
+      reviews.clear();
+      isLoading.value = false;
+    }
   }
 }

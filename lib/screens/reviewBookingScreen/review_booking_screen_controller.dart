@@ -22,7 +22,7 @@ class ReviewBookingScreenController extends GetxController {
       final deliveryController = Get.find<DeliveryScreenController>();
       return deliveryController.outlateDetails['name'];
     } catch (_) {
-      return "Momo I AM RDB Sector 5";
+      return "";
     }
   }
 

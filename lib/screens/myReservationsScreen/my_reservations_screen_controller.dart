@@ -102,7 +102,15 @@ class MyReservationsScreenController extends GetxController {
     try {
       final statusParam = selectedStatus.value.toLowerCase() == 'all'
           ? 'all'
-          : selectedStatus.value;
+          : selectedStatus.value.toLowerCase() == 'pending'
+          ? 'pending'
+          : selectedStatus.value.toLowerCase() == 'confirmed'
+          ? 'confirmed'
+          : selectedStatus.value.toLowerCase() == 'completed'
+          ? 'completed'
+          : selectedStatus.value.toLowerCase() == 'cancelled'
+          ? 'cancelled'
+          : 'all';
       final url = ApiServices.getReservations
           .replaceAll('{page}', page.toString())
           .replaceAll('{status}', statusParam);

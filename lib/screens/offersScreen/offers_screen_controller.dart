@@ -35,7 +35,7 @@ class OffersScreenController extends GetxController {
   final offers = <Offer>[].obs;
   final outletId = Get.isRegistered<DeliveryScreenController>()
       ? Get.find<DeliveryScreenController>().outlateDetails['id']
-      : 1;
+      : 0;
 
   @override
   void onInit() {

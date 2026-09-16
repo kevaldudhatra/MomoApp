@@ -1447,7 +1447,7 @@ class OrderDetailScreenController extends GetxController {
   final storage = GetStorage();
   final outletId = Get.isRegistered<DeliveryScreenController>()
       ? Get.find<DeliveryScreenController>().outlateDetails['id']
-      : 1;
+      : 0;
   RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
       ? Get.find<CartController>().cartItems
       : <CartItem>[].obs;

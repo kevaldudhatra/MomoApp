@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -15,21 +14,6 @@ class CreateAccountScreenController extends GetxController {
   final confirmPasswordController = TextEditingController();
   final RxBool obscurePassword = true.obs;
   final RxBool obscureConfirmPassword = true.obs;
-  late TapGestureRecognizer termsRecognizer;
-  late TapGestureRecognizer privacyRecognizer;
-
-  @override
-  void onInit() {
-    super.onInit();
-    termsRecognizer = TapGestureRecognizer()
-      ..onTap = () {
-        print("Terms & Conditions");
-      };
-    privacyRecognizer = TapGestureRecognizer()
-      ..onTap = () {
-        print("Privacy Policy");
-      };
-  }
 
   @override
   void onClose() {
@@ -37,8 +21,6 @@ class CreateAccountScreenController extends GetxController {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
-    termsRecognizer.dispose();
-    privacyRecognizer.dispose();
     super.onClose();
   }
 
