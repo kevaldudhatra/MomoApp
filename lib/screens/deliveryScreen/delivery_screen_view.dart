@@ -410,7 +410,9 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                             top: 8,
                                             left: 8,
                                             child: Image.asset(
-                                              AppImages().vegIcon,
+                                              item["itemType"] == 1
+                                                  ? AppImages().vegIcon
+                                                  : AppImages().nonVegIcon,
                                               width: 18,
                                               height: 18,
                                             ),

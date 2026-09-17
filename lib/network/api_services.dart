@@ -1,7 +1,6 @@
 import 'package:momos/network/env.dart';
 
 class ApiServices {
-  // Live mode url //
   static String baseUrl = liveUrl;
   static String socketUrl = socketLiveUrl;
   static String connectSocket = '$baseUrl/api/v1/user/chat/connect-socket';
@@ -16,6 +15,10 @@ class ApiServices {
   static String tableReservations = '$baseUrl/api/v1/user/reservations';
   static String getFoodTypes = '$baseUrl/api/v1/user/outlates/{outletId}/types';
   static String getFaqList = '$baseUrl/public/api/v1/user/content/faqs';
+  static String addItemToCart = '$baseUrl/api/v1/user/cart/add';
+  static String updateItemQuantity = '$baseUrl/api/v1/user/cart/item/{itemId}';
+  static String getCartItem = '$baseUrl/api/v1/user/cart/details';
+  static String placeOrder = '$baseUrl/api/v1/user/orders/place';
   static String deleteUserAddress =
       '$baseUrl/api/v1/user/addresses/{addressId}';
   static String verifyForgotOtp =

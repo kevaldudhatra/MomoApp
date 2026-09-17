@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
@@ -1026,7 +1027,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                         items.add(
                           _buildBillRow(
                             label: "Item Total",
-                            value: "₹${controller.subtotal.toInt()}",
+                            value: "₹${controller.subtotal.toDouble()}",
                           ),
                         );
 
@@ -1039,7 +1040,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                               label: "Delivery Charge",
                               value: isDeliveryFree
                                   ? "FREE"
-                                  : "₹${controller.deliveryFee.toInt()}",
+                                  : "₹${controller.deliveryFee.toDouble()}",
                               valueColor: isDeliveryFree ? greenBadge : black,
                               valueFontFamily: isDeliveryFree
                                   ? natoBold
@@ -1056,7 +1057,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                               child: _buildBillRow(
                                 label: "Coupon Discount",
                                 value:
-                                    "₹${controller.promoDiscount.value.toInt()}",
+                                    "₹${controller.promoDiscount.value.toDouble()}",
                               ),
                             ),
                           );
@@ -1068,7 +1069,8 @@ class BillDetailsBottomSheet extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 16.0),
                             child: _buildBillRow(
                               label: "Packaging Charge",
-                              value: "₹${controller.packagingCharge.toInt()}",
+                              value:
+                                  "₹${controller.packagingCharge.toDouble()}",
                             ),
                           ),
                         );
@@ -1079,7 +1081,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 16.0),
                             child: _buildBillRow(
                               label: "CGST(2.5%)",
-                              value: "₹${controller.cgst.toInt()}",
+                              value: "₹${controller.cgst.toDouble()}",
                             ),
                           ),
                         );
@@ -1090,7 +1092,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 16.0),
                             child: _buildBillRow(
                               label: "SGST(2.5%)",
-                              value: "₹${controller.sgst.toInt()}",
+                              value: "₹${controller.sgst.toDouble()}",
                             ),
                           ),
                         );
@@ -1111,7 +1113,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                         items.add(
                           _buildBillRow(
                             label: "Total",
-                            value: "₹${controller.totalBill.toInt()}",
+                            value: "₹${controller.totalBill.toDouble()}",
                             labelFontFamily: natoBold,
                             valueFontFamily: natoBold,
                             fontSize: 15,
@@ -1445,18 +1447,9 @@ class _PaymentMethodBottomSheetState extends State<PaymentMethodBottomSheet> {
 
 class OrderDetailScreenController extends GetxController {
   final storage = GetStorage();
-  final outletId = Get.isRegistered<DeliveryScreenController>()
-      ? Get.find<DeliveryScreenController>().outlateDetails['id']
-      : 0;
-  RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
-      ? Get.find<CartController>().cartItems
-      : <CartItem>[].obs;
-  RxList<MenuCategory> get categories =>
-      Get.isRegistered<OutletScreenController>()
-      ? Get.find<OutletScreenController>().categories
-      : <MenuCategory>[].obs;
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
+  RxBool isLoading = true.obs;
   RxList<DeliveryDaySchedule> scheduleList = <DeliveryDaySchedule>[].obs;
   RxList<SavedAddress> userAddressList = <SavedAddress>[].obs;
   RxDouble promoDiscount = 0.0.obs;
@@ -1470,13 +1463,27 @@ class OrderDetailScreenController extends GetxController {
   RxInt selectedAddressId = 0.obs;
   RxString addressTitle = "".obs;
   RxString addressSubtitle = "".obs;
+  RxMap<dynamic, dynamic> get outletDetails =>
+      Get.isRegistered<DeliveryScreenController>()
+      ? Get.find<DeliveryScreenController>().outlateDetails
+      : {}.obs;
+  RxMap<dynamic, dynamic> get billDetails => Get.isRegistered<CartController>()
+      ? Get.find<CartController>().billDetails
+      : {}.obs;
+  RxList<dynamic> get cartItems => Get.isRegistered<CartController>()
+      ? Get.find<CartController>().cartItems
+      : <dynamic>[].obs;
+  RxList<dynamic> get foodItems => Get.isRegistered<OutletScreenController>()
+      ? Get.find<OutletScreenController>().foodItems
+      : <dynamic>[].obs;
 
   @override
   void onInit() {
     super.onInit();
-    getDeliverySlots(outletId);
+    getDeliverySlots(outletDetails['id']);
     getUserAddress();
-    getPaymentMethods(outletId);
+    getPaymentMethods(outletDetails['id']);
+    loadData();
   }
 
   @override
@@ -1484,6 +1491,48 @@ class OrderDetailScreenController extends GetxController {
     cookingNoteController.dispose();
     promoCodeController.dispose();
     super.onClose();
+  }
+
+  String convertToApiDate(String inputDate) {
+    final now = DateTime.now();
+    final date = inputDate.trim().toLowerCase();
+    if (date == 'today') {
+      return DateFormat('yyyy-MM-dd').format(now);
+    }
+    if (date == 'tomorrow') {
+      final tomorrow = now.add(const Duration(days: 1));
+      return DateFormat('yyyy-MM-dd').format(tomorrow);
+    }
+    try {
+      final parsedDate = DateFormat('EEE, dd MMM').parse(inputDate);
+      final finalDate = DateTime(now.year, parsedDate.month, parsedDate.day);
+      return DateFormat('yyyy-MM-dd').format(finalDate);
+    } catch (e) {
+      throw FormatException('Invalid date format: $inputDate');
+    }
+  }
+
+  Map<String, String> convertTimeRange(String timeRange) {
+    final parts = timeRange.split(' - ');
+    if (parts.length != 2) {
+      throw FormatException('Invalid time range: $timeRange');
+    }
+    final inputFormat = DateFormat('h:mm a');
+    final outputFormat = DateFormat('HH:mm');
+    final startTime = inputFormat.parse(parts[0].trim());
+    final endTime = inputFormat.parse(parts[1].trim());
+    return {
+      'startTime': outputFormat.format(startTime),
+      'endTime': outputFormat.format(endTime),
+    };
+  }
+
+  Future<void> loadData() async {
+    isLoading.value = true;
+    Future.delayed(Duration(seconds: 1), () async {
+      await Get.find<CartController>().getCartItem();
+      isLoading.value = false;
+    });
   }
 
   Future<void> getDeliverySlots(int outletId) async {
@@ -1679,6 +1728,192 @@ class OrderDetailScreenController extends GetxController {
     }
   }
 
+  Future<void> incrementQuantity({required dynamic itemData}) async {
+    print('incrementQuantity Input: ${itemData['quantity']}');
+    try {
+      final response = await http.patch(
+        Uri.parse(
+          ApiServices.updateItemQuantity.replaceAll(
+            '{itemId}',
+            itemData['itemId'].toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({
+          "quantity": itemData["quantity"] + 1,
+          "itemPriceId": itemData["itemPriceId"],
+        }),
+      );
+      print('incrementQuantity Response status: ${response.statusCode}');
+      print('incrementQuantity Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        Get.find<CartController>().addItemToCart(
+          cartItem: data["data"]["items"],
+          billData: data["data"]["bill"],
+        );
+        for (var element in foodItems) {
+          if (element["category"]["id"] == itemData["categoryId"]) {
+            for (var item in element["items"]) {
+              if (item["id"] == itemData["itemId"]) {
+                item["cartCount"] = itemData["quantity"] + 1;
+              }
+            }
+          }
+        }
+        foodItems.refresh();
+      } else {
+        foodItems.refresh();
+        Get.snackbar(
+          "Oops!",
+          data['message'] ?? "Something went wrong. Please try again.",
+          snackPosition: SnackPosition.TOP,
+          icon: const Icon(Icons.error, color: Colors.red),
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('incrementQuantity Error: $e');
+      foodItems.refresh();
+    }
+  }
+
+  Future<void> decrimentQuantity({required dynamic itemData}) async {
+    print('decrimentQuantity Input: ${itemData['quantity']}');
+    try {
+      final response = await http.patch(
+        Uri.parse(
+          ApiServices.updateItemQuantity.replaceAll(
+            '{itemId}',
+            itemData['itemId'].toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({
+          "quantity": itemData["quantity"] - 1,
+          "itemPriceId": itemData["itemPriceId"],
+        }),
+      );
+      print('decrimentQuantity Response status: ${response.statusCode}');
+      print('decrimentQuantity Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        Get.find<CartController>().addItemToCart(
+          cartItem: data["data"]["items"],
+          billData: data["data"]["bill"],
+        );
+        for (var element in foodItems) {
+          if (element["category"]["id"] == itemData["categoryId"]) {
+            for (var item in element["items"]) {
+              if (item["id"] == itemData["itemId"]) {
+                item["cartCount"] = itemData["quantity"] - 1;
+              }
+            }
+          }
+        }
+        foodItems.refresh();
+      } else {
+        foodItems.refresh();
+      }
+    } catch (e) {
+      print('decrimentQuantity Error: $e');
+      foodItems.refresh();
+    }
+  }
+
+  Future<void> orderValidation() async {
+    if (selectedAddressId.value == 0) {
+      Get.snackbar(
+        "Oops!",
+        "Please select delivery address.",
+        icon: const Icon(Icons.error, color: Colors.red),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+      return;
+    }
+    if (deliveryTime.value == "Delivering now") {
+      Map<String, dynamic> payload = {
+        "addressId": selectedAddressId.value,
+        "paymentSettingId": selectedPaymentId.value,
+        "cookingNote": cookingNoteController.text.trim(),
+        "deliveryType": "now",
+      };
+      await placeOrder(orderData: payload);
+    } else {
+      final dateResult = convertToApiDate(selectedScheduleDate.value);
+      final timeResult = convertTimeRange(selectedScheduleTime.value);
+      Map<String, dynamic> payload = {
+        "addressId": selectedAddressId.value,
+        "paymentSettingId": selectedPaymentId.value,
+        "cookingNote": cookingNoteController.text.trim(),
+        "deliveryType": "schedule",
+        "scheduledDate": dateResult,
+        "scheduledSlotStart": timeResult['startTime'],
+        "scheduledSlotEnd": timeResult['endTime'],
+      };
+      await placeOrder(orderData: payload);
+    }
+  }
+
+  Future<void> placeOrder({dynamic orderData}) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiServices.placeOrder),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode(orderData),
+      );
+      print('placeOrder Response status: ${response.statusCode}');
+      print('placeOrder Response body: ${response.body}');
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 201 && data["success"] == true) {
+        Get.offAndToNamed(Routes.homeScreen);
+        cartItems.clear();
+        foodItems.clear();
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Get.snackbar(
+            "Success",
+            "Order placed successfully!",
+            icon: const Icon(Icons.done, color: Colors.green),
+            colorText: Colors.white,
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: charcoalGray.withValues(alpha: 0.9),
+          );
+        });
+      } else {
+        Get.snackbar(
+          "oops!",
+          data["message"] ?? "Something went wrong. Please try again.",
+          icon: const Icon(Icons.error, color: Colors.red),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        );
+      }
+    } catch (e) {
+      print('placeOrder Error: $e');
+      Get.snackbar(
+        "oops!",
+        "Something went wrong. Please try again.",
+        icon: const Icon(Icons.error, color: Colors.red),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+    }
+  }
+
   // Shows the delivery schedule bottom sheet
   void showScheduleBottomSheet(BuildContext context) {
     DeliveryScheduleBottomSheet.show(
@@ -1718,7 +1953,12 @@ class OrderDetailScreenController extends GetxController {
             selectedAddressId.value = defaultAddress.id;
             addressTitle.value = defaultAddress.type;
             addressSubtitle.value = defaultAddress.address;
+          } else {
+            selectedAddressId.value = 0;
+            addressTitle.value = "";
+            addressSubtitle.value = "";
           }
+          userAddressList.refresh();
         }
       },
       onSelect: (address) {
@@ -1758,50 +1998,6 @@ class OrderDetailScreenController extends GetxController {
         Get.back();
       },
     );
-  }
-
-  void incrementQuantity(CartItem item) {
-    if (Get.isRegistered<OutletScreenController>()) {
-      Get.find<OutletScreenController>().incrementQuantity(
-        item.categoryName,
-        item.id,
-      );
-    } else {
-      int index = cartItems.indexWhere(
-        (element) =>
-            element.categoryName == item.categoryName && element.id == item.id,
-      );
-      if (index >= 0) {
-        cartItems[index] = cartItems[index].copyWith(
-          quantity: cartItems[index].quantity + 1,
-        );
-        cartItems.refresh();
-      }
-    }
-  }
-
-  void decrementQuantity(CartItem item) {
-    if (Get.isRegistered<OutletScreenController>()) {
-      Get.find<OutletScreenController>().decrimentQuantity(
-        item.categoryName,
-        item.id,
-      );
-    } else {
-      int index = cartItems.indexWhere(
-        (element) =>
-            element.categoryName == item.categoryName && element.id == item.id,
-      );
-      if (index >= 0) {
-        if (cartItems[index].quantity > 1) {
-          cartItems[index] = cartItems[index].copyWith(
-            quantity: cartItems[index].quantity - 1,
-          );
-        } else {
-          cartItems.removeAt(index);
-        }
-        cartItems.refresh();
-      }
-    }
   }
 
   void applyPromoCode() {
@@ -1857,48 +2053,44 @@ class OrderDetailScreenController extends GetxController {
     );
   }
 
-  void placeOrder() {
-    if (cartItems.isEmpty) {
-      Get.snackbar(
-        "Oops!",
-        "Your cart is empty.",
-        icon: const Icon(Icons.error, color: Colors.red),
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: charcoalGray.withValues(alpha: 0.9),
-        colorText: Colors.white,
-      );
-      return;
-    }
-    Get.offAndToNamed(Routes.homeScreen);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      Get.snackbar(
-        "Success",
-        "Order placed successfully! Total: ₹${totalBill.toInt()}",
-        icon: const Icon(Icons.done, color: Colors.green),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: charcoalGray.withValues(alpha: 0.9),
-      );
-    });
-  }
+  // double get subtotal => cartItems.fold(
+  //   0.0,
+  //   (sum, item) => sum + (item["lineTotal"] as num).toDouble(),
+  // );
+
+  // double get deliveryFee => 0.0;
+
+  // double get packagingCharge => 20.0;
+
+  // double get cgst =>
+  //     ((subtotal + packagingCharge + deliveryFee) - (promoDiscount.value)) *
+  //     2.5 /
+  //     100;
+
+  // double get sgst =>
+  //     ((subtotal + packagingCharge + deliveryFee) - (promoDiscount.value)) *
+  //     2.5 /
+  //     100;
+
+  // double get totalBill =>
+  //     subtotal +
+  //     deliveryFee +
+  //     packagingCharge +
+  //     cgst +
+  //     sgst -
+  //     promoDiscount.value;
 
   // Calculated values
-  double get subtotal =>
-      cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
+  double get subtotal => (billDetails['itemTotal'] as num).toDouble();
 
-  double get deliveryFee => 0.0;
+  double get deliveryFee => (billDetails['deliveryCharge'] as num).toDouble();
 
-  double get packagingCharge => 20.0;
+  double get packagingCharge =>
+      (billDetails['packagingCharge'] as num).toDouble();
 
-  double get cgst => 20.0;
+  double get cgst => (billDetails['cgstAmount'] as num).toDouble();
 
-  double get sgst => 20.0;
+  double get sgst => (billDetails['sgstAmount'] as num).toDouble();
 
-  double get totalBill =>
-      subtotal +
-      deliveryFee +
-      packagingCharge +
-      cgst +
-      sgst -
-      promoDiscount.value;
+  double get totalBill => (billDetails['grandTotal'] as num).toDouble();
 }

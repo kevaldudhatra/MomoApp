@@ -8,6 +8,7 @@ import 'package:momos/network/api_services.dart';
 import 'package:momos/network/env.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_key.dart';
+import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:http/http.dart' as http;
 
 class DeliveryScreenController extends GetxController {
@@ -19,7 +20,7 @@ class DeliveryScreenController extends GetxController {
   RxList<dynamic> outletBanners = [].obs;
   RxList<dynamic> outletCategories = [].obs;
   RxList<dynamic> outletTopPicks = [].obs;
-  RxString selectedAddress = "Bidhannagar, Kolkata, West Bengal".obs;
+  RxString selectedAddress = "".obs;
   RxString addressType = "Home".obs;
 
   @override
@@ -27,8 +28,13 @@ class DeliveryScreenController extends GetxController {
     searchController.addListener(() {
       isSearchEmpty.value = searchController.text.isEmpty;
     });
-    getCurrentLocation();
+    loadData();
     super.onInit();
+  }
+
+  Future<void> loadData() async {
+    await getCurrentLocation();
+    await Get.find<CartController>().getCartItem();
   }
 
   @override

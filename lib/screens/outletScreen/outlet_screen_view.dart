@@ -79,6 +79,7 @@ class OutletScreen extends GetView<OutletScreenController> {
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           child: SingleChildScrollView(
+            controller: controller.scrollController,
             physics: const BouncingScrollPhysics(),
             child: Obx(
               () => controller.isLoading.value
@@ -373,7 +374,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                                     .toList(),
                               ),
 
-                        SizedBox(height: 50),
+                        const SizedBox(height: 80),
                       ],
                     ),
             ),
@@ -386,7 +387,11 @@ class OutletScreen extends GetView<OutletScreenController> {
   // Single Filter Chip Widget
   Widget _buildFilterChip(dynamic foodType) {
     return GestureDetector(
-      onTap: () => controller.toggleFilter(foodType),
+      onTap: () {
+        if (!foodType['isSelected']) {
+          controller.toggleFilter(foodType);
+        }
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -414,51 +419,58 @@ class OutletScreen extends GetView<OutletScreenController> {
 
   // Category Section Widget
   Widget _buildCategorySection(BuildContext context, dynamic category) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Category Header Bar
-        GestureDetector(
-          onTap: () => controller.toggleCategory(category),
-          child: Container(
-            margin: EdgeInsets.only(top: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  category["category"]["name"],
-                  style: const TextStyle(
-                    color: black,
-                    fontSize: 18,
-                    fontFamily: natoBold,
+    final catId = category["category"]?["id"];
+    return Container(
+      key: catId != null ? controller.getCategoryKey(catId) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Category Header Bar
+          GestureDetector(
+            onTap: () => controller.toggleCategory(category),
+            child: Container(
+              margin: const EdgeInsets.only(top: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: white,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    category["category"]["name"],
+                    style: const TextStyle(
+                      color: black,
+                      fontSize: 18,
+                      fontFamily: natoBold,
+                    ),
                   ),
-                ),
-                AnimatedRotation(
-                  turns: category["isExpanded"] ? 0 : 0.5,
-                  duration: const Duration(milliseconds: 250),
-                  child: Image.asset(
-                    AppImages().dropDownArrowIcon,
-                    width: 25,
-                    height: 25,
-                    color: black,
+                  AnimatedRotation(
+                    turns: category["isExpanded"] ? 0 : 0.5,
+                    duration: const Duration(milliseconds: 250),
+                    child: Image.asset(
+                      AppImages().dropDownArrowIcon,
+                      width: 25,
+                      height: 25,
+                      color: black,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
 
-        const Divider(height: 1, thickness: 1, color: borderGray),
+          const Divider(height: 1, thickness: 1, color: borderGray),
 
-        // Food Item Cards inside Category
-        if (category["isExpanded"])
-          ...category["items"].map(
-            (item) =>
-                _buildFoodItemCard(context, item, category["category"]["name"]),
-          ),
-      ],
+          // Food Item Cards inside Category
+          if (category["isExpanded"])
+            ...category["items"].map(
+              (item) => _buildFoodItemCard(
+                context,
+                item,
+                category["category"]["name"],
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -468,7 +480,9 @@ class OutletScreen extends GetView<OutletScreenController> {
     dynamic item,
     String categoryName,
   ) {
+    final itemId = item["id"];
     return GestureDetector(
+      key: itemId != null ? controller.getItemKey(itemId) : null,
       onTap: () {
         controller
             .getFoodItemDetails(outletId: item["outlateId"], itemId: item["id"])
@@ -495,7 +509,13 @@ class OutletScreen extends GetView<OutletScreenController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Veg / Non-Veg Indicator
-                      Image.asset(AppImages().vegIcon, width: 16, height: 16),
+                      Image.asset(
+                        item["itemType"] == 1
+                            ? AppImages().vegIcon
+                            : AppImages().nonVegIcon,
+                        width: 16,
+                        height: 16,
+                      ),
                       const SizedBox(height: 6),
 
                       // Item Name
@@ -640,12 +660,10 @@ class OutletScreen extends GetView<OutletScreenController> {
                                           CrossAxisAlignment.center,
                                       children: [
                                         InkWell(
-                                          onTap: () {
-                                            // Get.find<OutletScreenController>()
-                                            //     .decrimentQuantity(
-                                            //       categoryName,
-                                            //       item.id,
-                                            //     );
+                                          onTap: () async {
+                                            await controller.decrimentQuantity(
+                                              itemData: item,
+                                            );
                                           },
                                           child: const Icon(
                                             Icons.remove,
@@ -662,12 +680,10 @@ class OutletScreen extends GetView<OutletScreenController> {
                                           ),
                                         ),
                                         InkWell(
-                                          onTap: () {
-                                            // Get.find<OutletScreenController>()
-                                            //     .incrementQuantity(
-                                            //       categoryName,
-                                            //       item.id,
-                                            //     );
+                                          onTap: () async {
+                                            await controller.incrementQuantity(
+                                              itemData: item,
+                                            );
                                           },
                                           child: const Icon(
                                             Icons.add,
@@ -682,9 +698,9 @@ class OutletScreen extends GetView<OutletScreenController> {
                               : Positioned(
                                   bottom: 0,
                                   child: InkWell(
-                                    onTap: () {
+                                    onTap: () async {
                                       if (item["hasCustomisation"]) {
-                                        controller
+                                        await controller
                                             .getFoodItemDetails(
                                               outletId: item["outlateId"],
                                               itemId: item["id"],
@@ -699,22 +715,12 @@ class OutletScreen extends GetView<OutletScreenController> {
                                               },
                                             );
                                       } else {
-                                        print("Add item into cart");
+                                        await controller.addItemToCart(
+                                          itemQuantity: 1,
+                                          itemData: item,
+                                          modifierOption: [],
+                                        );
                                       }
-                                      // Get.find<CartController>().addItemToCart(
-                                      //   id: item.id,
-                                      //   categoryName: categoryName,
-                                      //   name: item.name,
-                                      //   description: item.description,
-                                      //   price: item.price,
-                                      //   image: item.image,
-                                      //   isVeg: item.isVeg,
-                                      // );
-                                      // Get.find<OutletScreenController>()
-                                      //     .incrementQuantity(
-                                      //       categoryName,
-                                      //       item.id,
-                                      //     );
                                     },
                                     child: Container(
                                       width: 70,

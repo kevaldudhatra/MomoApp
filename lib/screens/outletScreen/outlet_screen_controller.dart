@@ -11,74 +11,6 @@ import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:http/http.dart' as http;
 
-class FoodItem {
-  final int id;
-  final String name;
-  final String description;
-  final double price;
-  final double? originalPrice;
-  final bool isVeg;
-  final bool isBestseller;
-  final String customization;
-  final String image;
-  final bool hasCustomise;
-  final int quantity;
-
-  FoodItem({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.price,
-    this.originalPrice,
-    required this.isVeg,
-    this.isBestseller = false,
-    required this.customization,
-    required this.image,
-    this.hasCustomise = false,
-    this.quantity = 0,
-  });
-
-  FoodItem copyWith({
-    int? id,
-    String? name,
-    String? description,
-    double? price,
-    double? originalPrice,
-    bool? isVeg,
-    bool? isBestseller,
-    String? customization,
-    String? image,
-    bool? hasCustomise,
-    int? quantity,
-  }) {
-    return FoodItem(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      description: description ?? this.description,
-      price: price ?? this.price,
-      originalPrice: originalPrice ?? this.originalPrice,
-      isVeg: isVeg ?? this.isVeg,
-      isBestseller: isBestseller ?? this.isBestseller,
-      customization: customization ?? this.customization,
-      image: image ?? this.image,
-      hasCustomise: hasCustomise ?? this.hasCustomise,
-      quantity: quantity ?? this.quantity,
-    );
-  }
-}
-
-class MenuCategory {
-  final String title;
-  final List<FoodItem> items;
-  RxBool isExpanded;
-
-  MenuCategory({
-    required this.title,
-    required this.items,
-    bool isExpanded = true,
-  }) : isExpanded = isExpanded.obs;
-}
-
 class MenuPopupCategoryItem {
   final int catId;
   final String title;
@@ -280,42 +212,254 @@ class FoodItemDetailsBottomSheet extends StatefulWidget {
 
 class _FoodItemDetailsBottomSheetState
     extends State<FoodItemDetailsBottomSheet> {
-  int _selectedToppingIndex = 0;
-  final Set<int> _selectedAddons = {-1};
   int quantity = 1;
   double totalPrice = 0.0;
   double itemPrice = 0.0;
-
-  final List<Map<String, dynamic>> _customOptions = [
-    {"name": "Regular (serves 1, 17.7 cm)", "price": 350},
-    {"name": "Regular (serves 1, 17.7 cm)", "price": 450},
-    {"name": "Regular (serves 1, 17.7 cm)", "price": 550},
-  ];
+  final Map<String, dynamic> _selectedRadioOptions = {};
+  final Map<String, Set<String>> _selectedCheckboxOptionIds = {};
+  final Map<String, dynamic> _allOptionsMap = {};
+  List<dynamic> get modifierGroups =>
+      widget.foodItem["modifierGroups"] as List<dynamic>? ?? [];
 
   @override
   void initState() {
     super.initState();
-    itemPrice = widget.foodItem["defaultPrice"]["comparePrice"] == 0
-        ? double.parse(
-            widget.foodItem["defaultPrice"]["sellingPrice"].toString(),
-          )
-        : double.parse(
-            widget.foodItem["defaultPrice"]["comparePrice"].toString(),
-          );
+    final defaultPrice = widget.foodItem["defaultPrice"];
+    if (defaultPrice != null) {
+      final comparePrice =
+          double.tryParse(defaultPrice["comparePrice"]?.toString() ?? "0") ??
+          0.0;
+      final sellingPrice =
+          double.tryParse(defaultPrice["sellingPrice"]?.toString() ?? "0") ??
+          0.0;
+      itemPrice = comparePrice == 0 ? sellingPrice : comparePrice;
+    } else {
+      itemPrice = 0.0;
+    }
+
+    // Cache options and set default selections for required groups
+    for (var group in modifierGroups) {
+      final groupId = group["id"]?.toString() ?? "";
+      final isRequired = group["isRequired"] == true;
+      final options = group["options"] as List<dynamic>? ?? [];
+
+      for (var option in options) {
+        final optId = option["id"]?.toString() ?? "";
+        _allOptionsMap[optId] = option;
+      }
+
+      if (isRequired && options.isNotEmpty) {
+        final defaultOption = options.firstWhere(
+          (opt) => opt["isAvailable"] != false,
+          orElse: () => options.first,
+        );
+        _selectedRadioOptions[groupId] = defaultOption;
+      }
+    }
+
     calculateFinalPrice();
   }
 
   void calculateFinalPrice() {
     setState(() {
-      double finalItemPrice = itemPrice;
-      double addonPrice = 0;
-      for (int index in _selectedAddons) {
-        if (index != -1) {
-          addonPrice += _customOptions[index]["price"];
+      double modifierPrice = 0.0;
+
+      // Add radio options price
+      _selectedRadioOptions.forEach((groupId, option) {
+        if (option != null && option["price"] != null) {
+          modifierPrice += double.tryParse(option["price"].toString()) ?? 0.0;
         }
-      }
-      totalPrice = (finalItemPrice + addonPrice) * quantity;
+      });
+
+      // Add checkbox options price
+      _selectedCheckboxOptionIds.forEach((groupId, optionIds) {
+        for (var optId in optionIds) {
+          final opt = _allOptionsMap[optId];
+          if (opt != null && opt["price"] != null) {
+            modifierPrice += double.tryParse(opt["price"].toString()) ?? 0.0;
+          }
+        }
+      });
+
+      totalPrice = (itemPrice + modifierPrice) * quantity;
     });
+  }
+
+  // Get all selected modifier option/item IDs from _buildModifierGroupCard
+  List<int> get selectedModifierOptionIds {
+    final List<int> ids = [];
+    _selectedRadioOptions.forEach((groupId, option) {
+      if (option != null && option["id"] != null) {
+        ids.add(option["id"]);
+      }
+    });
+    _selectedCheckboxOptionIds.forEach((groupId, optionIds) {
+      for (var id in optionIds) {
+        final rawId = _allOptionsMap[id]?["id"] ?? id;
+        ids.add(rawId);
+      }
+    });
+    return ids;
+  }
+
+  // Dynamic Modifier Group Card (Radio for isRequired == true, Checkbox for isRequired == false)
+  Widget _buildModifierGroupCard(dynamic group) {
+    final groupId = group["id"]?.toString() ?? "";
+    final isRequired = group["isRequired"] == true;
+    final options = group["options"] as List<dynamic>? ?? [];
+    final selectedCheckboxSet = _selectedCheckboxOptionIds[groupId] ?? {};
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(color: cardShadow, blurRadius: 10, offset: Offset(0, 4)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  group["name"]?.toString() ?? "",
+                  style: const TextStyle(
+                    fontFamily: natoBold,
+                    fontSize: 15.5,
+                    color: black,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  isRequired ? "Required • select any 1 option" : "Optional",
+                  style: const TextStyle(
+                    fontFamily: natoRegular,
+                    fontSize: 13,
+                    color: textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, thickness: 1, color: borderGray),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: options.length,
+            separatorBuilder: (context, index) =>
+                const Divider(height: 1, thickness: 1, color: borderGray),
+            itemBuilder: (context, index) {
+              final option = options[index];
+              final optId = option["id"]?.toString() ?? "";
+              final isAvailable = option["isAvailable"] != false;
+              final selectedRadio = _selectedRadioOptions[groupId];
+              final isSelected = isRequired
+                  ? (selectedRadio != null &&
+                        selectedRadio["id"]?.toString() == optId)
+                  : selectedCheckboxSet.contains(optId);
+
+              return GestureDetector(
+                onTap: () {
+                  if (!isAvailable) return;
+                  setState(() {
+                    if (isRequired) {
+                      _selectedRadioOptions[groupId] = option;
+                    } else {
+                      final currentSet = _selectedCheckboxOptionIds.putIfAbsent(
+                        groupId,
+                        () => <String>{},
+                      );
+                      if (currentSet.contains(optId)) {
+                        currentSet.remove(optId);
+                      } else {
+                        final max = group["max"];
+                        if (max != null) {
+                          final maxInt = int.tryParse(max.toString());
+                          if (maxInt != null &&
+                              maxInt > 0 &&
+                              currentSet.length >= maxInt) {
+                            return;
+                          }
+                        }
+                        currentSet.add(optId);
+                      }
+                    }
+                    calculateFinalPrice();
+                  });
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          option["name"]?.toString() ?? "",
+                          style: TextStyle(
+                            fontFamily: natoRegular,
+                            fontSize: 14.5,
+                            color: isAvailable ? black : lightGray,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        "₹${option["price"] ?? 0}",
+                        style: TextStyle(
+                          fontFamily: natoBold,
+                          fontSize: 14.5,
+                          color: isAvailable ? black : lightGray,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Radio or Checkbox based on isRequired
+                      if (isRequired)
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? orange : lightGray,
+                              width: isSelected ? 6 : 1.5,
+                            ),
+                            color: white,
+                          ),
+                        )
+                      else
+                        Container(
+                          width: 20,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color: isSelected ? orange : white,
+                            border: Border.all(
+                              color: isSelected ? orange : lightGray,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: isSelected
+                              ? const Icon(Icons.check, size: 14, color: white)
+                              : null,
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -420,7 +564,9 @@ class _FoodItemDetailsBottomSheetState
                                     children: [
                                       // Veg/Non-Veg Badge Icon
                                       Image.asset(
-                                        AppImages().vegIcon,
+                                        widget.foodItem["itemType"] == 1
+                                            ? AppImages().vegIcon
+                                            : AppImages().nonVegIcon,
                                         width: 20,
                                         height: 20,
                                       ),
@@ -464,380 +610,141 @@ class _FoodItemDetailsBottomSheetState
                               ],
                             ),
                           ),
-                          const SizedBox(height: 12),
 
-                          // 2. Toppings Card (Radio selection)
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: cardShadow,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Toppings",
-                                        style: TextStyle(
-                                          fontFamily: natoBold,
-                                          fontSize: 15.5,
-                                          color: black,
-                                        ),
-                                      ),
-                                      SizedBox(height: 2),
-                                      Text(
-                                        "Required • select any 1 option",
-                                        style: TextStyle(
-                                          fontFamily: natoRegular,
-                                          fontSize: 13,
-                                          color: textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Divider(
-                                  height: 1,
-                                  thickness: 1,
-                                  color: borderGray,
-                                ),
-                                ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: _customOptions.length,
-                                  separatorBuilder: (context, index) =>
-                                      const Divider(
-                                        height: 1,
-                                        thickness: 1,
-                                        color: borderGray,
-                                      ),
-                                  itemBuilder: (context, index) {
-                                    final option = _customOptions[index];
-                                    final isSelected =
-                                        _selectedToppingIndex == index;
-                                    return GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedToppingIndex = index;
-                                          itemPrice = double.parse(
-                                            option["price"].toString(),
-                                          );
-                                          calculateFinalPrice();
-                                        });
-                                      },
-                                      behavior: HitTestBehavior.opaque,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 14,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                option["name"],
-                                                style: const TextStyle(
-                                                  fontFamily: natoRegular,
-                                                  fontSize: 14.5,
-                                                  color: black,
-                                                ),
-                                              ),
-                                            ),
-                                            Text(
-                                              "₹${option["price"]}",
-                                              style: const TextStyle(
-                                                fontFamily: natoBold,
-                                                fontSize: 14.5,
-                                                color: black,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-
-                                            // Custom Radio Button Widget
-                                            Container(
-                                              width: 20,
-                                              height: 20,
-                                              decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                border: Border.all(
-                                                  color: isSelected
-                                                      ? orange
-                                                      : lightGray,
-                                                  width: isSelected ? 6 : 1.5,
-                                                ),
-                                                color: white,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // 3. Add-ons Card (Checkbox selection)
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: cardShadow,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Add ons",
-                                        style: TextStyle(
-                                          fontFamily: natoBold,
-                                          fontSize: 15.5,
-                                          color: black,
-                                        ),
-                                      ),
-                                      SizedBox(height: 2),
-                                      Text(
-                                        "Optional",
-                                        style: TextStyle(
-                                          fontFamily: natoRegular,
-                                          fontSize: 13,
-                                          color: textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Divider(
-                                  height: 1,
-                                  thickness: 1,
-                                  color: borderGray,
-                                ),
-                                ListView.separated(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: _customOptions.length,
-                                  separatorBuilder: (context, index) =>
-                                      const Divider(
-                                        height: 1,
-                                        thickness: 1,
-                                        color: borderGray,
-                                      ),
-                                  itemBuilder: (context, index) {
-                                    final option = _customOptions[index];
-                                    final isSelected = _selectedAddons.contains(
-                                      index,
-                                    );
-                                    return GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          if (isSelected) {
-                                            _selectedAddons.remove(index);
-                                            calculateFinalPrice();
-                                          } else {
-                                            _selectedAddons.add(index);
-                                            calculateFinalPrice();
-                                          }
-                                        });
-                                      },
-                                      behavior: HitTestBehavior.opaque,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 14,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                option["name"],
-                                                style: const TextStyle(
-                                                  fontFamily: natoRegular,
-                                                  fontSize: 14.5,
-                                                  color: black,
-                                                ),
-                                              ),
-                                            ),
-                                            Text(
-                                              "₹${option["price"]}",
-                                              style: const TextStyle(
-                                                fontFamily: natoBold,
-                                                fontSize: 14.5,
-                                                color: black,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-
-                                            // Custom Checkbox Widget
-                                            Container(
-                                              width: 20,
-                                              height: 20,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(4),
-                                                color: isSelected
-                                                    ? orange
-                                                    : white,
-                                                border: Border.all(
-                                                  color: isSelected
-                                                      ? orange
-                                                      : lightGray,
-                                                  width: 1.5,
-                                                ),
-                                              ),
-                                              child: isSelected
-                                                  ? const Icon(
-                                                      Icons.check,
-                                                      size: 14,
-                                                      color: white,
-                                                    )
-                                                  : null,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
+                          // Dynamic Modifier Group Cards
+                          ...modifierGroups.map(
+                            (group) => _buildModifierGroupCard(group),
                           ),
                         ],
                       ),
                     ),
 
                     // Cart Button
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      left: 0,
-                      child: Container(
-                        height: 55,
-                        width: MediaQuery.of(context).size.width,
-                        color: white,
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 70,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: orange, width: 1),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: cardShadow,
-                                    blurRadius: 4,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              alignment: Alignment.center,
+                    widget.foodItem["hasCustomisation"]
+                        ? Positioned(
+                            bottom: 0,
+                            right: 0,
+                            left: 0,
+                            child: Container(
+                              height: 55,
+                              width: MediaQuery.of(context).size.width,
+                              color: white,
+                              padding: EdgeInsets.symmetric(horizontal: 16),
                               child: Row(
                                 mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                    MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  InkWell(
-                                    onTap: () {
-                                      if (quantity > 1) {
-                                        setState(() {
-                                          quantity--;
-                                          calculateFinalPrice();
-                                        });
-                                      }
-                                    },
-                                    child: const Icon(
-                                      Icons.remove,
-                                      color: charcoalGray,
-                                      size: 16,
+                                  Container(
+                                    width: 70,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: orange,
+                                        width: 1,
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: cardShadow,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        InkWell(
+                                          onTap: () {
+                                            if (quantity > 1) {
+                                              setState(() {
+                                                quantity--;
+                                                calculateFinalPrice();
+                                              });
+                                            }
+                                          },
+                                          child: const Icon(
+                                            Icons.remove,
+                                            color: charcoalGray,
+                                            size: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          quantity.toString(),
+                                          style: const TextStyle(
+                                            color: charcoalGray,
+                                            fontSize: 14,
+                                            fontFamily: natoBold,
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              quantity++;
+                                              calculateFinalPrice();
+                                            });
+                                          },
+                                          child: const Icon(
+                                            Icons.add,
+                                            color: charcoalGray,
+                                            size: 16,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  Text(
-                                    quantity.toString(),
-                                    style: const TextStyle(
-                                      color: charcoalGray,
-                                      fontSize: 14,
-                                      fontFamily: natoBold,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        quantity++;
-                                        calculateFinalPrice();
-                                      });
-                                    },
-                                    child: const Icon(
-                                      Icons.add,
-                                      color: charcoalGray,
-                                      size: 16,
+
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        Navigator.of(context).pop();
+                                        await Get.find<OutletScreenController>()
+                                            .addItemToCart(
+                                              itemQuantity: quantity,
+                                              itemData: widget.foodItem,
+                                              modifierOption:
+                                                  selectedModifierOptionIds,
+                                            );
+                                      },
+                                      child: Container(
+                                        height: 40,
+                                        margin: EdgeInsets.only(left: 16),
+                                        decoration: BoxDecoration(
+                                          color: orange,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: cardShadow,
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          "Add Item ₹${totalPrice.toStringAsFixed(2)}",
+                                          style: const TextStyle(
+                                            color: white,
+                                            fontSize: 14,
+                                            fontFamily: natoBold,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-
-                            Expanded(
-                              child: Container(
-                                height: 40,
-                                margin: EdgeInsets.only(left: 16),
-                                decoration: BoxDecoration(
-                                  color: orange,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: cardShadow,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "Add Item ₹${totalPrice.toStringAsFixed(2)}",
-                                  style: const TextStyle(
-                                    color: white,
-                                    fontSize: 14,
-                                    fontFamily: natoBold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                          )
+                        : Container(),
                   ],
                 ),
               ),
@@ -851,25 +758,32 @@ class _FoodItemDetailsBottomSheetState
 
 class OutletScreenController extends GetxController {
   final storage = GetStorage();
-
-  RxList<CartItem> get cartItems => Get.isRegistered<CartController>()
-      ? Get.find<CartController>().cartItems
-      : <CartItem>[].obs;
-
-  RxMap<dynamic, dynamic> get outletDetails =>
-      Get.isRegistered<DeliveryScreenController>()
-      ? Get.find<DeliveryScreenController>().outlateDetails
-      : {}.obs;
+  final searchController = TextEditingController();
+  final scrollController = ScrollController();
+  final Map<int, GlobalKey> categoryKeys = {};
+  final Map<int, GlobalKey> itemKeys = {};
   RxBool isLoading = true.obs;
   RxBool filterLoading = false.obs;
-  final searchController = TextEditingController();
-  final categories = <MenuCategory>[].obs;
   RxBool isMenuOpen = false.obs;
   RxMap<dynamic, dynamic> outletInfo = {}.obs;
   RxList<MenuPopupCategoryItem> menuItems = <MenuPopupCategoryItem>[].obs;
   RxList<dynamic> foodTypes = [].obs;
   RxList<dynamic> foodItems = [].obs;
   RxMap<dynamic, dynamic> foodItemsDetails = {}.obs;
+  RxMap<dynamic, dynamic> get outletDetails =>
+      Get.isRegistered<DeliveryScreenController>()
+      ? Get.find<DeliveryScreenController>().outlateDetails
+      : {}.obs;
+
+  GlobalKey getCategoryKey(dynamic catId) {
+    final id = int.tryParse(catId.toString()) ?? 0;
+    return categoryKeys.putIfAbsent(id, () => GlobalKey());
+  }
+
+  GlobalKey getItemKey(dynamic itemId) {
+    final id = int.tryParse(itemId.toString()) ?? 0;
+    return itemKeys.putIfAbsent(id, () => GlobalKey());
+  }
 
   @override
   void onInit() {
@@ -880,6 +794,7 @@ class OutletScreenController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
+    scrollController.dispose();
     super.onClose();
   }
 
@@ -899,6 +814,8 @@ class OutletScreenController extends GetxController {
     try {
       menuItems.clear();
       foodItems.clear();
+      categoryKeys.clear();
+      itemKeys.clear();
       filterLoading.value = true;
       final response = await http.get(
         Uri.parse(
@@ -928,6 +845,7 @@ class OutletScreenController extends GetxController {
         for (var item in data["data"]["sections"] ?? []) {
           foodItems.add({...item, "isExpanded": true});
         }
+        foodItems.refresh();
       } else {
         outletInfo.value = {};
         menuItems.clear();
@@ -962,6 +880,13 @@ class OutletScreenController extends GetxController {
       print('getFoodTypes Response body: ${response.body}');
       var data = jsonDecode(response.body);
       if (response.statusCode == 200 && data["success"] == true) {
+        foodTypes.add({
+          "id": 0,
+          "outlateId": outletId,
+          "name": "All",
+          "isActive": true,
+          "isSelected": true,
+        });
         for (var item in data["data"] ?? []) {
           foodTypes.add({...item, "isSelected": false});
         }
@@ -1002,14 +927,168 @@ class OutletScreenController extends GetxController {
     }
   }
 
+  Future<void> addItemToCart({
+    required int itemQuantity,
+    required dynamic itemData,
+    required List<int> modifierOption,
+  }) async {
+    print('addItemToCart Input: $itemQuantity, $modifierOption, $itemData');
+    try {
+      final response = await http.post(
+        Uri.parse(ApiServices.addItemToCart),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({
+          "outlateId": itemData["outlateId"],
+          "itemId": itemData["id"],
+          "itemPriceId": itemData["defaultPrice"]["id"],
+          "quantity": itemQuantity,
+          "modifierOptionIds": modifierOption,
+        }),
+      );
+      print('addItemToCart Response status: ${response.statusCode}');
+      print('addItemToCart Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 201 && data["success"] == true) {
+        Get.find<CartController>().addItemToCart(
+          cartItem: data["data"]["items"],
+          billData: data["data"]["bill"],
+        );
+        for (var element in foodItems) {
+          if (element["category"]["id"] == itemData["categoryId"]) {
+            for (var item in element["items"]) {
+              if (item["id"] == itemData["id"]) {
+                item["cartCount"] = itemQuantity;
+              }
+            }
+          }
+        }
+        foodItems.refresh();
+      } else {
+        foodItems.refresh();
+        Get.snackbar(
+          "Oops!",
+          data['message'] ?? "Something went wrong. Please try again.",
+          snackPosition: SnackPosition.TOP,
+          icon: const Icon(Icons.error, color: Colors.red),
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('addItemToCart Error: $e');
+      foodItems.refresh();
+    }
+  }
+
+  Future<void> incrementQuantity({required dynamic itemData}) async {
+    print('incrementQuantity Input: ${itemData['cartCount']}');
+    try {
+      final response = await http.patch(
+        Uri.parse(
+          ApiServices.updateItemQuantity.replaceAll(
+            '{itemId}',
+            itemData['id'].toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({
+          "quantity": itemData["cartCount"] + 1,
+          "itemPriceId": itemData["defaultPrice"]["id"],
+        }),
+      );
+      print('incrementQuantity Response status: ${response.statusCode}');
+      print('incrementQuantity Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        Get.find<CartController>().addItemToCart(
+          cartItem: data["data"]["items"],
+          billData: data["data"]["bill"],
+        );
+        for (var element in foodItems) {
+          if (element["category"]["id"] == itemData["categoryId"]) {
+            for (var item in element["items"]) {
+              if (item["id"] == itemData["id"]) {
+                item["cartCount"] = itemData["cartCount"] + 1;
+              }
+            }
+          }
+        }
+        foodItems.refresh();
+      } else {
+        foodItems.refresh();
+        Get.snackbar(
+          "Oops!",
+          data['message'] ?? "Something went wrong. Please try again.",
+          snackPosition: SnackPosition.TOP,
+          icon: const Icon(Icons.error, color: Colors.red),
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('incrementQuantity Error: $e');
+      foodItems.refresh();
+    }
+  }
+
+  Future<void> decrimentQuantity({required dynamic itemData}) async {
+    print('decrimentQuantity Input: ${itemData['cartCount']}');
+    try {
+      final response = await http.patch(
+        Uri.parse(
+          ApiServices.updateItemQuantity.replaceAll(
+            '{itemId}',
+            itemData['id'].toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({
+          "quantity": itemData["cartCount"] - 1,
+          "itemPriceId": itemData["defaultPrice"]["id"],
+        }),
+      );
+      print('decrimentQuantity Response status: ${response.statusCode}');
+      print('decrimentQuantity Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        Get.find<CartController>().addItemToCart(
+          cartItem: data["data"]["items"],
+          billData: data["data"]["bill"],
+        );
+        for (var element in foodItems) {
+          if (element["category"]["id"] == itemData["categoryId"]) {
+            for (var item in element["items"]) {
+              if (item["id"] == itemData["id"]) {
+                item["cartCount"] = itemData["cartCount"] - 1;
+              }
+            }
+          }
+        }
+        foodItems.refresh();
+      } else {
+        foodItems.refresh();
+      }
+    } catch (e) {
+      print('decrimentQuantity Error: $e');
+      foodItems.refresh();
+    }
+  }
+
   Future<void> toggleFilter(dynamic foodType) async {
     for (var item in foodTypes) {
       if (item["id"] == foodType["id"]) {
-        item["isSelected"] = !item["isSelected"];
+        item["isSelected"] = true;
         if (item["isSelected"]) {
           await getFoodData(outletId: outletDetails['id'], typeId: item["id"]);
-        } else {
-          await getFoodData(outletId: outletDetails['id'], typeId: 0);
         }
       } else {
         item["isSelected"] = false;
@@ -1032,69 +1111,36 @@ class OutletScreenController extends GetxController {
         print(
           "Selected Item from Menu Popup : ${selectedCategory.title} ${selectedCategory.itemCount}",
         );
+        scrollToCategory(selectedCategory.catId);
       },
     ).then((_) {
       isMenuOpen.value = false;
     });
   }
 
-  void incrementQuantity(String categoryTitle, int itemId) {
-    int categoryIndex = categories.indexWhere(
-      (element) => element.title == categoryTitle,
+  void scrollToCategory(dynamic catId) {
+    final id = int.tryParse(catId.toString()) ?? 0;
+    final catIndex = foodItems.indexWhere(
+      (item) =>
+          (int.tryParse(item["category"]?["id"]?.toString() ?? "") ?? -1) == id,
     );
-    int itemIndex = categories[categoryIndex].items.indexWhere(
-      (element) => element.id == itemId,
-    );
-    if (categoryIndex >= 0 && itemIndex >= 0) {
-      categories[categoryIndex].items[itemIndex] = categories[categoryIndex]
-          .items[itemIndex]
-          .copyWith(
-            quantity: categories[categoryIndex].items[itemIndex].quantity + 1,
-          );
+    if (catIndex != -1) {
+      if (foodItems[catIndex]["isExpanded"] != true) {
+        foodItems[catIndex]["isExpanded"] = true;
+        foodItems.refresh();
+      }
     }
-    int index = cartItems.indexWhere(
-      (element) =>
-          element.categoryName == categoryTitle && element.id == itemId,
-    );
-    if (index >= 0) {
-      cartItems[index] = cartItems[index].copyWith(
-        quantity: cartItems[index].quantity + 1,
-      );
-    }
-    cartItems.refresh();
-    categories.refresh();
-  }
 
-  void decrimentQuantity(String categoryTitle, int itemId) {
-    int categoryIndex = categories.indexWhere(
-      (element) => element.title == categoryTitle,
-    );
-    int itemIndex = categories[categoryIndex].items.indexWhere(
-      (element) => element.id == itemId,
-    );
-    if (categoryIndex >= 0 && itemIndex >= 0) {
-      if (categories[categoryIndex].items[itemIndex].quantity > 0) {
-        categories[categoryIndex].items[itemIndex] = categories[categoryIndex]
-            .items[itemIndex]
-            .copyWith(
-              quantity: categories[categoryIndex].items[itemIndex].quantity - 1,
-            );
-      }
-    }
-    int index = cartItems.indexWhere(
-      (element) =>
-          element.categoryName == categoryTitle && element.id == itemId,
-    );
-    if (index >= 0) {
-      if (cartItems[index].quantity > 1) {
-        cartItems[index] = cartItems[index].copyWith(
-          quantity: cartItems[index].quantity - 1,
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = categoryKeys[id];
+      if (key?.currentContext != null && key!.currentContext!.mounted) {
+        Scrollable.ensureVisible(
+          key.currentContext!,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          alignment: 0.0,
         );
-      } else {
-        cartItems.removeAt(index);
       }
-    }
-    cartItems.refresh();
-    categories.refresh();
+    });
   }
 }
