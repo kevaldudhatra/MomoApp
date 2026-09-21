@@ -8,6 +8,7 @@ import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/screens/cartManagement/cart_button.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:readmore_flutter/readmore_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 
 class OutletScreen extends GetView<OutletScreenController> {
   const OutletScreen({super.key});
@@ -199,23 +200,42 @@ class OutletScreen extends GetView<OutletScreenController> {
                                       // Outlet Thumbnail Image
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
-                                        child:
-                                            controller
-                                                    .outletInfo['brandLogo'] ==
-                                                null
-                                            ? Image.asset(
-                                                AppImages().momoImg,
-                                                width: 85,
-                                                height: 85,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Image.network(
-                                                controller
-                                                    .outletInfo['brandLogo'],
-                                                width: 85,
-                                                height: 85,
-                                                fit: BoxFit.cover,
-                                              ),
+                                        child: Image.network(
+                                          controller.outletInfo['brandLogo'] ??
+                                              "",
+                                          width: 85,
+                                          height: 85,
+                                          fit: BoxFit.cover,
+                                          loadingBuilder:
+                                              (
+                                                context,
+                                                child,
+                                                loadingProgress,
+                                              ) {
+                                                if (loadingProgress == null) {
+                                                  return child;
+                                                }
+                                                return Shimmer.fromColors(
+                                                  baseColor:
+                                                      Colors.grey.shade300,
+                                                  highlightColor:
+                                                      Colors.grey.shade100,
+                                                  child: Container(
+                                                    width: 85,
+                                                    height: 85,
+                                                    color: Colors.white,
+                                                  ),
+                                                );
+                                              },
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Image.asset(
+                                                    AppImages().momoImg,
+                                                    width: 85,
+                                                    height: 85,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                        ),
                                       ),
                                       const SizedBox(width: 14),
                                       // Title, Cuisines & Open Badge
@@ -615,19 +635,34 @@ class OutletScreen extends GetView<OutletScreenController> {
                           // Food Image
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: item["itemImage"] == null
-                                ? Image.asset(
+                            child: Image.network(
+                              item["itemImage"] ?? "",
+                              width: 110,
+                              height: 110,
+                              fit: BoxFit.cover,
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    }
+                                    return Shimmer.fromColors(
+                                      baseColor: Colors.grey.shade300,
+                                      highlightColor: Colors.grey.shade100,
+                                      child: Container(
+                                        width: 110,
+                                        height: 110,
+                                        color: Colors.white,
+                                      ),
+                                    );
+                                  },
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Image.asset(
                                     AppImages().momoImg,
                                     width: 110,
                                     height: 110,
                                     fit: BoxFit.cover,
-                                  )
-                                : Image.network(
-                                    item["itemImage"],
-                                    width: 110,
-                                    height: 110,
-                                    fit: BoxFit.cover,
                                   ),
+                            ),
                           ),
 
                           // Add Button (Overlapping)

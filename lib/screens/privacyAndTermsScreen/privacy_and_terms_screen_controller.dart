@@ -8,24 +8,38 @@ class PrivacyAndTermsScreenController extends GetxController {
   final storage = GetStorage();
   RxBool isLoading = true.obs;
   RxBool isPrivacy = false.obs;
+  RxBool isTerms = false.obs;
+  RxBool isRefund = false.obs;
   RxString privacyAndTerms = "".obs;
 
   @override
   void onInit() {
     super.onInit();
-    isPrivacy.value = Get.arguments['isPrivacy'];
-    getPrivacyPolicy(isPrivacy: isPrivacy.value);
+    isTerms.value = Get.arguments['isTerms'] ?? false;
+    isPrivacy.value = Get.arguments['isPrivacy'] ?? false;
+    isRefund.value = Get.arguments['isRefund'] ?? false;
+    getPrivacyPolicy(
+      isTerms: isTerms.value,
+      isPrivacy: isPrivacy.value,
+      isRefund: isRefund.value,
+    );
   }
 
-  Future<void> getPrivacyPolicy({required bool isPrivacy}) async {
+  Future<void> getPrivacyPolicy({
+    required bool isTerms,
+    required bool isPrivacy,
+    required bool isRefund,
+  }) async {
     try {
       isLoading.value = true;
       privacyAndTerms.value = "";
       final response = await http.get(
         Uri.parse(
-          isPrivacy
+          isTerms
+              ? ApiServices.termsAndConditionUrl
+              : isPrivacy
               ? ApiServices.privacyPolicyUrl
-              : ApiServices.termsAndConditionUrl,
+              : ApiServices.refundPolicyUrl,
         ),
         headers: {'Content-Type': 'application/json'},
       );

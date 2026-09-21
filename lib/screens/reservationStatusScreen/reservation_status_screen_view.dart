@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/reservationStatusScreen/reservation_status_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/widgets/custom_button.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ReservationStatusScreen
@@ -270,6 +271,21 @@ class ReservationStatusScreen
                                   width: 44,
                                   height: 44,
                                   fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Shimmer.fromColors(
+                                          baseColor: Colors.grey.shade300,
+                                          highlightColor: Colors.grey.shade100,
+                                          child: Container(
+                                            width: 44,
+                                            height: 44,
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      },
                                   errorBuilder: (context, error, stackTrace) {
                                     return Image.asset(
                                       AppImages().momoImg,
@@ -305,66 +321,7 @@ class ReservationStatusScreen
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              // View Restaurant Button
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () {},
-                                  child: Container(
-                                    height: 40,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: white,
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: borderGray,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      "View Restaurant",
-                                      style: TextStyle(
-                                        color: black,
-                                        fontSize: 14,
-                                        fontFamily: natoMedium,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
                               const SizedBox(width: 12),
-
-                              // Chat Icon
-                              InkWell(
-                                onTap: () {
-                                  Get.toNamed(Routes.supportChatScreen);
-                                },
-                                child: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: borderGray,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Image.asset(
-                                    AppImages().chatIcon,
-                                    width: 18,
-                                    height: 18,
-                                    color: charcoalGray,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-
-                              // Call Icon
                               InkWell(
                                 onTap: () async {
                                   final Uri uri = Uri(
@@ -401,78 +358,16 @@ class ReservationStatusScreen
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
 
-                    // Heading: Feedback
-                    const Text(
-                      "Feedback Received",
-                      style: TextStyle(
-                        color: black,
-                        fontSize: 15,
-                        fontFamily: natoSemiBold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Card 3: Feedback Card
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: cardShadow,
-                            blurRadius: 8,
-                            spreadRadius: 0,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 20.0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "YOU RATED",
-                            style: TextStyle(
-                              color: textSecondary,
-                              fontSize: 11,
-                              fontFamily: natoMedium,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(5, (index) {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4.0,
-                                ),
-                                child: Image.asset(
-                                  AppImages().starIcon,
-                                  width: 24,
-                                  height: 24,
-                                  color: index < 4 ? greenBadge : lightGray,
-                                ),
-                              );
-                            }),
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            "“Excellent food and ambiance!”",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: black,
-                              fontSize: 14,
-                              fontFamily: natoMedium,
-                            ),
-                          ),
-                        ],
+                    // Feedback Button
+                    Center(
+                      child: CustomButton(
+                        height: 45,
+                        width: MediaQuery.of(context).size.width * 0.40,
+                        label: "Add Feedback",
+                        fontSize: 14,
+                        onTap: () {},
                       ),
                     ),
                   ],

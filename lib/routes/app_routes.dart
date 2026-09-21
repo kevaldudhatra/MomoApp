@@ -13,6 +13,7 @@ abstract class Routes {
   static const completeYourProfileScreen = '/completeYourProfileScreen';
   static const homeScreen = '/homeScreen';
   static const deliveryScreen = '/deliveryScreen';
+  static const bookTableScreen = '/bookTableScreen';
   static const profileScreen = '/profileScreen';
   static const outletScreen = '/outletScreen';
   static const outletDetailScreen = '/outletDetailScreen';
@@ -32,7 +33,6 @@ abstract class Routes {
   static const supportChatScreen = '/supportChatScreen';
   static const aboutUsScreen = '/aboutUsScreen';
   static const faqScreen = '/faqScreen';
-  static const bookTableScreen = '/bookTableScreen';
   static const reviewBookingScreen = '/reviewBookingScreen';
   static const privacyAndTermsScreen = '/privacyAndTermsScreen';
 }

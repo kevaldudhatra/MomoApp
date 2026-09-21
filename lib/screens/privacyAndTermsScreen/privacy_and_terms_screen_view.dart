@@ -42,7 +42,9 @@ class PrivacyAndTermsScreen extends GetView<PrivacyAndTermsScreenController> {
                     Text(
                       controller.isPrivacy.value
                           ? "Privacy Policy"
-                          : "Terms and Conditions",
+                          : controller.isTerms.value
+                          ? "Terms and Conditions"
+                          : "Refund Policy",
                       style: const TextStyle(
                         color: black,
                         fontSize: 20,

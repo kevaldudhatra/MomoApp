@@ -1708,8 +1708,11 @@ class OrderDetailScreenController extends GetxController {
         return;
       }
       final paymentMethods = data['data'] as List;
+      final activePaymentMethods = paymentMethods
+          .where((item) => item['isActive'] == true)
+          .toList();
       paymentMethodList.assignAll(
-        paymentMethods.map<PaymentMethodItem>((method) {
+        activePaymentMethods.map<PaymentMethodItem>((method) {
           return PaymentMethodItem.fromJson(method);
         }),
       );
@@ -1765,8 +1768,17 @@ class OrderDetailScreenController extends GetxController {
           }
         }
         foodItems.refresh();
+        for (var element
+            in Get.find<DeliveryScreenController>().outletTopPicks) {
+          if (element["id"] == itemData["itemId"] &&
+              element["categoryId"] == itemData["categoryId"]) {
+            element["cartCount"] = itemData["quantity"] + 1;
+          }
+        }
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
       } else {
         foodItems.refresh();
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
         Get.snackbar(
           "Oops!",
           data['message'] ?? "Something went wrong. Please try again.",
@@ -1779,6 +1791,7 @@ class OrderDetailScreenController extends GetxController {
     } catch (e) {
       print('incrementQuantity Error: $e');
       foodItems.refresh();
+      Get.find<DeliveryScreenController>().outletTopPicks.refresh();
     }
   }
 
@@ -1819,12 +1832,22 @@ class OrderDetailScreenController extends GetxController {
           }
         }
         foodItems.refresh();
+        for (var element
+            in Get.find<DeliveryScreenController>().outletTopPicks) {
+          if (element["id"] == itemData["itemId"] &&
+              element["categoryId"] == itemData["categoryId"]) {
+            element["cartCount"] = itemData["quantity"] - 1;
+          }
+        }
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
       } else {
         foodItems.refresh();
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
       }
     } catch (e) {
       print('decrimentQuantity Error: $e');
       foodItems.refresh();
+      Get.find<DeliveryScreenController>().outletTopPicks.refresh();
     }
   }
 
@@ -1891,6 +1914,7 @@ class OrderDetailScreenController extends GetxController {
             backgroundColor: charcoalGray.withValues(alpha: 0.9),
           );
         });
+        Get.find<DeliveryScreenController>().onInit();
       } else {
         Get.snackbar(
           "oops!",

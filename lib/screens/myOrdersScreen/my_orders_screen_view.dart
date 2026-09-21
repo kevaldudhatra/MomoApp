@@ -5,6 +5,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/routes/app_pages.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MyOrdersScreen extends GetView<MyOrdersScreenController> {
   const MyOrdersScreen({super.key});
@@ -60,25 +61,109 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
 
                 // Order List
                 Expanded(
-                  child: orders.isEmpty
+                  child: controller.isLoading.value
+                      ? const Center(
+                          child: CircularProgressIndicator(color: orange),
+                        )
+                      : controller.hasError.value && orders.isEmpty
                       ? Center(
-                          child: Text(
-                            "No orders in '${controller.selectedStatus.value}'",
-                            style: const TextStyle(
-                              color: textSecondary,
-                              fontSize: 16,
-                              fontFamily: natoMedium,
-                            ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                controller.errorMessage.value.isNotEmpty
+                                    ? controller.errorMessage.value
+                                    : "Failed to load orders",
+                                style: const TextStyle(
+                                  color: textSecondary,
+                                  fontSize: 15,
+                                  fontFamily: natoMedium,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton(
+                                onPressed: () => controller.fetchOrders(
+                                  page: 1,
+                                  isRefresh: true,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: orange,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "Retry",
+                                  style: TextStyle(
+                                    color: white,
+                                    fontFamily: natoMedium,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: orders.length,
-                          itemBuilder: (context, index) {
-                            return _buildOrderCard(orders[index]);
-                          },
+                      : orders.isEmpty
+                      ? RefreshIndicator(
+                          onRefresh: () =>
+                              controller.fetchOrders(page: 1, isRefresh: true),
+                          color: orange,
+                          child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.60,
+                                child: Center(
+                                  child: Text(
+                                    controller.selectedStatus.value == "All"
+                                        ? "You have no orders at the moment."
+                                        : "No orders in '${controller.selectedStatus.value}'",
+                                    style: const TextStyle(
+                                      color: textSecondary,
+                                      fontSize: 16,
+                                      fontFamily: natoMedium,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: () =>
+                              controller.fetchOrders(page: 1, isRefresh: true),
+                          color: orange,
+                          child: ListView.builder(
+                            controller: controller.scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount:
+                                orders.length +
+                                (controller.isMoreLoading.value ? 1 : 0),
+                            itemBuilder: (context, index) {
+                              if (index == orders.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 16),
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: orange,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return _buildOrderCard(orders[index]);
+                            },
+                          ),
                         ),
                 ),
               ],
@@ -142,7 +227,10 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
 
   Widget _buildOrderCard(OrderModel order) {
     return GestureDetector(
-      onTap: () => Get.toNamed(Routes.orderStatusScreen, arguments: order),
+      onTap: () => Get.toNamed(
+        Routes.orderStatusScreen,
+        arguments: {"orderId": order.id.toString()},
+      ),
       behavior: HitTestBehavior.opaque,
       child: Container(
         margin: const EdgeInsets.only(bottom: 15),
@@ -174,9 +262,23 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                       width: 44,
                       height: 44,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        }
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
                       errorBuilder: (context, error, stackTrace) {
                         return Image.asset(
-                          AppImages().foodItemOne,
+                          AppImages().momoImg,
                           width: 44,
                           height: 44,
                           fit: BoxFit.cover,
@@ -285,9 +387,20 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                           border: Border.all(color: borderGray, width: 1),
                         ),
                         child: Text(
-                          order.status,
-                          style: const TextStyle(
-                            color: charcoalGray,
+                          controller.formatStatus(order.status),
+                          style: TextStyle(
+                            color: order.status == 'placed'
+                                ? charcoalGray
+                                : order.status == 'accepted' ||
+                                      order.status == 'preparing' ||
+                                      order.status == 'ready' ||
+                                      order.status == 'out_for_delivery'
+                                ? blue
+                                : order.status == 'delivered'
+                                ? greenBadge
+                                : order.status == 'cancelled'
+                                ? red
+                                : charcoalGray,
                             fontSize: 13,
                             fontFamily: natoMedium,
                           ),

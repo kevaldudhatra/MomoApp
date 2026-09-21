@@ -79,6 +79,15 @@ class AboutUsScreen extends GetView<AboutUsScreenController> {
                       title: "Privacy Policy",
                       onTap: () => controller.navigateToPrivacy(),
                     ),
+
+                    const Divider(height: 1, thickness: 1, color: borderGray),
+
+                    // Privacy Policy Option
+                    _buildOptionItem(
+                      iconPath: AppImages().termsIcon,
+                      title: "Refund Policy",
+                      onTap: () => controller.navigateToRefund(),
+                    ),
                   ],
                 ),
               ),

@@ -144,13 +144,11 @@ class ProfileScreenController extends GetxController {
                       label: "Logout",
                       onTap: () async {
                         Get.back();
+                        final storage = GetStorage();
                         final google = GoogleAuthService();
                         await google.signOutWithGoogle();
-                        if (Get.isRegistered<SocketService>()) {
-                          SocketService.to.onLogout();
-                        }
-                        final storage = GetStorage();
                         await storage.erase();
+                        SocketService().disconnect();
                         Get.offAllNamed(Routes.startScreen);
                       },
                       width: double.infinity,

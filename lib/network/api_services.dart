@@ -2,7 +2,6 @@ import 'package:momos/network/env.dart';
 
 class ApiServices {
   static String baseUrl = liveUrl;
-  static String socketUrl = socketLiveUrl;
   static String connectSocket = '$baseUrl/api/v1/user/chat/connect-socket';
   static String verifyOtp = '$baseUrl/public/api/v1/user/otp-verify';
   static String resendOtp = '$baseUrl/public/api/v1/user/resend-otp';
@@ -19,6 +18,7 @@ class ApiServices {
   static String updateItemQuantity = '$baseUrl/api/v1/user/cart/item/{itemId}';
   static String getCartItem = '$baseUrl/api/v1/user/cart/details';
   static String placeOrder = '$baseUrl/api/v1/user/orders/place';
+  static String getOrderDetails = '$baseUrl/api/v1/user/orders/{id}';
   static String deleteUserAddress =
       '$baseUrl/api/v1/user/addresses/{addressId}';
   static String verifyForgotOtp =
@@ -29,6 +29,8 @@ class ApiServices {
       '$baseUrl/api/v1/user/outlates/{outletId}/payment-methods';
   static String getReservations =
       '$baseUrl/api/v1/user/reservations?limit=10&page={page}&status={status}';
+  static String getOrders =
+      '$baseUrl/api/v1/user/orders?limit=10&page={page}&status={status}';
   static String getOutlateByLocation =
       '$baseUrl/api/v1/user/get-home-details?latitude={latitude}&longitude={longitude}';
   static String getAllOffers =
@@ -45,4 +47,8 @@ class ApiServices {
       '$baseUrl/public/api/v1/user/content/terms-and-conditions';
   static String privacyPolicyUrl =
       '$baseUrl/public/api/v1/user/content/privacy-policy';
+  static String refundPolicyUrl =
+      '$baseUrl/public/api/v1/user/content/refund-policy';
+  static String searchFoodData =
+      '$baseUrl/api/v1/user/outlates/{outletId}/menu?search={dishName}';
 }

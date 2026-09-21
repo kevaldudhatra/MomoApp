@@ -171,6 +171,15 @@ class AppPages {
       }),
     ),
     GetPage(
+      name: Routes.bookTableScreen,
+      page: () => const BookTableScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut<BookTableScreenController>(
+          () => BookTableScreenController(),
+        );
+      }),
+    ),
+    GetPage(
       name: Routes.profileScreen,
       page: () => const ProfileScreen(),
       binding: BindingsBuilder(() {
@@ -321,15 +330,6 @@ class AppPages {
       page: () => const FAQScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut<FaqScreenController>(() => FaqScreenController());
-      }),
-    ),
-    GetPage(
-      name: Routes.bookTableScreen,
-      page: () => const BookTableScreen(),
-      binding: BindingsBuilder(() {
-        Get.lazyPut<BookTableScreenController>(
-          () => BookTableScreenController(),
-        );
       }),
     ),
     GetPage(

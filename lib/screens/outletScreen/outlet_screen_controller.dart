@@ -9,6 +9,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:http/http.dart' as http;
 
 class MenuPopupCategoryItem {
@@ -542,19 +543,36 @@ class _FoodItemDetailsBottomSheetState
                                   borderRadius: const BorderRadius.vertical(
                                     top: Radius.circular(16),
                                   ),
-                                  child: widget.foodItem["itemImage"] == null
-                                      ? Image.asset(
-                                          AppImages().momoImg,
-                                          width: double.infinity,
-                                          height: 200,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.network(
-                                          widget.foodItem["itemImage"],
-                                          width: double.infinity,
-                                          height: 200,
-                                          fit: BoxFit.cover,
-                                        ),
+                                  child: Image.network(
+                                    widget.foodItem["itemImage"] ?? "",
+                                    width: double.infinity,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          }
+                                          return Shimmer.fromColors(
+                                            baseColor: Colors.grey.shade300,
+                                            highlightColor:
+                                                Colors.grey.shade100,
+                                            child: Container(
+                                              width: double.infinity,
+                                              height: 200,
+                                              color: Colors.white,
+                                            ),
+                                          );
+                                        },
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Image.asset(
+                                              AppImages().momoImg,
+                                              width: double.infinity,
+                                              height: 200,
+                                              fit: BoxFit.cover,
+                                            ),
+                                  ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),
@@ -966,8 +984,17 @@ class OutletScreenController extends GetxController {
           }
         }
         foodItems.refresh();
+        for (var element
+            in Get.find<DeliveryScreenController>().outletTopPicks) {
+          if (element["id"] == itemData["id"] &&
+              element["categoryId"] == itemData["categoryId"]) {
+            element["cartCount"] = itemQuantity;
+          }
+        }
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
       } else {
         foodItems.refresh();
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
         Get.snackbar(
           "Oops!",
           data['message'] ?? "Something went wrong. Please try again.",
@@ -980,6 +1007,7 @@ class OutletScreenController extends GetxController {
     } catch (e) {
       print('addItemToCart Error: $e');
       foodItems.refresh();
+      Get.find<DeliveryScreenController>().outletTopPicks.refresh();
     }
   }
 
@@ -1010,6 +1038,14 @@ class OutletScreenController extends GetxController {
           cartItem: data["data"]["items"],
           billData: data["data"]["bill"],
         );
+        for (var element
+            in Get.find<DeliveryScreenController>().outletTopPicks) {
+          if (element["id"] == itemData["id"] &&
+              element["categoryId"] == itemData["categoryId"]) {
+            element["cartCount"] = itemData["cartCount"] + 1;
+          }
+        }
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
         for (var element in foodItems) {
           if (element["category"]["id"] == itemData["categoryId"]) {
             for (var item in element["items"]) {
@@ -1021,6 +1057,7 @@ class OutletScreenController extends GetxController {
         }
         foodItems.refresh();
       } else {
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
         foodItems.refresh();
         Get.snackbar(
           "Oops!",
@@ -1033,6 +1070,7 @@ class OutletScreenController extends GetxController {
       }
     } catch (e) {
       print('incrementQuantity Error: $e');
+      Get.find<DeliveryScreenController>().outletTopPicks.refresh();
       foodItems.refresh();
     }
   }
@@ -1064,6 +1102,14 @@ class OutletScreenController extends GetxController {
           cartItem: data["data"]["items"],
           billData: data["data"]["bill"],
         );
+        for (var element
+            in Get.find<DeliveryScreenController>().outletTopPicks) {
+          if (element["id"] == itemData["id"] &&
+              element["categoryId"] == itemData["categoryId"]) {
+            element["cartCount"] = itemData["cartCount"] - 1;
+          }
+        }
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
         for (var element in foodItems) {
           if (element["category"]["id"] == itemData["categoryId"]) {
             for (var item in element["items"]) {
@@ -1075,10 +1121,12 @@ class OutletScreenController extends GetxController {
         }
         foodItems.refresh();
       } else {
+        Get.find<DeliveryScreenController>().outletTopPicks.refresh();
         foodItems.refresh();
       }
     } catch (e) {
       print('decrimentQuantity Error: $e');
+      Get.find<DeliveryScreenController>().outletTopPicks.refresh();
       foodItems.refresh();
     }
   }

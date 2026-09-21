@@ -311,7 +311,7 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
                                       ..onTap = () {
                                         Get.toNamed(
                                           Routes.privacyAndTermsScreen,
-                                          arguments: {"isPrivacy": false},
+                                          arguments: {"isTerms": true},
                                         );
                                       },
                                   ),

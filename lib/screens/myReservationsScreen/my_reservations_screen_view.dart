@@ -5,6 +5,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/screens/myReservationsScreen/my_reservations_screen_controller.dart';
+import 'package:shimmer/shimmer.dart';
 
 class MyReservationsScreen extends GetView<MyReservationsScreenController> {
   const MyReservationsScreen({super.key});
@@ -261,6 +262,20 @@ class MyReservationsScreen extends GetView<MyReservationsScreenController> {
                       width: 44,
                       height: 44,
                       fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        }
+                        return Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
                       errorBuilder: (context, error, stackTrace) {
                         return Image.asset(
                           AppImages().momoImg,

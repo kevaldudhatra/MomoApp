@@ -44,10 +44,9 @@ class _MyAppState extends State<MyApp> {
       getPages: AppPages.routes,
       initialBinding: BindingsBuilder(() {
         Get.put(CartController(), permanent: true);
-        final socketService = Get.put(SocketService(), permanent: true);
         final storage = GetStorage();
         if (storage.read(loginTrue) == true) {
-          socketService.connect();
+          SocketService().connect(userToken: storage.read(userToken));
         }
       }),
     );
