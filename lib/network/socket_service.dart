@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:momos/network/api_services.dart';
-import 'package:http/http.dart' as http;
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SocketService {
@@ -26,6 +24,11 @@ class SocketService {
   Stream<dynamic> get onOrderStatusReceived =>
       _orderStatusStreamController.stream;
 
+  final _reservationStatusStreamController =
+      StreamController<dynamic>.broadcast();
+  Stream<dynamic> get onReservationStatusReceived =>
+      _reservationStatusStreamController.stream;
+
   Future<void> connect({required String userToken}) async {
     // Prevent duplicate connections
     if (_socket != null && _socket!.connected) {
@@ -43,20 +46,15 @@ class SocketService {
     // Clean up any existing dead socket instance
     _cleanupSocket();
 
-    // Clean token: provide both raw and Bearer formats for maximum backend compatibility
-    final bearerToken = userToken.startsWith('Bearer ')
-        ? userToken.trim()
-        : 'Bearer $userToken';
-
     debugPrint("SOCKET URL => ${ApiServices.baseUrl}");
+    debugPrint("USER TOKEN => $userToken");
 
     try {
       _socket = IO.io(
         ApiServices.baseUrl,
         IO.OptionBuilder()
             .setTransports(['websocket'])
-            .setAuth({'token': userToken, 'Authorization': bearerToken})
-            .setExtraHeaders({'Authorization': bearerToken})
+            .setAuth({'token': userToken})
             .enableReconnection()
             .setReconnectionAttempts(_maxReconnectAttempts)
             .setReconnectionDelay(_reconnectDelayMs)
@@ -121,6 +119,13 @@ class SocketService {
         }
       });
 
+      _socket!.on('bookingStatusUpdate', (data) {
+        debugPrint('📦 Reservation status update: $data');
+        if (!_reservationStatusStreamController.isClosed) {
+          _reservationStatusStreamController.add(data);
+        }
+      });
+
       // Trigger connection explicitly
       _socket!.connect();
     } catch (e) {
@@ -163,28 +168,6 @@ class SocketService {
       _socket!.clearListeners();
       _socket!.dispose();
       _socket = null;
-    }
-  }
-
-  // Optional HTTP pre-handshake API if required by your backend
-  Future<bool> socketConnectionApi({required String token}) async {
-    try {
-      final response = await http.post(
-        Uri.parse(ApiServices.connectSocket),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token.startsWith('Bearer ')
-              ? token
-              : 'Bearer $token',
-        },
-      );
-      debugPrint('socketConnectionApi status: ${response.statusCode}');
-      debugPrint('socketConnectionApi body: ${response.body}');
-      final data = jsonDecode(response.body);
-      return response.statusCode == 200 && data['success'] == true;
-    } catch (e) {
-      debugPrint('socketConnectionApi Error: $e');
-      return false;
     }
   }
 }

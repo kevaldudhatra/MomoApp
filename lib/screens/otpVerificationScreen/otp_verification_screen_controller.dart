@@ -68,7 +68,7 @@ class OtpVerificationScreenController extends GetxController {
         data["data"]["user"]["isProfileComplete"] == false) {
       final token = "Bearer ${data["data"]["token"]}";
       await storage.write(userToken, token);
-      SocketService().connect(userToken: token);
+      SocketService().connect(userToken: data["data"]["token"]);
       Get.toNamed(Routes.completeYourProfileScreen);
     } else if (response.statusCode == 200 &&
         data["success"] == true &&
@@ -84,7 +84,7 @@ class OtpVerificationScreenController extends GetxController {
       await storage.write(loginTrue, true);
       final token = "Bearer ${data["data"]["token"]}";
       await storage.write(userToken, token);
-      SocketService().connect(userToken: token);
+      SocketService().connect(userToken: data["data"]["token"]);
       Get.offAllNamed(Routes.homeScreen);
     } else {
       Get.snackbar(

@@ -115,16 +115,20 @@ class MyReservationsScreen extends GetView<MyReservationsScreenController> {
                               parent: BouncingScrollPhysics(),
                             ),
                             children: [
-                              SizedBox(
+                              Container(
                                 height:
                                     MediaQuery.of(context).size.height * 0.60,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 50,
+                                ),
                                 child: Center(
                                   child: Text(
                                     "You have no reservations at the moment.",
+                                    textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       color: textSecondary,
                                       fontSize: 16,
-                                      fontFamily: natoMedium,
+                                      fontFamily: natoBold,
                                     ),
                                   ),
                                 ),

@@ -2,7 +2,6 @@ import 'package:momos/network/env.dart';
 
 class ApiServices {
   static String baseUrl = liveUrl;
-  static String connectSocket = '$baseUrl/api/v1/user/chat/connect-socket';
   static String verifyOtp = '$baseUrl/public/api/v1/user/otp-verify';
   static String resendOtp = '$baseUrl/public/api/v1/user/resend-otp';
   static String register = '$baseUrl/public/api/v1/user/register';
@@ -19,6 +18,7 @@ class ApiServices {
   static String getCartItem = '$baseUrl/api/v1/user/cart/details';
   static String placeOrder = '$baseUrl/api/v1/user/orders/place';
   static String getOrderDetails = '$baseUrl/api/v1/user/orders/{id}';
+  static String addRating = '$baseUrl/api/v1/user/outlates/{outlateId}/ratings';
   static String deleteUserAddress =
       '$baseUrl/api/v1/user/addresses/{addressId}';
   static String verifyForgotOtp =
@@ -51,4 +51,6 @@ class ApiServices {
       '$baseUrl/public/api/v1/user/content/refund-policy';
   static String searchFoodData =
       '$baseUrl/api/v1/user/outlates/{outletId}/menu?search={dishName}';
+  static String verifyPromocode =
+      '$baseUrl/api/v1/user/outlates/{outlateId}/promocodes/verify';
 }

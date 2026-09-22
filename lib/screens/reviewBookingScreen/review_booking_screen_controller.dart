@@ -127,7 +127,7 @@ class ReviewBookingScreenController extends GetxController {
       } else {
         Get.snackbar(
           "Error",
-          "Failed to book table",
+          data['message'] ?? "Failed to book table",
           snackPosition: SnackPosition.TOP,
           icon: const Icon(Icons.error, color: Colors.red),
           backgroundColor: charcoalGray.withValues(alpha: 0.9),

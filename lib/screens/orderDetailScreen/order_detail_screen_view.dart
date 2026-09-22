@@ -44,7 +44,7 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      controller.outletDetails['name'],
+                      controller.outletDetails['name'] ?? "",
                       style: const TextStyle(
                         color: black,
                         fontSize: 20,
@@ -68,282 +68,368 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                           physics: const BouncingScrollPhysics(),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Ordered Items List Card
-                                _buildCard(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: ListView.separated(
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        itemCount: controller.cartItems.length,
-                                        separatorBuilder: (context, index) =>
-                                            const Padding(
-                                              padding: EdgeInsets.symmetric(
-                                                vertical: 12.0,
-                                              ),
-                                              child: Divider(
-                                                height: 1,
-                                                thickness: 1,
-                                                color: borderGray,
-                                              ),
-                                            ),
-                                        itemBuilder: (context, index) {
-                                          final item =
-                                              controller.cartItems[index];
-                                          return _buildCartItemRow(item);
-                                        },
-                                      ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () => Get.back(),
-                                      child: Container(
-                                        width: double.infinity,
-                                        margin: const EdgeInsets.only(
-                                          left: 16,
-                                          right: 16,
-                                          bottom: 16,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: borderGray,
-                                            width: 1,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.add,
-                                              color: charcoalGray,
-                                              size: 18,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Text(
-                                              "Add More Items",
-                                              style: TextStyle(
-                                                color: charcoalGray,
-                                                fontSize: 14,
-                                                fontFamily: natoMedium,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-
-                                // Cooking Note Section
-                                CustomTextField(
-                                  labelText: 'Add Cooking Note',
-                                  hintText: "Add cooking note",
-                                  textEditingController:
-                                      controller.cookingNoteController,
-                                  keyboardType: TextInputType.text,
-                                  textInputAction: TextInputAction.next,
-                                ),
-                                const SizedBox(height: 20),
-
-                                // Offers Section
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        _buildSectionTitle("Offers"),
-                                        GestureDetector(
-                                          onTap: () {
-                                            Get.toNamed(Routes.offersScreen);
-                                          },
-                                          child: const Text(
-                                            "View all",
-                                            style: TextStyle(
-                                              color: textSecondary,
-                                              fontSize: 13,
-                                              fontFamily: natoMedium,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: CustomTextField(
-                                            hintText: "Enter promocode",
-                                            textEditingController:
-                                                controller.promoCodeController,
-                                            keyboardType: TextInputType.text,
-                                            textInputAction:
-                                                TextInputAction.done,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        GestureDetector(
-                                          onTap: () {
-                                            // controller.applyPromoCode();
-                                          },
-                                          child: Container(
-                                            height: 35,
-                                            width: 85,
-                                            decoration: BoxDecoration(
-                                              color: orange,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            alignment: Alignment.center,
-                                            child: const Text(
-                                              "Apply",
-                                              style: TextStyle(
-                                                color: white,
-                                                fontSize: 14,
-                                                fontFamily: natoMedium,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    controller.isPromocodeApplied.value
-                                        ? Container(
-                                            margin: EdgeInsets.only(
-                                              top: 10,
-                                              bottom: 20,
-                                            ),
-                                            child: _buildCard(
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets.all(
-                                                    10.0,
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Text(
-                                                        "Promocode applied",
-                                                        style: const TextStyle(
-                                                          color: black,
-                                                          fontSize: 15,
-                                                          fontFamily:
-                                                              natoMedium,
+                            child: controller.cartItems.isNotEmpty
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Ordered Items List Card
+                                      _buildCard(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.all(16.0),
+                                            child: ListView.separated(
+                                              shrinkWrap: true,
+                                              physics:
+                                                  const NeverScrollableScrollPhysics(),
+                                              itemCount:
+                                                  controller.cartItems.length,
+                                              separatorBuilder:
+                                                  (
+                                                    context,
+                                                    index,
+                                                  ) => const Padding(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          vertical: 12.0,
                                                         ),
-                                                      ),
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          controller
-                                                              .removePromocode();
-                                                        },
-                                                        child: Container(
-                                                          height: 35,
-                                                          width: 85,
-                                                          decoration: BoxDecoration(
-                                                            color: orange,
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  10,
-                                                                ),
-                                                          ),
-                                                          alignment:
-                                                              Alignment.center,
-                                                          child: const Text(
-                                                            "Remove",
-                                                            style: TextStyle(
-                                                              color: white,
-                                                              fontSize: 14,
-                                                              fontFamily:
-                                                                  natoMedium,
+                                                    child: Divider(
+                                                      height: 1,
+                                                      thickness: 1,
+                                                      color: borderGray,
+                                                    ),
+                                                  ),
+                                              itemBuilder: (context, index) {
+                                                final item =
+                                                    controller.cartItems[index];
+                                                return _buildCartItemRow(item);
+                                              },
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () => Get.back(),
+                                            child: Container(
+                                              width: double.infinity,
+                                              margin: const EdgeInsets.only(
+                                                left: 16,
+                                                right: 16,
+                                                bottom: 16,
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 10,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: borderGray,
+                                                  width: 1,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: const Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(
+                                                    Icons.add,
+                                                    color: charcoalGray,
+                                                    size: 18,
+                                                  ),
+                                                  SizedBox(width: 6),
+                                                  Text(
+                                                    "Add More Items",
+                                                    style: TextStyle(
+                                                      color: charcoalGray,
+                                                      fontSize: 14,
+                                                      fontFamily: natoMedium,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 20),
+
+                                      // Cooking Note Section
+                                      CustomTextField(
+                                        labelText: 'Add Cooking Note',
+                                        hintText: "Add cooking note",
+                                        textEditingController:
+                                            controller.cookingNoteController,
+                                        keyboardType: TextInputType.text,
+                                        textInputAction: TextInputAction.next,
+                                      ),
+                                      const SizedBox(height: 20),
+
+                                      // Offers Section
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              _buildSectionTitle("Offers"),
+                                              GestureDetector(
+                                                onTap: () async {
+                                                  final result =
+                                                      await Get.toNamed(
+                                                        Routes.offersScreen,
+                                                      );
+                                                  if (result != null) {
+                                                    controller
+                                                            .promoCodeController
+                                                            .text =
+                                                        result['promocode'];
+                                                    controller
+                                                            .promocodeId
+                                                            .value =
+                                                        result['promocodeId'];
+                                                  }
+                                                },
+                                                child: const Text(
+                                                  "View all",
+                                                  style: TextStyle(
+                                                    color: textSecondary,
+                                                    fontSize: 13,
+                                                    fontFamily: natoMedium,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 5),
+
+                                          controller.isPromocodeApplied.value
+                                              ? Container(
+                                                  margin: EdgeInsets.only(
+                                                    top: 5,
+                                                    bottom: 20,
+                                                  ),
+                                                  child: _buildCard(
+                                                    children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 16,
+                                                              vertical: 10,
                                                             ),
-                                                          ),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Text(
+                                                              controller
+                                                                  .promoCodeController
+                                                                  .text
+                                                                  .trim()
+                                                                  .toString(),
+                                                              style: const TextStyle(
+                                                                color: black,
+                                                                fontSize: 15,
+                                                                fontFamily:
+                                                                    natoMedium,
+                                                              ),
+                                                            ),
+                                                            GestureDetector(
+                                                              onTap: () {
+                                                                controller
+                                                                    .removePromocode();
+                                                              },
+                                                              child: Container(
+                                                                height: 35,
+                                                                width: 85,
+                                                                decoration: BoxDecoration(
+                                                                  color: orange,
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        10,
+                                                                      ),
+                                                                ),
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                child: const Text(
+                                                                  "Remove",
+                                                                  style: TextStyle(
+                                                                    color:
+                                                                        white,
+                                                                    fontSize:
+                                                                        14,
+                                                                    fontFamily:
+                                                                        natoMedium,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     ],
                                                   ),
+                                                )
+                                              : Column(
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: CustomTextField(
+                                                            hintText:
+                                                                "Enter promocode",
+                                                            textEditingController:
+                                                                controller
+                                                                    .promoCodeController,
+                                                            keyboardType:
+                                                                TextInputType
+                                                                    .text,
+                                                            textInputAction:
+                                                                TextInputAction
+                                                                    .done,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 12,
+                                                        ),
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            controller
+                                                                .applyPromoCode();
+                                                          },
+                                                          child: Container(
+                                                            height: 35,
+                                                            width: 85,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                                  color: orange,
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        10,
+                                                                      ),
+                                                                ),
+                                                            alignment: Alignment
+                                                                .center,
+                                                            child: const Text(
+                                                              "Apply",
+                                                              style: TextStyle(
+                                                                color: white,
+                                                                fontSize: 14,
+                                                                fontFamily:
+                                                                    natoMedium,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    SizedBox(height: 20),
+                                                  ],
                                                 ),
-                                              ],
-                                            ),
-                                          )
-                                        : const SizedBox(height: 20),
-                                  ],
-                                ),
+                                        ],
+                                      ),
 
-                                // Delivery Details Section
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildSectionTitle("Delivery Details"),
-                                    const SizedBox(height: 5),
-                                    _buildDeliveryDetailsCard(context),
-                                    const SizedBox(height: 20),
-                                  ],
-                                ),
-
-                                // Total Bill Section
-                                controller.cartItems.isNotEmpty
-                                    ? Column(
+                                      // Delivery Details Section
+                                      Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          _buildSectionTitle("Total Bill"),
+                                          _buildSectionTitle(
+                                            "Delivery Details",
+                                          ),
                                           const SizedBox(height: 5),
-                                          _buildTotalBillCard(context),
+                                          _buildDeliveryDetailsCard(context),
                                           const SizedBox(height: 20),
                                         ],
-                                      )
-                                    : Container(),
+                                      ),
 
-                                // Payment Method Section
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildSectionTitle("Payment Method"),
-                                    const SizedBox(height: 5),
-                                    _buildPaymentMethodCard(context),
-                                    const SizedBox(height: 30),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                      // Total Bill Section
+                                      controller.cartItems.isNotEmpty
+                                          ? Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _buildSectionTitle(
+                                                  "Total Bill",
+                                                ),
+                                                const SizedBox(height: 5),
+                                                _buildTotalBillCard(context),
+                                                const SizedBox(height: 20),
+                                              ],
+                                            )
+                                          : Container(),
+
+                                      // Payment Method Section
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          _buildSectionTitle("Payment Method"),
+                                          const SizedBox(height: 5),
+                                          _buildPaymentMethodCard(context),
+                                          const SizedBox(height: 30),
+                                        ],
+                                      ),
+                                    ],
+                                  )
+                                : SizedBox(
+                                    height:
+                                        MediaQuery.of(context).size.height -
+                                        250,
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            AppImages().emptyCart,
+                                            height: 100,
+                                            width: 100,
+                                          ),
+                                          Text(
+                                            "No items in cart",
+                                            style: TextStyle(
+                                              color: black,
+                                              fontSize: 20,
+                                              fontFamily: natoBold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
               ),
 
               // Bottom Sticky Bar (Place Order Button)
-              Container(
-                width: double.infinity,
-                color: white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: CustomButton(
-                  width: MediaQuery.of(context).size.width,
-                  label: "Place Order",
-                  onTap: () {
-                    controller.orderValidation();
-                  },
-                ),
+              Obx(
+                () => controller.cartItems.isNotEmpty
+                    ? Container(
+                        width: double.infinity,
+                        color: white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                        child: CustomButton(
+                          width: MediaQuery.of(context).size.width,
+                          label: "Place Order",
+                          onTap: () {
+                            controller.orderValidation();
+                          },
+                        ),
+                      )
+                    : Container(),
               ),
             ],
           ),

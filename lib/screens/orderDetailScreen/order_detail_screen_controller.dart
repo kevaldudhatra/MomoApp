@@ -8,6 +8,8 @@ import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
 import 'package:momos/screens/cartManagement/cart_controller.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
+import 'package:momos/screens/bookTableScreen/book_table_screen_controller.dart';
+import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 import 'package:momos/screens/outletScreen/outlet_screen_controller.dart';
 import 'package:momos/screens/searchAddressScreen/search_address_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
@@ -1027,7 +1029,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                         items.add(
                           _buildBillRow(
                             label: "Item Total",
-                            value: "₹${controller.subtotal.toDouble()}",
+                            value: "₹${controller.subtotal.toStringAsFixed(2)}",
                           ),
                         );
 
@@ -1040,7 +1042,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                               label: "Delivery Charge",
                               value: isDeliveryFree
                                   ? "FREE"
-                                  : "₹${controller.deliveryFee.toDouble()}",
+                                  : "₹${controller.deliveryFee.toDouble().toStringAsFixed(2)}",
                               valueColor: isDeliveryFree ? greenBadge : black,
                               valueFontFamily: isDeliveryFree
                                   ? natoBold
@@ -1057,7 +1059,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                               child: _buildBillRow(
                                 label: "Coupon Discount",
                                 value:
-                                    "₹${controller.promoDiscount.value.toDouble()}",
+                                    "₹${controller.promoDiscount.value.toDouble().toStringAsFixed(2)}",
                               ),
                             ),
                           );
@@ -1070,7 +1072,7 @@ class BillDetailsBottomSheet extends StatelessWidget {
                             child: _buildBillRow(
                               label: "Packaging Charge",
                               value:
-                                  "₹${controller.packagingCharge.toDouble()}",
+                                  "₹${controller.packagingCharge.toDouble().toStringAsFixed(2)}",
                             ),
                           ),
                         );
@@ -1081,7 +1083,8 @@ class BillDetailsBottomSheet extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 16.0),
                             child: _buildBillRow(
                               label: "CGST(2.5%)",
-                              value: "₹${controller.cgst.toDouble()}",
+                              value:
+                                  "₹${controller.cgst.toDouble().toStringAsFixed(2)}",
                             ),
                           ),
                         );
@@ -1092,7 +1095,8 @@ class BillDetailsBottomSheet extends StatelessWidget {
                             padding: const EdgeInsets.only(top: 16.0),
                             child: _buildBillRow(
                               label: "SGST(2.5%)",
-                              value: "₹${controller.sgst.toDouble()}",
+                              value:
+                                  "₹${controller.sgst.toDouble().toStringAsFixed(2)}",
                             ),
                           ),
                         );
@@ -1113,7 +1117,8 @@ class BillDetailsBottomSheet extends StatelessWidget {
                         items.add(
                           _buildBillRow(
                             label: "Total",
-                            value: "₹${controller.totalBill.toDouble()}",
+                            value:
+                                "₹${controller.totalBill.toDouble().toStringAsFixed(2)}",
                             labelFontFamily: natoBold,
                             valueFontFamily: natoBold,
                             fontSize: 15,
@@ -1452,8 +1457,9 @@ class OrderDetailScreenController extends GetxController {
   RxBool isLoading = true.obs;
   RxList<DeliveryDaySchedule> scheduleList = <DeliveryDaySchedule>[].obs;
   RxList<SavedAddress> userAddressList = <SavedAddress>[].obs;
-  RxDouble promoDiscount = 0.0.obs;
   RxBool isPromocodeApplied = false.obs;
+  RxInt promocodeId = 0.obs;
+  RxDouble promoDiscount = 0.0.obs;
   RxString deliveryTime = "Delivering now".obs;
   RxString selectedScheduleDate = "Today".obs;
   RxString selectedScheduleTime = "".obs;
@@ -1870,6 +1876,10 @@ class OrderDetailScreenController extends GetxController {
         "cookingNote": cookingNoteController.text.trim(),
         "deliveryType": "now",
       };
+      if (isPromocodeApplied.value) {
+        payload["promocodeId"] = promocodeId.value;
+        payload["promocodeCode"] = promoCodeController.text.trim().toString();
+      }
       await placeOrder(orderData: payload);
     } else {
       final dateResult = convertToApiDate(selectedScheduleDate.value);
@@ -1883,6 +1893,10 @@ class OrderDetailScreenController extends GetxController {
         "scheduledSlotStart": timeResult['startTime'],
         "scheduledSlotEnd": timeResult['endTime'],
       };
+      if (isPromocodeApplied.value) {
+        payload["promocodeId"] = promocodeId.value;
+        payload["promocodeCode"] = promoCodeController.text.trim().toString();
+      }
       await placeOrder(orderData: payload);
     }
   }
@@ -1901,20 +1915,21 @@ class OrderDetailScreenController extends GetxController {
       print('placeOrder Response body: ${response.body}');
       final data = jsonDecode(response.body);
       if (response.statusCode == 201 && data["success"] == true) {
-        Get.offAndToNamed(Routes.homeScreen);
+        Get.snackbar(
+          "Success",
+          "Order placed successfully!",
+          icon: const Icon(Icons.done, color: Colors.green),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        );
         cartItems.clear();
         foodItems.clear();
-        Future.delayed(const Duration(milliseconds: 500), () {
-          Get.snackbar(
-            "Success",
-            "Order placed successfully!",
-            icon: const Icon(Icons.done, color: Colors.green),
-            colorText: Colors.white,
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: charcoalGray.withValues(alpha: 0.9),
-          );
-        });
-        Get.find<DeliveryScreenController>().onInit();
+        outletDetails.value = {};
+        await Get.delete<DeliveryScreenController>(force: true);
+        await Get.delete<BookTableScreenController>(force: true);
+        await Get.delete<ProfileScreenController>(force: true);
+        await Get.offAllNamed(Routes.homeScreen);
       } else {
         Get.snackbar(
           "oops!",
@@ -1929,6 +1944,65 @@ class OrderDetailScreenController extends GetxController {
       print('placeOrder Error: $e');
       Get.snackbar(
         "oops!",
+        "Something went wrong. Please try again.",
+        icon: const Icon(Icons.error, color: Colors.red),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+    }
+  }
+
+  Future<void> verifyPromocode({int? outletId, int? promocodeId}) async {
+    print("verifyPromocode input:$outletId");
+    print("verifyPromocode input:${promoCodeController.text.trim()}");
+    try {
+      final response = await http.post(
+        Uri.parse(
+          ApiServices.verifyPromocode.replaceAll(
+            '{outlateId}',
+            outletId.toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({"promocodeId": promocodeId}),
+      );
+      print('verifyPromocode Response status: ${response.statusCode}');
+      print('verifyPromocode Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        isPromocodeApplied.value = true;
+        promoDiscount.value = double.parse(
+          data["data"]["promocode"]["discountAmt"].toString(),
+        );
+        Get.snackbar(
+          "Success",
+          data["data"]["message"],
+          icon: const Icon(Icons.done, color: Colors.green),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        );
+      } else {
+        isPromocodeApplied.value = false;
+        promoDiscount.value = 0.0;
+        Get.snackbar(
+          "Oops!",
+          data["message"],
+          icon: const Icon(Icons.error, color: Colors.red),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        );
+      }
+    } catch (e) {
+      isPromocodeApplied.value = false;
+      promoDiscount.value = 0.0;
+      Get.snackbar(
+        "Oops!",
         "Something went wrong. Please try again.",
         icon: const Icon(Icons.error, color: Colors.red),
         colorText: Colors.white,
@@ -2026,7 +2100,7 @@ class OrderDetailScreenController extends GetxController {
 
   void applyPromoCode() {
     final code = promoCodeController.text.trim();
-    if (code.isEmpty) {
+    if (code.isEmpty && promocodeId.value == 0) {
       Get.snackbar(
         "Oops!",
         "Please enter a promocode.",
@@ -2038,35 +2112,17 @@ class OrderDetailScreenController extends GetxController {
       return;
     }
 
-    // Example promo discount logic
-    if (code.toLowerCase() == "momo50") {
-      isPromocodeApplied.value = true;
-      promoDiscount.value = 50.0;
-      Get.snackbar(
-        "Success",
-        "Promocode applied! You saved ₹50.",
-        icon: const Icon(Icons.done, color: Colors.green),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: charcoalGray.withValues(alpha: 0.9),
-      );
-    } else {
-      isPromocodeApplied.value = false;
-      promoDiscount.value = 0.0;
-      Get.snackbar(
-        "Oops!",
-        "Invalid promocode. Try 'momo50'.",
-        icon: const Icon(Icons.error, color: Colors.red),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.TOP,
-        backgroundColor: charcoalGray.withValues(alpha: 0.9),
-      );
-    }
+    verifyPromocode(
+      outletId: outletDetails['id'],
+      promocodeId: promocodeId.value,
+    );
   }
 
   void removePromocode() {
     isPromocodeApplied.value = false;
     promoDiscount.value = 0.0;
+    promocodeId.value = 0;
+    promoCodeController.clear();
     Get.snackbar(
       "Success",
       "Promocode removed successfully!",
@@ -2077,33 +2133,6 @@ class OrderDetailScreenController extends GetxController {
     );
   }
 
-  // double get subtotal => cartItems.fold(
-  //   0.0,
-  //   (sum, item) => sum + (item["lineTotal"] as num).toDouble(),
-  // );
-
-  // double get deliveryFee => 0.0;
-
-  // double get packagingCharge => 20.0;
-
-  // double get cgst =>
-  //     ((subtotal + packagingCharge + deliveryFee) - (promoDiscount.value)) *
-  //     2.5 /
-  //     100;
-
-  // double get sgst =>
-  //     ((subtotal + packagingCharge + deliveryFee) - (promoDiscount.value)) *
-  //     2.5 /
-  //     100;
-
-  // double get totalBill =>
-  //     subtotal +
-  //     deliveryFee +
-  //     packagingCharge +
-  //     cgst +
-  //     sgst -
-  //     promoDiscount.value;
-
   // Calculated values
   double get subtotal => (billDetails['itemTotal'] as num).toDouble();
 
@@ -2112,9 +2141,24 @@ class OrderDetailScreenController extends GetxController {
   double get packagingCharge =>
       (billDetails['packagingCharge'] as num).toDouble();
 
-  double get cgst => (billDetails['cgstAmount'] as num).toDouble();
+  double get cgst => isPromocodeApplied.value
+      ? ((subtotal + packagingCharge + deliveryFee) - (promoDiscount.value)) *
+            2.5 /
+            100
+      : (billDetails['cgstAmount'] as num).toDouble();
 
-  double get sgst => (billDetails['sgstAmount'] as num).toDouble();
+  double get sgst => isPromocodeApplied.value
+      ? ((subtotal + packagingCharge + deliveryFee) - (promoDiscount.value)) *
+            2.5 /
+            100
+      : (billDetails['sgstAmount'] as num).toDouble();
 
-  double get totalBill => (billDetails['grandTotal'] as num).toDouble();
+  double get totalBill => isPromocodeApplied.value
+      ? (subtotal +
+            deliveryFee +
+            packagingCharge +
+            cgst +
+            sgst -
+            promoDiscount.value)
+      : (billDetails['grandTotal'] as num).toDouble();
 }

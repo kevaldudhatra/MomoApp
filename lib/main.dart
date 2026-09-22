@@ -42,11 +42,13 @@ class _MyAppState extends State<MyApp> {
       defaultTransition: Transition.noTransition,
       initialRoute: AppPages.initialRoute,
       getPages: AppPages.routes,
-      initialBinding: BindingsBuilder(() {
+      initialBinding: BindingsBuilder(() async {
         Get.put(CartController(), permanent: true);
         final storage = GetStorage();
         if (storage.read(loginTrue) == true) {
-          SocketService().connect(userToken: storage.read(userToken));
+          String authToken = await storage.read(userToken);
+          String token = authToken.replaceFirst('Bearer ', '');
+          SocketService().connect(userToken: token);
         }
       }),
     );

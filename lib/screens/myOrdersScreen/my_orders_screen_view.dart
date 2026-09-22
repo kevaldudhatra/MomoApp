@@ -113,18 +113,22 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                               parent: BouncingScrollPhysics(),
                             ),
                             children: [
-                              SizedBox(
+                              Container(
                                 height:
                                     MediaQuery.of(context).size.height * 0.60,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 50,
+                                ),
                                 child: Center(
                                   child: Text(
                                     controller.selectedStatus.value == "All"
                                         ? "You have no orders at the moment."
                                         : "No orders in '${controller.selectedStatus.value}'",
+                                    textAlign: TextAlign.center,
                                     style: const TextStyle(
                                       color: textSecondary,
                                       fontSize: 16,
-                                      fontFamily: natoMedium,
+                                      fontFamily: natoBold,
                                     ),
                                   ),
                                 ),
@@ -338,12 +342,14 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
                               height: 16,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              "${item.quantity}  x  ${item.name}",
-                              style: const TextStyle(
-                                color: black,
-                                fontSize: 14,
-                                fontFamily: natoRegular,
+                            Expanded(
+                              child: Text(
+                                "${item.quantity}  x  ${item.name}",
+                                style: const TextStyle(
+                                  color: black,
+                                  fontSize: 14,
+                                  fontFamily: natoRegular,
+                                ),
                               ),
                             ),
                           ],

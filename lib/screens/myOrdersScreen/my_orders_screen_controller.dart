@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:http/http.dart' as http;
 
@@ -68,10 +70,33 @@ class OrderModel {
       items: items,
     );
   }
+
+  OrderModel copyWith({
+    String? id,
+    String? restaurantName,
+    String? restaurantAddress,
+    String? restaurantImage,
+    String? orderDate,
+    double? totalAmount,
+    String? status,
+    List<OrderItem>? items,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      restaurantName: restaurantName ?? this.restaurantName,
+      restaurantAddress: restaurantAddress ?? this.restaurantAddress,
+      restaurantImage: restaurantImage ?? this.restaurantImage,
+      orderDate: orderDate ?? this.orderDate,
+      totalAmount: totalAmount ?? this.totalAmount,
+      status: status ?? this.status,
+      items: items ?? this.items,
+    );
+  }
 }
 
 class MyOrdersScreenController extends GetxController {
   final storage = GetStorage();
+  StreamSubscription? _orderStatusSubscription;
   final scrollController = ScrollController();
   final ordersList = <OrderModel>[].obs;
   final isLoading = false.obs;
@@ -93,11 +118,13 @@ class MyOrdersScreenController extends GetxController {
     ever(selectedStatus, (_) {
       fetchOrders(page: 1, isRefresh: true);
     });
+    _listenToOrderStatusUpdate();
   }
 
   @override
   void onClose() {
     scrollController.dispose();
+    _orderStatusSubscription?.cancel();
     super.onClose();
   }
 
@@ -109,6 +136,52 @@ class MyOrdersScreenController extends GetxController {
         fetchOrders(page: currentPage.value + 1);
       }
     }
+  }
+
+  void _listenToOrderStatusUpdate() {
+    _orderStatusSubscription = SocketService().onOrderStatusReceived.listen((
+      data,
+    ) {
+      print(
+        "📦 Socket orderStatusUpdate received in MyOrdersScreenController: $data",
+      );
+      if (data == null) return;
+      if (data is Map && data.isNotEmpty) {
+        final newStatus = data['orderStatus']?.toString();
+        final orderId = data['orderId']?.toString();
+        print("newStatus: $newStatus");
+        print("orderId: $orderId");
+        if (newStatus != null && orderId != null) {
+          final index = ordersList.indexWhere((x) => x.id == orderId);
+          if (index != -1) {
+            ordersList[index] = ordersList[index].copyWith(status: newStatus);
+            if (selectedStatus.value == "All") {
+              ordersList.refresh();
+            } else if (selectedStatus.value == "Pending") {
+              ordersList.removeWhere((x) => x.status != "placed");
+              ordersList.refresh();
+            } else if (selectedStatus.value == "Ongoing") {
+              ordersList.removeWhere(
+                (x) =>
+                    x.status == "placed" ||
+                    x.status == "delivered" ||
+                    x.status == "cancelled",
+              );
+              ordersList.refresh();
+            } else if (selectedStatus.value == "Delivered") {
+              ordersList.removeWhere((x) => x.status != "delivered");
+              ordersList.refresh();
+            } else if (selectedStatus.value == "Cancelled") {
+              ordersList.removeWhere((x) => x.status != "cancelled");
+              ordersList.refresh();
+            } else {
+              ordersList.refresh();
+            }
+            update();
+          }
+        }
+      }
+    });
   }
 
   String formatStatus(String status) {

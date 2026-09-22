@@ -69,7 +69,7 @@ class GoogleAuthService {
         await storage.write(loginTrue, true);
         final token = "Bearer ${data["data"]["token"]}";
         await storage.write(userToken, token);
-        SocketService().connect(userToken: token);
+        SocketService().connect(userToken: data["data"]["token"]);
         Get.offAllNamed(Routes.homeScreen);
       } else {
         Get.snackbar(

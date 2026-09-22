@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:momos/network/api_services.dart';
@@ -71,7 +70,7 @@ class OffersScreenController extends GetxController {
               subtitle: "Use code ${offer["name"]} to avial this offer",
               code: offer["name"],
               bullets: offer["reasons"],
-              isActive: offer["isActive"],
+              isActive: offer["isApplicable"],
               isExpanded: false,
             ),
           );
@@ -97,7 +96,7 @@ class OffersScreenController extends GetxController {
     }
   }
 
-  void copyOffer(Offer offer) {
+  void applyOffer(Offer offer) {
     if (!offer.isActive) {
       Get.snackbar(
         "Oops!",
@@ -108,12 +107,11 @@ class OffersScreenController extends GetxController {
         colorText: Colors.white,
       );
     } else {
-      Clipboard.setData(ClipboardData(text: offer.code));
-      Get.back();
+      Get.back(result: {"promocode": offer.code, "promocodeId": offer.id});
       Future.delayed(const Duration(milliseconds: 500), () {
         Get.snackbar(
           "Success",
-          "Coupon code '${offer.code}' copied successfully!",
+          "Coupon code '${offer.code}' selected successfully!",
           icon: const Icon(Icons.done, color: Colors.green),
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,

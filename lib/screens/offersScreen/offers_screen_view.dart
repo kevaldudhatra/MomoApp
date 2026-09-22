@@ -154,54 +154,60 @@ class OffersScreen extends GetView<OffersScreenController> {
             // Expandable details (Accordion)
             AnimatedCrossFade(
               firstChild: const SizedBox.shrink(),
-              secondChild: Column(
-                children: [
-                  const Divider(height: 1, thickness: 1, color: borderGray),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16.0,
-                      right: 16.0,
-                      top: 12.0,
-                      bottom: 6.0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: offer.bullets.map((bullet) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "• ",
-                                style: TextStyle(
-                                  color: offer.isActive
-                                      ? charcoalGray
-                                      : textDisabled,
-                                  fontSize: 13,
-                                  fontFamily: natoRegular,
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  bullet,
-                                  style: TextStyle(
-                                    color: offer.isActive
-                                        ? charcoalGray
-                                        : textDisabled,
-                                    fontSize: 12,
-                                    fontFamily: natoRegular,
-                                  ),
-                                ),
-                              ),
-                            ],
+              secondChild: offer.bullets.isNotEmpty
+                  ? Column(
+                      children: [
+                        const Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: borderGray,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            left: 16.0,
+                            right: 16.0,
+                            top: 12.0,
+                            bottom: 6.0,
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: offer.bullets.map((bullet) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 6),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "• ",
+                                      style: TextStyle(
+                                        color: offer.isActive
+                                            ? charcoalGray
+                                            : textDisabled,
+                                        fontSize: 13,
+                                        fontFamily: natoRegular,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        bullet,
+                                        style: TextStyle(
+                                          color: offer.isActive
+                                              ? charcoalGray
+                                              : textDisabled,
+                                          fontSize: 12,
+                                          fontFamily: natoRegular,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Container(),
               crossFadeState: offer.isExpanded.value
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
@@ -211,14 +217,14 @@ class OffersScreen extends GetView<OffersScreenController> {
             // Divider and Apply Button
             const Divider(height: 1, thickness: 1, color: borderGray),
             GestureDetector(
-              onTap: () => controller.copyOffer(offer),
+              onTap: () => controller.applyOffer(offer),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 alignment: Alignment.center,
                 color: Colors.transparent,
                 child: Text(
-                  "Copy",
+                  "Apply",
                   style: TextStyle(
                     color: offer.isActive ? orange : orangeDisabled,
                     fontSize: 16,

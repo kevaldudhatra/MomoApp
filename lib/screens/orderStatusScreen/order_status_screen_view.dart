@@ -6,6 +6,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
+import 'package:momos/widgets/feedback_dialog.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -95,7 +96,7 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
                                   .orderDetails['estimatedDeliveryMinutes'] !=
                               null)
                             Text(
-                              "Your order will arrive in ${controller.orderDetails['estimatedDeliveryMinutes']}mins",
+                              "Your order will arrive in ${controller.orderDetails['estimatedDeliveryMinutes']} mins",
                               style: TextStyle(
                                 color: white,
                                 fontSize: 14,
@@ -797,10 +798,20 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
     return Center(
       child: CustomButton(
         height: 45,
-        width: MediaQuery.of(context).size.width * 0.40,
+        width: MediaQuery.of(context).size.width * 0.60,
         label: "Add Feedback",
         fontSize: 14,
-        onTap: () {},
+        onTap: () {
+          FeedbackDialog.show(
+            context,
+            onSubmit: (rating, comment) async {
+              return await controller.addFeedback(
+                rating: rating,
+                comment: comment,
+              );
+            },
+          );
+        },
       ),
     );
   }

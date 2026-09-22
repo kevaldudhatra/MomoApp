@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:http/http.dart' as http;
 
@@ -58,9 +60,34 @@ class ReservationModel {
       phoneNumber: json['outlate']['phoneNo'].toString(),
     );
   }
+
+  ReservationModel copyWith({
+    String? id,
+    String? restaurantName,
+    String? restaurantAddress,
+    String? restaurantImage,
+    int? guests,
+    String? scheduledTime,
+    String? placedTime,
+    String? status,
+    String? phoneNumber,
+  }) {
+    return ReservationModel(
+      id: id ?? this.id,
+      restaurantName: restaurantName ?? this.restaurantName,
+      restaurantAddress: restaurantAddress ?? this.restaurantAddress,
+      restaurantImage: restaurantImage ?? this.restaurantImage,
+      guests: guests ?? this.guests,
+      scheduledTime: scheduledTime ?? this.scheduledTime,
+      placedTime: placedTime ?? this.placedTime,
+      status: status ?? this.status,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+    );
+  }
 }
 
 class MyReservationsScreenController extends GetxController {
+  StreamSubscription? _reservationStatusSubscription;
   final storage = GetStorage();
   final scrollController = ScrollController();
   final reservationsList = <ReservationModel>[].obs;
@@ -89,12 +116,56 @@ class MyReservationsScreenController extends GetxController {
     ever(selectedStatus, (_) {
       fetchReservations(page: 1, isRefresh: true);
     });
+    _listenToReservationStatusUpdate();
   }
 
   @override
   void onClose() {
     scrollController.dispose();
+    _reservationStatusSubscription?.cancel();
     super.onClose();
+  }
+
+  void _listenToReservationStatusUpdate() {
+    _reservationStatusSubscription = SocketService().onReservationStatusReceived
+        .listen((data) {
+          print(
+            "📦 Socket bookingStatusUpdate received in MyReservationsScreenController: $data",
+          );
+          if (data == null) return;
+          if (data is Map && data.isNotEmpty) {
+            final newStatus = data['status']?.toString();
+            final bookingId = data['bookingId']?.toString();
+            if (newStatus != null && bookingId != null) {
+              final index = reservationsList.indexWhere(
+                (x) => x.id == bookingId,
+              );
+              if (index != -1) {
+                reservationsList[index] = reservationsList[index].copyWith(
+                  status: newStatus,
+                );
+                if (selectedStatus.value == "All") {
+                  reservationsList.refresh();
+                } else if (selectedStatus.value == "Pending") {
+                  reservationsList.removeWhere((x) => x.status != "pending");
+                  reservationsList.refresh();
+                } else if (selectedStatus.value == "Confirmed") {
+                  reservationsList.removeWhere((x) => x.status != "confirmed");
+                  reservationsList.refresh();
+                } else if (selectedStatus.value == "Completed") {
+                  reservationsList.removeWhere((x) => x.status != "completed");
+                  reservationsList.refresh();
+                } else if (selectedStatus.value == "Cancelled") {
+                  reservationsList.removeWhere((x) => x.status != "cancelled");
+                  reservationsList.refresh();
+                } else {
+                  reservationsList.refresh();
+                }
+                update();
+              }
+            }
+          }
+        });
   }
 
   void _scrollListener() {

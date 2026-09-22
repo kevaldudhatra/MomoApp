@@ -256,7 +256,8 @@ class OutletScreen extends GetView<OutletScreenController> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              "Chinese • Seafood • Thai • Pan-Asian",
+                                              controller
+                                                  .outletInfo['cuisineType'],
                                               style: const TextStyle(
                                                 color: charcoalGray,
                                                 fontSize: 13,
