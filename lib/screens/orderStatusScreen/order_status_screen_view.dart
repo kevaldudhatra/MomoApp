@@ -158,7 +158,10 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
                             const SizedBox(height: 16),
 
                             // Card 5: Download Invoice Button
-                            _buildDownloadInvoiceButton(),
+                            controller.orderDetails['orderStatus'] ==
+                                    'delivered'
+                                ? _buildDownloadInvoiceButton()
+                                : Container(),
                             const SizedBox(height: 16),
 
                             // Card 6: Feedback Section
@@ -771,24 +774,37 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
           ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.file_download_outlined,
-              color: charcoalGray,
-              size: 22,
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              "Download Invoice",
-              style: TextStyle(
-                color: black,
-                fontSize: 14,
-                fontFamily: natoSemiBold,
+        child: Obx(
+          () => Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              controller.isDownloadingInvoice.value
+                  ? const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: orange,
+                      ),
+                    )
+                  : const Icon(
+                      Icons.file_download_outlined,
+                      color: charcoalGray,
+                      size: 22,
+                    ),
+              const SizedBox(width: 12),
+              Text(
+                controller.isDownloadingInvoice.value
+                    ? "Downloading Invoice..."
+                    : "Download Invoice",
+                style: const TextStyle(
+                  color: black,
+                  fontSize: 14,
+                  fontFamily: natoSemiBold,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -1,56 +1,59 @@
+import 'dart:convert';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:momos/network/api_services.dart';
+import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
+import 'package:momos/utils/const_key.dart';
+import 'package:http/http.dart' as http;
 
 class BookTableScreenController extends GetxController {
-  final selectedDate = "Today".obs;
-  final selectedGuests = 1.obs;
-  final selectedPeriod = "Lunch".obs;
+  final storage = GetStorage();
+  final selectedDate = "".obs;
+  final selectedGuests = 0.obs;
+  final selectedPeriod = "".obs;
   final selectedTimeIndex = 0.obs;
-  final selectedTime = "11:30 AM".obs;
+  final selectedTime = "".obs;
   final isDateDropdownOpen = false.obs;
   final isGuestDropdownOpen = false.obs;
-  final List<int> guestsList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-  final List<String> periodsList = ["Lunch", "Dinner", "Late Night"];
-  final List<String> datesList = List.generate(5, (index) {
-    final date = DateTime.now().add(Duration(days: index));
-    if (index == 0) {
-      return "Today";
-    } else {
-      return DateFormat('EEE, dd MMM').format(date);
-    }
-  });
+  final isLoading = true.obs;
+  List<String> get timeSlots => periodTimeSlots[selectedPeriod.value] ?? [];
+  final RxMap<String, dynamic> reservationData = <String, dynamic>{}.obs;
+  final List<dynamic> allDateWithSlots = <dynamic>[].obs;
+  final List<String> datesList = <String>[].obs;
+  final RxList<int> guestsList = <int>[].obs;
+  final RxList<String> periodsList = <String>[].obs;
+  final RxMap<String, List<String>> periodTimeSlots =
+      <String, List<String>>{}.obs;
 
-  final Map<String, List<String>> _periodTimeSlots = {
-    "Lunch": [
-      "11:30 AM",
-      "12:00 PM",
-      "12:30 PM",
-      "1:00 PM",
-      "1:30 PM",
-      "2:00 PM",
-    ],
-    "Dinner": [
-      "7:00 PM",
-      "7:30 PM",
-      "8:00 PM",
-      "8:30 PM",
-      "9:00 PM",
-      "9:30 PM",
-    ],
-    "Late Night": [
-      "10:00 PM",
-      "10:30 PM",
-      "11:00 PM",
-      "11:30 PM",
-      "12:00 AM",
-      "12:30 AM",
-    ],
-  };
-
-  List<String> get timeSlots => _periodTimeSlots[selectedPeriod.value] ?? [];
+  @override
+  void onInit() {
+    super.onInit();
+    getReservationBookingDetails();
+  }
 
   void selectDate(String date) {
     selectedDate.value = date;
+    for (var element in allDateWithSlots) {
+      if (element['label'] == date) {
+        periodTimeSlots.clear();
+        periodTimeSlots.assignAll(
+          (element['slotsByTimeOfDay'] as Map<String, dynamic>).map(
+            (key, value) => MapEntry(
+              key == 'lateNight'
+                  ? 'Late Night'
+                  : '${key[0].toUpperCase()}${key.substring(1)}',
+              (value as List<dynamic>)
+                  .map((item) => item['label'] as String)
+                  .toList(),
+            ),
+          ),
+        );
+        selectedPeriod.value = periodsList.first;
+        final slots = periodTimeSlots[selectedPeriod.value] ?? [];
+        selectedTime.value = slots.isNotEmpty ? slots.first : "";
+        selectedTimeIndex.value = 0;
+      }
+    }
     isDateDropdownOpen.value = false;
   }
 
@@ -62,12 +65,90 @@ class BookTableScreenController extends GetxController {
   void selectPeriod(String period) {
     selectedPeriod.value = period;
     selectedTimeIndex.value = 0;
-    if (period == "Lunch") {
-      selectedTime.value = "11:30 AM";
-    } else if (period == "Dinner") {
-      selectedTime.value = "7:00 PM";
-    } else {
-      selectedTime.value = "10:00 PM";
+    final slots = periodTimeSlots[period] ?? [];
+    selectedTime.value = slots.isNotEmpty ? slots.first : "";
+  }
+
+  Future<void> getReservationBookingDetails() async {
+    try {
+      isLoading.value = true;
+      final outlateId =
+          Get.find<DeliveryScreenController>().outlateDetails['id'];
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getReservationBookingDetails.replaceAll(
+            '{outlateId}',
+            outlateId.toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print(
+        'getReservationBookingDetails Response status: ${response.statusCode}',
+      );
+      print('getReservationBookingDetails Response body: ${response.body}');
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        reservationData.value = Map<String, dynamic>.from(data['data'] ?? {});
+        _parseReservationData(data['data']);
+      }
+    } catch (e) {
+      print('getReservationBookingDetails Error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void _parseReservationData(dynamic data) {
+    if (data == null) {
+      return;
+    }
+
+    allDateWithSlots.assignAll(data['dates'] ?? []);
+    print("allDateWithSlots.value: $allDateWithSlots");
+
+    final List<String> datesOptions = List<String>.from(
+      data['dates']?.map((e) => e['label']) ?? [],
+    );
+    datesList.assignAll(datesOptions);
+
+    final List<int> guestOptions = List<int>.from(data['guestOptions'] ?? []);
+    guestsList.assignAll(guestOptions);
+
+    final List<String> periodOptions = List<String>.from(
+      data['timeOfDayOptions']?.map((e) => e['label']) ?? [],
+    );
+    periodsList.assignAll(periodOptions);
+
+    if (allDateWithSlots.isNotEmpty) {
+      periodTimeSlots.assignAll(
+        (data['dates']?.first['slotsByTimeOfDay'] as Map<String, dynamic>).map(
+          (key, value) => MapEntry(
+            key == 'lateNight'
+                ? 'Late Night'
+                : '${key[0].toUpperCase()}${key.substring(1)}',
+            (value as List<dynamic>)
+                .map((item) => item['label'] as String)
+                .toList(),
+          ),
+        ),
+      );
+    }
+
+    // Set defaults
+    if (datesList.isNotEmpty) {
+      selectedDate.value = datesList.first;
+    }
+    if (guestsList.isNotEmpty) {
+      selectedGuests.value = guestsList.first;
+    }
+    if (periodsList.isNotEmpty) {
+      selectedPeriod.value = periodsList.first;
+      final slots = periodTimeSlots[selectedPeriod.value] ?? [];
+      selectedTime.value = slots.isNotEmpty ? slots.first : "";
     }
   }
 }

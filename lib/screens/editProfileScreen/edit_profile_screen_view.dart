@@ -7,6 +7,7 @@ import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/custom_text_field.dart';
 import 'package:momos/screens/editProfileScreen/edit_profile_screen_controller.dart';
+import 'package:shimmer/shimmer.dart';
 
 class EditProfileScreen extends GetView<EditProfileScreenController> {
   const EditProfileScreen({super.key});
@@ -63,139 +64,169 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
                     horizontal: 16.0,
                     vertical: 24.0,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Avatar Image Section
-                      Center(
-                        child: Stack(
-                          children: [
-                            // Circular Profile Photo
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: white, width: 2),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: cardShadow,
-                                    blurRadius: 8,
-                                    spreadRadius: 1,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                                image: DecorationImage(
-                                  image: NetworkImage(
+                  child: Obx(
+                    () => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Avatar Image Section
+                        Center(
+                          child: Stack(
+                            children: [
+                              // Circular Profile Photo
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: white, width: 2),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: cardShadow,
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: Image.network(
                                     controller.avatarUrl.value,
-                                  ),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            // Overlay Camera/Edit badge
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: const BoxDecoration(
-                                    color: white,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: cardShadow,
-                                        blurRadius: 4,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Image.asset(
-                                    AppImages().editIcon,
-                                    width: 16,
-                                    height: 16,
-                                    color: charcoalGray,
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          }
+                                          return Shimmer.fromColors(
+                                            baseColor: Colors.grey.shade300,
+                                            highlightColor:
+                                                Colors.grey.shade100,
+                                            child: Container(
+                                              width: 100,
+                                              height: 100,
+                                              color: Colors.white,
+                                            ),
+                                          );
+                                        },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Image.asset(
+                                        AppImages().momoImg,
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                              // Overlay Camera/Edit badge
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      controller.showImagePickerOption(context),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: white,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: cardShadow,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Image.asset(
+                                      AppImages().editIcon,
+                                      width: 16,
+                                      height: 16,
+                                      color: charcoalGray,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 32),
+                        const SizedBox(height: 32),
 
-                      // First Name Input
-                      CustomTextField(
-                        labelText: "First Name",
-                        hintText: "Enter first name",
-                        textEditingController: controller.firstNameController,
-                        keyboardType: TextInputType.text,
-                        textInputAction: TextInputAction.done,
-                      ),
-                      const SizedBox(height: 20),
+                        // First Name Input
+                        CustomTextField(
+                          labelText: "First Name",
+                          hintText: "Enter first name",
+                          textEditingController: controller.firstNameController,
+                          keyboardType: TextInputType.text,
+                          textInputAction: TextInputAction.done,
+                        ),
+                        const SizedBox(height: 20),
 
-                      // Email Input (Read-only)
-                      CustomTextField(
-                        labelText: "Email",
-                        hintText: "Enter email",
-                        textEditingController: controller.emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.done,
-                        readOnly: true,
-                        fillColor: background,
-                      ),
-                      const SizedBox(height: 20),
+                        // Email Input (Read-only)
+                        CustomTextField(
+                          labelText: "Email",
+                          hintText: "Enter email",
+                          textEditingController: controller.emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.done,
+                          readOnly: true,
+                          fillColor: background,
+                        ),
+                        const SizedBox(height: 20),
 
-                      // Phone Number Input (Read-only)
-                      controller.userData['loginType'] == 'phone'
-                          ? Column(
-                              children: [
-                                CustomTextField(
-                                  labelText: "Phone Number",
-                                  hintText: "Enter phone number",
-                                  textEditingController:
-                                      controller.phoneController,
-                                  keyboardType: TextInputType.number,
-                                  textInputAction: TextInputAction.done,
-                                  readOnly: true,
-                                  fillColor: background,
-                                ),
-                                const SizedBox(height: 20),
-                              ],
-                            )
-                          : Container(),
+                        // Phone Number Input (Read-only)
+                        controller.userData['loginType'] == 'phone'
+                            ? Column(
+                                children: [
+                                  CustomTextField(
+                                    labelText: "Phone Number",
+                                    hintText: "Enter phone number",
+                                    textEditingController:
+                                        controller.phoneController,
+                                    keyboardType: TextInputType.number,
+                                    textInputAction: TextInputAction.done,
+                                    readOnly: true,
+                                    fillColor: background,
+                                  ),
+                                  const SizedBox(height: 20),
+                                ],
+                              )
+                            : Container(),
 
-                      // Change Password Link
-                      controller.userData['loginType'] == 'email'
-                          ? Align(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Get.toNamed(Routes.changePasswordScreen);
-                                },
-                                child: const Text(
-                                  "Change Password ?",
-                                  style: TextStyle(
-                                    color: orange,
-                                    fontSize: 14,
-                                    fontFamily: natoMedium,
-                                    decoration: TextDecoration.underline,
+                        // Change Password Link
+                        controller.userData['loginType'] == 'email'
+                            ? Align(
+                                alignment: Alignment.centerRight,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Get.toNamed(Routes.changePasswordScreen);
+                                  },
+                                  child: const Text(
+                                    "Change Password ?",
+                                    style: TextStyle(
+                                      color: orange,
+                                      fontSize: 14,
+                                      fontFamily: natoMedium,
+                                      decoration: TextDecoration.underline,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                          : Container(),
-                      const SizedBox(height: 20),
+                              )
+                            : Container(),
+                        const SizedBox(height: 20),
 
-                      // Save Changes Button
-                      CustomButton(
-                        width: double.infinity,
-                        label: "Save Changes",
-                        onTap: () => controller.saveChanges(),
-                      ),
-                    ],
+                        // Save Changes Button
+                        CustomButton(
+                          width: double.infinity,
+                          label: "Save Changes",
+                          onTap: () => controller.saveChanges(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

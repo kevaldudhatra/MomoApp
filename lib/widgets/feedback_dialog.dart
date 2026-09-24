@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 
 class FeedbackDialog extends StatefulWidget {
-  final FutureOr<bool> Function(int rating, String review)? onSubmit;
+  final FutureOr<bool> Function(double rating, String review)? onSubmit;
 
   const FeedbackDialog({super.key, this.onSubmit});
 
   static Future<void> show(
     BuildContext context, {
-    FutureOr<bool> Function(int rating, String review)? onSubmit,
+    FutureOr<bool> Function(double rating, String review)? onSubmit,
   }) {
     return showDialog(
       context: context,
@@ -26,7 +27,7 @@ class FeedbackDialog extends StatefulWidget {
 }
 
 class _FeedbackDialogState extends State<FeedbackDialog> {
-  int _selectedRating = 4;
+  double _selectedRating = 4.0;
   final TextEditingController _reviewController = TextEditingController();
   bool _isSubmitted = false;
   bool _isLoading = false;
@@ -136,31 +137,26 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
         const SizedBox(height: 20),
 
         // 5 Stars Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(5, (index) {
-            final starNumber = index + 1;
-            final isSelected = starNumber <= _selectedRating;
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                setState(() {
-                  _selectedRating = starNumber;
-                });
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Image.asset(
-                  AppImages().starIcon,
-                  width: 32,
-                  height: 32,
-                  color: isSelected
-                      ? const Color(0xFF1EA877)
-                      : const Color(0xFFD1D5DB),
-                ),
-              ),
-            );
-          }),
+        Center(
+          child: RatingBar.builder(
+            initialRating: 4,
+            minRating: 1,
+            direction: Axis.horizontal,
+            allowHalfRating: true,
+            itemCount: 5,
+            itemPadding: const EdgeInsets.symmetric(horizontal: 5),
+            itemBuilder: (context, _) => Image.asset(
+              AppImages().starIcon,
+              width: 20,
+              height: 20,
+              color: const Color(0xFF1EA877),
+            ),
+            onRatingUpdate: (rating) {
+              setState(() {
+                _selectedRating = rating;
+              });
+            },
+          ),
         ),
         const SizedBox(height: 24),
 

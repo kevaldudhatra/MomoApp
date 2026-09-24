@@ -13,6 +13,7 @@ import 'package:http/http.dart' as http;
 
 class ReservationStatusScreenController extends GetxController {
   StreamSubscription? _reservationStatusSubscription;
+  StreamSubscription? _reconnectSubscription;
   late final Rx<ReservationModel> _reservation;
   ReservationModel get reservation => _reservation.value;
   set reservation(ReservationModel value) => _reservation.value = value;
@@ -40,32 +41,47 @@ class ReservationStatusScreenController extends GetxController {
       ).obs;
     }
     _listenToReservationStatusUpdate();
+    _listenToSocketReconnect();
   }
 
   @override
   void onClose() {
     _reservationStatusSubscription?.cancel();
+    _reconnectSubscription?.cancel();
     super.onClose();
+  }
+
+  void _listenToSocketReconnect() {
+    _reconnectSubscription = SocketService().onReconnected.listen((_) {
+      debugPrint("ReservationStatusScreenController => Socket reconnected");
+    });
   }
 
   void _listenToReservationStatusUpdate() {
     _reservationStatusSubscription = SocketService().onReservationStatusReceived
         .listen((data) {
-          print(
+          debugPrint(
             "📦 Socket bookingStatusUpdate received in ReservationStatusScreenController: $data",
           );
           if (data == null) return;
-          if (data is Map &&
-              data.isNotEmpty &&
-              data['bookingId'].toString() == reservation.id) {
-            final newStatus = data['status']?.toString() ?? reservation.status;
-            reservation = reservation.copyWith(status: newStatus);
-            update();
+          try {
+            if (data is Map &&
+                data.isNotEmpty &&
+                data['bookingId']?.toString() == reservation.id) {
+              final newStatus =
+                  data['status']?.toString() ?? reservation.status;
+              reservation = reservation.copyWith(status: newStatus);
+              update();
+            }
+          } catch (e) {
+            debugPrint(
+              "ReservationStatusScreenController => Error handling status update: $e",
+            );
           }
         });
   }
 
-  Future<bool> addFeedback({int? rating, String? comment}) async {
+  Future<bool> addFeedback({double? rating, String? comment}) async {
     print("addFeedback input: $rating, $comment");
     try {
       final response = await http.post(

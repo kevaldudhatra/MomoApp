@@ -86,5 +86,13 @@
 	<string>This app needs access to your location to set delivery address.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to your location to set delivery address.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires access to your camera to take a profile picture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photo library to select a profile picture.</string>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 </dict>
 </plist>

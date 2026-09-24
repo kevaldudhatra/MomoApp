@@ -19,6 +19,9 @@ class ApiServices {
   static String placeOrder = '$baseUrl/api/v1/user/orders/place';
   static String getOrderDetails = '$baseUrl/api/v1/user/orders/{id}';
   static String addRating = '$baseUrl/api/v1/user/outlates/{outlateId}/ratings';
+  static String sendMessage = '$baseUrl/api/v1/user/chat/send-message';
+  static String getMessages =
+      '$baseUrl/api/v1/user/chat/get-messages?limit=20&page={pageNumber}&outlateId={outlateId}';
   static String deleteUserAddress =
       '$baseUrl/api/v1/user/addresses/{addressId}';
   static String verifyForgotOtp =
@@ -27,6 +30,8 @@ class ApiServices {
       '$baseUrl/api/v1/user/outlates/{outletId}/delivery-slots';
   static String getPaymentMethod =
       '$baseUrl/api/v1/user/outlates/{outletId}/payment-methods';
+  static String getReservationBookingDetails =
+      '$baseUrl/api/v1/user/outlates/{outlateId}/reservation-slots';
   static String getReservations =
       '$baseUrl/api/v1/user/reservations?limit=10&page={page}&status={status}';
   static String getOrders =

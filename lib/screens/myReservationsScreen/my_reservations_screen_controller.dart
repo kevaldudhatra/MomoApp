@@ -88,6 +88,7 @@ class ReservationModel {
 
 class MyReservationsScreenController extends GetxController {
   StreamSubscription? _reservationStatusSubscription;
+  StreamSubscription? _reconnectSubscription;
   final storage = GetStorage();
   final scrollController = ScrollController();
   final reservationsList = <ReservationModel>[].obs;
@@ -117,53 +118,76 @@ class MyReservationsScreenController extends GetxController {
       fetchReservations(page: 1, isRefresh: true);
     });
     _listenToReservationStatusUpdate();
+    _listenToSocketReconnect();
   }
 
   @override
   void onClose() {
     scrollController.dispose();
     _reservationStatusSubscription?.cancel();
+    _reconnectSubscription?.cancel();
     super.onClose();
+  }
+
+  void _listenToSocketReconnect() {
+    _reconnectSubscription = SocketService().onReconnected.listen((_) {
+      debugPrint(
+        "MyReservationsScreenController => Socket reconnected: refreshing reservations",
+      );
+      fetchReservations(page: 1, isRefresh: true);
+    });
   }
 
   void _listenToReservationStatusUpdate() {
     _reservationStatusSubscription = SocketService().onReservationStatusReceived
         .listen((data) {
-          print(
+          debugPrint(
             "📦 Socket bookingStatusUpdate received in MyReservationsScreenController: $data",
           );
           if (data == null) return;
-          if (data is Map && data.isNotEmpty) {
-            final newStatus = data['status']?.toString();
-            final bookingId = data['bookingId']?.toString();
-            if (newStatus != null && bookingId != null) {
-              final index = reservationsList.indexWhere(
-                (x) => x.id == bookingId,
-              );
-              if (index != -1) {
-                reservationsList[index] = reservationsList[index].copyWith(
-                  status: newStatus,
+          try {
+            if (data is Map && data.isNotEmpty) {
+              final newStatus = data['status']?.toString();
+              final bookingId = data['bookingId']?.toString();
+              if (newStatus != null && bookingId != null) {
+                final index = reservationsList.indexWhere(
+                  (x) => x.id == bookingId,
                 );
-                if (selectedStatus.value == "All") {
-                  reservationsList.refresh();
-                } else if (selectedStatus.value == "Pending") {
-                  reservationsList.removeWhere((x) => x.status != "pending");
-                  reservationsList.refresh();
-                } else if (selectedStatus.value == "Confirmed") {
-                  reservationsList.removeWhere((x) => x.status != "confirmed");
-                  reservationsList.refresh();
-                } else if (selectedStatus.value == "Completed") {
-                  reservationsList.removeWhere((x) => x.status != "completed");
-                  reservationsList.refresh();
-                } else if (selectedStatus.value == "Cancelled") {
-                  reservationsList.removeWhere((x) => x.status != "cancelled");
-                  reservationsList.refresh();
-                } else {
-                  reservationsList.refresh();
+                if (index != -1) {
+                  reservationsList[index] = reservationsList[index].copyWith(
+                    status: newStatus,
+                  );
+                  if (selectedStatus.value == "All") {
+                    reservationsList.refresh();
+                  } else if (selectedStatus.value == "Pending") {
+                    reservationsList.removeWhere((x) => x.status != "pending");
+                    reservationsList.refresh();
+                  } else if (selectedStatus.value == "Confirmed") {
+                    reservationsList.removeWhere(
+                      (x) => x.status != "confirmed",
+                    );
+                    reservationsList.refresh();
+                  } else if (selectedStatus.value == "Completed") {
+                    reservationsList.removeWhere(
+                      (x) => x.status != "completed",
+                    );
+                    reservationsList.refresh();
+                  } else if (selectedStatus.value == "Cancelled") {
+                    reservationsList.removeWhere(
+                      (x) => x.status != "cancelled",
+                    );
+                    reservationsList.refresh();
+                  } else {
+                    reservationsList.refresh();
+                  }
+                  update();
                 }
-                update();
               }
             }
+          } catch (e) {
+            debugPrint(
+              "MyReservationsScreenController => Error handling booking update: $e",
+            );
           }
         });
   }

@@ -15,46 +15,40 @@ import 'package:http/http.dart' as http;
 class ReviewBookingScreenController extends GetxController {
   final storage = GetStorage();
   final specialRequestController = TextEditingController();
+  final restaurantName = "".obs;
+  final restaurantAddress = "".obs;
+  final bookingDateTime = "".obs;
+  final guestCount = "".obs;
+  final cancellationPolicy = "".obs;
 
-  String get restaurantName {
-    try {
-      final deliveryController = Get.find<DeliveryScreenController>();
-      return deliveryController.outlateDetails['name'];
-    } catch (_) {
-      return "";
-    }
+  @override
+  void onInit() {
+    super.onInit();
+    _loadBookingDetails();
   }
 
-  String get restaurantAddress {
-    try {
-      final deliveryController = Get.find<DeliveryScreenController>();
-      return "${deliveryController.outlateDetails['address']}, ${deliveryController.outlateDetails['city']}, ${deliveryController.outlateDetails['state']} - ${deliveryController.outlateDetails['pinCode']}";
-    } catch (_) {
-      return "";
-    }
-  }
-
-  String get bookingDateTime {
+  void _loadBookingDetails() {
     try {
       final bookTableController = Get.find<BookTableScreenController>();
+      final deliveryController = Get.find<DeliveryScreenController>();
+      restaurantName.value = deliveryController.outlateDetails['name'] ?? "";
+      restaurantAddress.value =
+          "${deliveryController.outlateDetails['address'] ?? ''}, "
+          "${deliveryController.outlateDetails['city'] ?? ''}, "
+          "${deliveryController.outlateDetails['state'] ?? ''} - "
+          "${deliveryController.outlateDetails['pinCode'] ?? ''}";
       final date = bookTableController.selectedDate.value;
-      final selectedIdx = bookTableController.selectedTimeIndex.value;
-      final timeSlots = bookTableController.timeSlots;
-      if (selectedIdx >= 0 && selectedIdx < timeSlots.length) {
-        return "$date at ${timeSlots[selectedIdx]}";
-      }
-      return date;
-    } catch (_) {
-      return "";
-    }
-  }
-
-  String get guestCount {
-    try {
-      final bookTableController = Get.find<BookTableScreenController>();
-      return "${bookTableController.selectedGuests.value} guests";
-    } catch (_) {
-      return "";
+      final time = bookTableController.selectedTime.value;
+      bookingDateTime.value = "$date at $time";
+      guestCount.value = "${bookTableController.selectedGuests.value} guests";
+      final apiData = bookTableController.reservationData;
+      cancellationPolicy.value =
+          apiData['cancellationPolicy']?.toString() ??
+          "Cancellations made at least 2 hours before the reservation time are "
+              "free of charge. Late cancellations or no-shows may incur a fee "
+              "of ₹200 per guest.";
+    } catch (e) {
+      print('_loadBookingDetails Error: $e');
     }
   }
 

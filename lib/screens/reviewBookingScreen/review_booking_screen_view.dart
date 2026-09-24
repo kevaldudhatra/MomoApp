@@ -81,91 +81,94 @@ class ReviewBookingScreen extends GetView<ReviewBookingScreenController> {
                         ],
                       ),
                       padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Date Time Slot Row
-                          Row(
-                            children: [
-                              Image.asset(
-                                AppImages().calendarTodayIcon,
-                                width: 20,
-                                height: 20,
-                                color: charcoalGray,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                controller.bookingDateTime,
-                                style: const TextStyle(
-                                  color: black,
-                                  fontSize: 15,
-                                  fontFamily: natoBold,
+                      child: Obx(
+                        () => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Date Time Slot Row
+                            Row(
+                              children: [
+                                Image.asset(
+                                  AppImages().calendarTodayIcon,
+                                  width: 20,
+                                  height: 20,
+                                  color: charcoalGray,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
+                                const SizedBox(width: 12),
+                                Text(
+                                  controller.bookingDateTime.value,
+                                  style: const TextStyle(
+                                    color: black,
+                                    fontSize: 15,
+                                    fontFamily: natoBold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
 
-                          // Guests Count Row
-                          Row(
-                            children: [
-                              Image.asset(
-                                AppImages().guestIcon,
-                                width: 20,
-                                height: 20,
-                                color: charcoalGray,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                controller.guestCount,
-                                style: const TextStyle(
-                                  color: black,
-                                  fontSize: 15,
-                                  fontFamily: natoBold,
+                            // Guests Count Row
+                            Row(
+                              children: [
+                                Image.asset(
+                                  AppImages().guestIcon,
+                                  width: 20,
+                                  height: 20,
+                                  color: charcoalGray,
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
+                                const SizedBox(width: 12),
+                                Text(
+                                  controller.guestCount.value,
+                                  style: const TextStyle(
+                                    color: black,
+                                    fontSize: 15,
+                                    fontFamily: natoBold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
 
-                          // Location Address Details Row
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Image.asset(
-                                AppImages().locationIcon,
-                                width: 20,
-                                height: 20,
-                                color: charcoalGray,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      controller.restaurantName,
-                                      style: const TextStyle(
-                                        color: black,
-                                        fontSize: 15,
-                                        fontFamily: natoBold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      controller.restaurantAddress,
-                                      style: const TextStyle(
-                                        color: textSecondary,
-                                        fontSize: 13,
-                                        fontFamily: natoRegular,
-                                      ),
-                                    ),
-                                  ],
+                            // Location Address Details Row
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.asset(
+                                  AppImages().locationIcon,
+                                  width: 20,
+                                  height: 20,
+                                  color: charcoalGray,
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        controller.restaurantName.value,
+                                        style: const TextStyle(
+                                          color: black,
+                                          fontSize: 15,
+                                          fontFamily: natoBold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        controller.restaurantAddress.value,
+                                        style: const TextStyle(
+                                          color: textSecondary,
+                                          fontSize: 13,
+                                          fontFamily: natoRegular,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
@@ -198,23 +201,25 @@ class ReviewBookingScreen extends GetView<ReviewBookingScreenController> {
                       ),
                     ),
 
-                    // Static Notes Container View
-                    Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                      decoration: BoxDecoration(
-                        color: white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: borderGray, width: 1.5),
-                      ),
-                      padding: const EdgeInsets.all(15),
-                      child: const Text(
-                        "Cancellations made at least 2 hours before the reservation time are free of charge. Late cancellations or no-shows may incur a fee of ₹200 per guest.",
-                        style: TextStyle(
-                          color: charcoalGray,
-                          fontSize: 13.5,
-                          fontFamily: natoRegular,
-                          height: 1.45,
+                    // Dynamic Notes Container View
+                    Obx(
+                      () => Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                        decoration: BoxDecoration(
+                          color: white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: borderGray, width: 1.5),
+                        ),
+                        padding: const EdgeInsets.all(15),
+                        child: Text(
+                          controller.cancellationPolicy.value,
+                          style: const TextStyle(
+                            color: charcoalGray,
+                            fontSize: 13.5,
+                            fontFamily: natoRegular,
+                            height: 1.45,
+                          ),
                         ),
                       ),
                     ),

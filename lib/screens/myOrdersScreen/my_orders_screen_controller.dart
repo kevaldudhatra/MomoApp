@@ -97,6 +97,7 @@ class OrderModel {
 class MyOrdersScreenController extends GetxController {
   final storage = GetStorage();
   StreamSubscription? _orderStatusSubscription;
+  StreamSubscription? _reconnectSubscription;
   final scrollController = ScrollController();
   final ordersList = <OrderModel>[].obs;
   final isLoading = false.obs;
@@ -119,13 +120,24 @@ class MyOrdersScreenController extends GetxController {
       fetchOrders(page: 1, isRefresh: true);
     });
     _listenToOrderStatusUpdate();
+    _listenToSocketReconnect();
   }
 
   @override
   void onClose() {
     scrollController.dispose();
     _orderStatusSubscription?.cancel();
+    _reconnectSubscription?.cancel();
     super.onClose();
+  }
+
+  void _listenToSocketReconnect() {
+    _reconnectSubscription = SocketService().onReconnected.listen((_) {
+      debugPrint(
+        "MyOrdersScreenController => Socket reconnected: refreshing orders",
+      );
+      fetchOrders(page: 1, isRefresh: true);
+    });
   }
 
   void _scrollListener() {
@@ -142,44 +154,48 @@ class MyOrdersScreenController extends GetxController {
     _orderStatusSubscription = SocketService().onOrderStatusReceived.listen((
       data,
     ) {
-      print(
+      debugPrint(
         "📦 Socket orderStatusUpdate received in MyOrdersScreenController: $data",
       );
       if (data == null) return;
-      if (data is Map && data.isNotEmpty) {
-        final newStatus = data['orderStatus']?.toString();
-        final orderId = data['orderId']?.toString();
-        print("newStatus: $newStatus");
-        print("orderId: $orderId");
-        if (newStatus != null && orderId != null) {
-          final index = ordersList.indexWhere((x) => x.id == orderId);
-          if (index != -1) {
-            ordersList[index] = ordersList[index].copyWith(status: newStatus);
-            if (selectedStatus.value == "All") {
-              ordersList.refresh();
-            } else if (selectedStatus.value == "Pending") {
-              ordersList.removeWhere((x) => x.status != "placed");
-              ordersList.refresh();
-            } else if (selectedStatus.value == "Ongoing") {
-              ordersList.removeWhere(
-                (x) =>
-                    x.status == "placed" ||
-                    x.status == "delivered" ||
-                    x.status == "cancelled",
-              );
-              ordersList.refresh();
-            } else if (selectedStatus.value == "Delivered") {
-              ordersList.removeWhere((x) => x.status != "delivered");
-              ordersList.refresh();
-            } else if (selectedStatus.value == "Cancelled") {
-              ordersList.removeWhere((x) => x.status != "cancelled");
-              ordersList.refresh();
-            } else {
-              ordersList.refresh();
+      try {
+        if (data is Map && data.isNotEmpty) {
+          final newStatus = data['orderStatus']?.toString();
+          final orderId = data['orderId']?.toString();
+          if (newStatus != null && orderId != null) {
+            final index = ordersList.indexWhere((x) => x.id == orderId);
+            if (index != -1) {
+              ordersList[index] = ordersList[index].copyWith(status: newStatus);
+              if (selectedStatus.value == "All") {
+                ordersList.refresh();
+              } else if (selectedStatus.value == "Pending") {
+                ordersList.removeWhere((x) => x.status != "placed");
+                ordersList.refresh();
+              } else if (selectedStatus.value == "Ongoing") {
+                ordersList.removeWhere(
+                  (x) =>
+                      x.status == "placed" ||
+                      x.status == "delivered" ||
+                      x.status == "cancelled",
+                );
+                ordersList.refresh();
+              } else if (selectedStatus.value == "Delivered") {
+                ordersList.removeWhere((x) => x.status != "delivered");
+                ordersList.refresh();
+              } else if (selectedStatus.value == "Cancelled") {
+                ordersList.removeWhere((x) => x.status != "cancelled");
+                ordersList.refresh();
+              } else {
+                ordersList.refresh();
+              }
+              update();
             }
-            update();
           }
         }
+      } catch (e) {
+        debugPrint(
+          "MyOrdersScreenController => Error updating order status: $e",
+        );
       }
     });
   }

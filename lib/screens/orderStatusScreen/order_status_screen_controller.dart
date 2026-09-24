@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -8,13 +9,17 @@ import 'package:momos/network/socket_service.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_key.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
 class OrderStatusScreenController extends GetxController {
   final storage = GetStorage();
   StreamSubscription? _orderStatusSubscription;
+  StreamSubscription? _reconnectSubscription;
   String currentOrderId = "0";
   RxBool isLoading = false.obs;
+  RxBool isDownloadingInvoice = false.obs;
   RxMap<dynamic, dynamic> orderDetails = {}.obs;
   RxBool isBillDetailsExpanded = true.obs;
   final outletId = Get.isRegistered<DeliveryScreenController>()
@@ -27,32 +32,49 @@ class OrderStatusScreenController extends GetxController {
     currentOrderId = (Get.arguments?['orderId'] ?? "0").toString();
     getOrderDetails(orderId: currentOrderId);
     _listenToOrderStatusUpdate();
+    _listenToSocketReconnect();
   }
 
   @override
   void onClose() {
     _orderStatusSubscription?.cancel();
+    _reconnectSubscription?.cancel();
     super.onClose();
+  }
+
+  void _listenToSocketReconnect() {
+    _reconnectSubscription = SocketService().onReconnected.listen((_) {
+      debugPrint(
+        "OrderStatusScreenController => Socket reconnected: refreshing order details",
+      );
+      if (currentOrderId != "0") {
+        getOrderDetails(orderId: currentOrderId, showLoading: false);
+      }
+    });
   }
 
   void _listenToOrderStatusUpdate() {
     _orderStatusSubscription = SocketService().onOrderStatusReceived.listen((
       data,
     ) {
-      print(
+      debugPrint(
         "📦 Socket orderStatusUpdate received in OrderStatusScreenController: $data",
       );
       if (data == null) return;
-      if (data is Map &&
-          data.isNotEmpty &&
-          data['orderId'] == orderDetails['id'] &&
-          data['orderNumber'] == orderDetails['orderNumber']) {
-        getOrderDetails(
-          orderId: data['orderId'].toString(),
-          showLoading: false,
-        );
+      if (data is Map && data.isNotEmpty) {
+        final incomingOrderId = data['orderId']?.toString();
+        final activeOrderId = orderDetails['id']?.toString() ?? currentOrderId;
+        if (incomingOrderId != null &&
+            (incomingOrderId == activeOrderId ||
+                incomingOrderId == currentOrderId)) {
+          getOrderDetails(orderId: incomingOrderId, showLoading: false);
+        }
       }
     });
+  }
+
+  void toggleBillDetails() {
+    isBillDetailsExpanded.value = !isBillDetailsExpanded.value;
   }
 
   String formatStatus(dynamic status) {
@@ -101,7 +123,7 @@ class OrderStatusScreenController extends GetxController {
     }
   }
 
-  Future<bool> addFeedback({int? rating, String? comment}) async {
+  Future<bool> addFeedback({double? rating, String? comment}) async {
     print("addFeedback input: $rating, $comment");
     try {
       final response = await http.post(
@@ -143,9 +165,50 @@ class OrderStatusScreenController extends GetxController {
     }
   }
 
-  void toggleBillDetails() {
-    isBillDetailsExpanded.value = !isBillDetailsExpanded.value;
+  Future<void> downloadInvoice() async {
+    final invoiceUrl = (orderDetails['invoiceUrl'] ?? '').toString().trim();
+    if (invoiceUrl.isEmpty) {
+      Get.snackbar(
+        "Oops!",
+        "Invoice URL is not available for this order.",
+        icon: const Icon(Icons.error, color: Colors.orange),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+      return;
+    }
+    if (isDownloadingInvoice.value) return;
+    try {
+      isDownloadingInvoice.value = true;
+      final response = await http.get(Uri.parse(invoiceUrl));
+      if (response.statusCode == 200) {
+        final dir = await getTemporaryDirectory();
+        final file = File('${dir.path}/invoice.pdf');
+        final downloadedFile = await file.writeAsBytes(response.bodyBytes);
+        isDownloadingInvoice.value = false;
+        await OpenFilex.open(downloadedFile.path);
+      } else {
+        Get.snackbar(
+          "Oops!",
+          "Failed to download PDF",
+          icon: const Icon(Icons.error, color: Colors.red),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Oops!",
+        "Failed to download or open invoice. Please try again.",
+        icon: const Icon(Icons.error, color: Colors.red),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+    } finally {
+      isDownloadingInvoice.value = false;
+    }
   }
-
-  void downloadInvoice() {}
 }

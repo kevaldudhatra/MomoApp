@@ -11,6 +11,8 @@ PODS:
   - GoogleMaps/Base (8.4.0)
   - GoogleMaps/Maps (8.4.0):
     - GoogleMaps/Base
+  - open_filex (0.0.2):
+    - Flutter
   - razorpay-core-pod (1.0.7)
   - razorpay-pod (1.5.7):
     - razorpay-core-pod (= 1.0.7)
@@ -21,6 +23,7 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
+  - open_filex (from `.symlinks/plugins/open_filex/ios`)
   - razorpay_flutter (from `.symlinks/plugins/razorpay_flutter/ios`)
 
 SPEC REPOS:
@@ -35,6 +38,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   google_maps_flutter_ios:
     :path: ".symlinks/plugins/google_maps_flutter_ios/ios"
+  open_filex:
+    :path: ".symlinks/plugins/open_filex/ios"
   razorpay_flutter:
     :path: ".symlinks/plugins/razorpay_flutter/ios"
 
@@ -43,6 +48,7 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: 66d6de12be1ce6d3742a54661e7a79cb317a9321
   google_maps_flutter_ios: 17552876e72723da1d41accc22f03b5f7afbde69
   GoogleMaps: 8939898920281c649150e0af74aa291c60f2e77d
+  open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
   razorpay-core-pod: c7f3ac3d214c1a7fac4e9a59c1de7eac02130573
   razorpay-pod: 3c91ef4895d389968a5c56a6f1e9943e44b50fa0
   razorpay_flutter: 0e98e4fcaae27ad50e011d85f66d85e0a008754a

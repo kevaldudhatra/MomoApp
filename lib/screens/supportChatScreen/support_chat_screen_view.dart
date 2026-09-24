@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/screens/supportChatScreen/support_chat_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
@@ -45,42 +46,103 @@ class SupportChatScreen extends GetView<SupportChatScreenController> {
             ),
             const Divider(height: 1, thickness: 1, color: borderGray),
 
+            // Connection Status Banner
+            Obx(() {
+              final state = controller.socketConnectionState.value;
+              if (state == SocketConnectionState.connected) {
+                return const SizedBox.shrink();
+              }
+              String text = "Connecting...";
+              Color color = Colors.orange;
+              if (state == SocketConnectionState.reconnecting) {
+                text = "Reconnecting to live support...";
+                color = Colors.amber.shade800;
+              } else if (state == SocketConnectionState.disconnected ||
+                  state == SocketConnectionState.error) {
+                text = "Chat connection offline. Reconnecting...";
+                color = Colors.grey.shade700;
+              }
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 4,
+                  horizontal: 12,
+                ),
+                color: color,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      text,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontFamily: natoRegular,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
             // Message History List
             Expanded(
               child: Obx(() {
+                if (controller.isLoading.value &&
+                    controller.messagesList.isEmpty) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: orange),
+                  );
+                }
                 final messages = controller.messagesList;
+                if (messages.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No messages yet",
+                      style: TextStyle(
+                        color: charcoalGray,
+                        fontSize: 14,
+                        fontFamily: natoBold,
+                      ),
+                    ),
+                  );
+                }
+                final showMoreLoader = controller.isMoreLoading.value;
                 return ListView.builder(
                   controller: controller.scrollController,
+                  reverse: true,
                   physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 16.0,
                   ),
-                  itemCount: messages.length,
+                  itemCount: messages.length + (showMoreLoader ? 1 : 0),
                   itemBuilder: (context, index) {
-                    final msg = messages[index];
-
-                    // Display date header for first message
-                    if (index == 0) {
-                      return Column(
-                        children: [
-                          const SizedBox(height: 8),
-                          const Center(
-                            child: Text(
-                              "Today",
-                              style: TextStyle(
-                                color: textSecondary,
-                                fontSize: 14,
-                                fontFamily: natoRegular,
-                              ),
+                    if (showMoreLoader && index == messages.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: orange,
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          _buildMessageBubble(context, msg),
-                        ],
+                        ),
                       );
                     }
-
+                    final msg = messages[index];
                     return Padding(
                       padding: const EdgeInsets.only(top: 16.0),
                       child: _buildMessageBubble(context, msg),
@@ -117,7 +179,6 @@ class SupportChatScreen extends GetView<SupportChatScreenController> {
                           fontSize: 14,
                           fontFamily: natoRegular,
                         ),
-                        onSubmitted: (_) => controller.sendMessage(),
                         decoration: const InputDecoration(
                           hintText: "Type a message...",
                           hintStyle: TextStyle(
@@ -201,30 +262,14 @@ class SupportChatScreen extends GetView<SupportChatScreenController> {
             left: isUser ? 0.0 : 4.0,
             right: isUser ? 4.0 : 0.0,
           ),
-          child: isUser
-              ? Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      msg.time,
-                      style: const TextStyle(
-                        color: textSecondary,
-                        fontSize: 11,
-                        fontFamily: natoRegular,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.done_all, color: orange, size: 14),
-                  ],
-                )
-              : Text(
-                  msg.time,
-                  style: const TextStyle(
-                    color: textSecondary,
-                    fontSize: 11,
-                    fontFamily: natoRegular,
-                  ),
-                ),
+          child: Text(
+            msg.time,
+            style: const TextStyle(
+              color: textSecondary,
+              fontSize: 11,
+              fontFamily: natoRegular,
+            ),
+          ),
         ),
       ],
     );
