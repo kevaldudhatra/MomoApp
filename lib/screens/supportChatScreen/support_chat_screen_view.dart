@@ -11,10 +11,10 @@ class SupportChatScreen extends GetView<SupportChatScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Column(
+    return Scaffold(
+      backgroundColor: white,
+      body: SafeArea(
+        child: Column(
           children: [
             // Top Bar Header
             Container(

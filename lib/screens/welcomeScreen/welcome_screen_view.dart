@@ -30,10 +30,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: white,
-        body: Stack(
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Stack(
           alignment: Alignment.topCenter,
           children: [
             Center(
@@ -47,7 +47,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             storage.hasData(loginTrue) && storage.read(loginTrue) == true
                 ? Container()
                 : Positioned(
-                    bottom: 40,
+                    bottom: 50,
                     child: CustomButton(
                       width: MediaQuery.of(context).size.width - 100,
                       label: "Get Started",

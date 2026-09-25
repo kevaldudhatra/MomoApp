@@ -15,10 +15,10 @@ class ReservationStatusScreen
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Obx(() {
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Obx(() {
           final reservation = controller.reservation;
           return Column(
             children: [

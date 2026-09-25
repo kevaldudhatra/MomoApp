@@ -18,8 +18,9 @@ class ReviewsScreen extends GetView<ReviewsScreenController> {
         child: Column(
           children: [
             // Custom Header App Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            Container(
+              color: white,
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   GestureDetector(

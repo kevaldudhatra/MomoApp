@@ -6,18 +6,18 @@ import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/custom_text_field.dart';
-import 'package:momos/screens/orderDetailScreen/order_detail_screen_controller.dart';
 import 'package:momos/widgets/loading_view.dart';
+import 'package:momos/screens/orderDetailScreen/order_detail_screen_controller.dart';
 
 class OrderDetailScreen extends GetView<OrderDetailScreenController> {
   const OrderDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: GestureDetector(
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
           },
@@ -413,10 +413,12 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
 
               // Bottom Sticky Bar (Place Order Button)
               Obx(
-                () => controller.cartItems.isNotEmpty
+                () =>
+                    !controller.isLoading.value &&
+                        controller.cartItems.isNotEmpty
                     ? Container(
                         width: double.infinity,
-                        color: white,
+                        color: background,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 16,
@@ -472,6 +474,25 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                   fontFamily: natoRegular,
                 ),
               ),
+              const SizedBox(height: 4),
+              if (item["modifiers"].isNotEmpty) ...[
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: item["modifiers"].map<Widget>((e) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        "${e['optionName']} (₹${e['price']})",
+                        style: const TextStyle(
+                          color: charcoalGray,
+                          fontSize: 12,
+                          fontFamily: natoRegular,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ],
           ),
         ),

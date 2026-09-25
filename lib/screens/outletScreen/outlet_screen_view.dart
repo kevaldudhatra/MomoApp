@@ -15,68 +15,68 @@ class OutletScreen extends GetView<OutletScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        bottomNavigationBar: const SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: GlobalCartButton(),
-          ),
+    return Scaffold(
+      backgroundColor: background,
+      bottomNavigationBar: const SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: GlobalCartButton(),
         ),
-        floatingActionButton: Obx(
-          () => GestureDetector(
-            onTap: () {
-              if (controller.isMenuOpen.value) {
-                Navigator.of(context).pop();
-              } else {
-                controller.showMenuPopup(context);
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              decoration: BoxDecoration(
-                color: black,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: cardShadow,
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
+      ),
+      floatingActionButton: Obx(
+        () => GestureDetector(
+          onTap: () {
+            if (controller.isMenuOpen.value) {
+              Navigator.of(context).pop();
+            } else {
+              controller.showMenuPopup(context);
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            decoration: BoxDecoration(
+              color: black,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [
+                BoxShadow(
+                  color: cardShadow,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                controller.isMenuOpen.value
+                    ? Image.asset(
+                        AppImages().closeIcon,
+                        width: 18,
+                        height: 18,
+                        color: white,
+                      )
+                    : Image.asset(
+                        AppImages().menuIcon,
+                        width: 18,
+                        height: 18,
+                        color: white,
+                      ),
+                const SizedBox(width: 6),
+                Text(
+                  controller.isMenuOpen.value ? "Close" : "Menu",
+                  style: TextStyle(
+                    color: white,
+                    fontSize: 14,
+                    fontFamily: natoMedium,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  controller.isMenuOpen.value
-                      ? Image.asset(
-                          AppImages().closeIcon,
-                          width: 18,
-                          height: 18,
-                          color: white,
-                        )
-                      : Image.asset(
-                          AppImages().menuIcon,
-                          width: 18,
-                          height: 18,
-                          color: white,
-                        ),
-                  const SizedBox(width: 6),
-                  Text(
-                    controller.isMenuOpen.value ? "Close" : "Menu",
-                    style: TextStyle(
-                      color: white,
-                      fontSize: 14,
-                      fontFamily: natoMedium,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
-        body: SizedBox(
+      ),
+      body: SafeArea(
+        child: SizedBox(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           child: SingleChildScrollView(

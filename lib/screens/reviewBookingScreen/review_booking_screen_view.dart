@@ -12,11 +12,11 @@ class ReviewBookingScreen extends GetView<ReviewBookingScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        bottomNavigationBar: Container(
-          color: white,
+    return Scaffold(
+      backgroundColor: background,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          color: background,
           padding: const EdgeInsets.all(16.0),
           child: CustomButton(
             label: "Book a table",
@@ -25,7 +25,9 @@ class ReviewBookingScreen extends GetView<ReviewBookingScreenController> {
             onTap: () => controller.bookTable(),
           ),
         ),
-        body: Column(
+      ),
+      body: SafeArea(
+        child: Column(
           children: [
             // Top Bar Header
             Container(

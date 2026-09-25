@@ -20,8 +20,9 @@ class OutletDetailScreen extends GetView<OutletDetailScreenController> {
         child: Column(
           children: [
             // Custom App Bar Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            Container(
+              color: white,
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   GestureDetector(

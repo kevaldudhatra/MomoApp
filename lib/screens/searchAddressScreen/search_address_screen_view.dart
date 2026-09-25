@@ -13,10 +13,10 @@ class SearchAddressScreen extends GetView<SearchAddressScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: white,
-        body: GestureDetector(
+    return Scaffold(
+      backgroundColor: white,
+      body: SafeArea(
+        child: GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
           },
@@ -294,14 +294,6 @@ class SearchAddressScreen extends GetView<SearchAddressScreenController> {
                                   topLeft: Radius.circular(20),
                                   topRight: Radius.circular(20),
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: cardShadow,
-                                    blurRadius: 10,
-                                    spreadRadius: 1,
-                                    offset: Offset(0, -2),
-                                  ),
-                                ],
                               ),
                               padding: const EdgeInsets.all(16.0),
                               child: Column(

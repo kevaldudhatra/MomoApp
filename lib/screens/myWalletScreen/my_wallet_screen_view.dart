@@ -12,10 +12,10 @@ class MyWalletScreen extends GetView<MyWalletScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Column(
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Column(
           children: [
             // Header / App Bar
             Container(

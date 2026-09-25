@@ -12,10 +12,10 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Obx(() {
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Obx(() {
           final orders = controller.filteredOrders;
           return SizedBox(
             height: MediaQuery.of(context).size.height,

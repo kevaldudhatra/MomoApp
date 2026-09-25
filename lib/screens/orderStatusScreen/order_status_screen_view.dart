@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:momos/screens/orderStatusScreen/order_status_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
@@ -10,16 +9,17 @@ import 'package:momos/widgets/feedback_dialog.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:momos/screens/orderStatusScreen/order_status_screen_controller.dart';
 
 class OrderStatusScreen extends GetView<OrderStatusScreenController> {
   const OrderStatusScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Obx(
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Obx(
           () => controller.isLoading.value
               ? SizedBox(
                   height: MediaQuery.of(context).size.height,
@@ -92,9 +92,11 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
                             ),
                           ),
                           const SizedBox(height: 5),
-                          if (controller
-                                  .orderDetails['estimatedDeliveryMinutes'] !=
-                              null)
+                          if (controller.orderDetails['orderStatus'] !=
+                                  'delivered' &&
+                              controller
+                                      .orderDetails['estimatedDeliveryMinutes'] !=
+                                  null)
                             Text(
                               "Your order will arrive in ${controller.orderDetails['estimatedDeliveryMinutes']} mins",
                               style: TextStyle(
@@ -460,7 +462,7 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
                           if (item['modifiers'].length > 0)
                             ...item['modifiers'].map((e) {
                               return Text(
-                                e['optionName'],
+                                "${e['optionName']} (₹${e['price']})",
                                 style: const TextStyle(
                                   color: textSecondary,
                                   fontSize: 12,

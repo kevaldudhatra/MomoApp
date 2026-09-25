@@ -11,11 +11,11 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: white,
-        resizeToAvoidBottomInset: true,
-        body: GestureDetector(
+    return Scaffold(
+      backgroundColor: background,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: GestureDetector(
           onTap: () {
             controller.focusNode.unfocus();
           },
@@ -37,12 +37,20 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
                 bottom: 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-                    image: DecorationImage(image: AssetImage(AppImages().fullBgImg), fit: BoxFit.cover),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                    image: DecorationImage(
+                      image: AssetImage(AppImages().fullBgImg),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Obx(
@@ -55,13 +63,21 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
                             const Text(
                               "Verify Phone Number",
                               textAlign: TextAlign.start,
-                              style: TextStyle(color: black, fontSize: 24, fontFamily: natoSemiBold),
+                              style: TextStyle(
+                                color: black,
+                                fontSize: 24,
+                                fontFamily: natoSemiBold,
+                              ),
                             ),
                             const SizedBox(height: 10),
                             const Text(
                               "Please enter 6 digit code sent to your Phone number.",
                               textAlign: TextAlign.start,
-                              style: TextStyle(color: charcoalGray, fontSize: 14, fontFamily: natoRegular),
+                              style: TextStyle(
+                                color: charcoalGray,
+                                fontSize: 14,
+                                fontFamily: natoRegular,
+                              ),
                             ),
                             const SizedBox(height: 40),
                             SizedBox(
@@ -93,29 +109,54 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
                                       controller.focusNode.requestFocus();
                                     },
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: List.generate(6, (index) {
-                                        final String char = index < controller.otpCode.value.length ? controller.otpCode.value[index] : "-";
+                                        final String char =
+                                            index <
+                                                controller.otpCode.value.length
+                                            ? controller.otpCode.value[index]
+                                            : "-";
                                         final bool isFocused =
                                             controller.isOtpFocused.value &&
-                                            controller.otpCode.value.isNotEmpty &&
-                                            controller.otpCode.value.length < 6 &&
-                                            index == controller.otpCode.value.length - 1;
+                                            controller
+                                                .otpCode
+                                                .value
+                                                .isNotEmpty &&
+                                            controller.otpCode.value.length <
+                                                6 &&
+                                            index ==
+                                                controller
+                                                        .otpCode
+                                                        .value
+                                                        .length -
+                                                    1;
                                         return Container(
                                           height: 48,
                                           width: 45,
                                           alignment: Alignment.center,
                                           decoration: BoxDecoration(
                                             color: white,
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: isFocused ? orange : lightGray, width: isFocused ? 1.5 : 0.5),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            border: Border.all(
+                                              color: isFocused
+                                                  ? orange
+                                                  : lightGray,
+                                              width: isFocused ? 1.5 : 0.5,
+                                            ),
                                           ),
                                           child: Text(
                                             char,
                                             style: TextStyle(
-                                              color: char == "-" ? lightGray : black,
+                                              color: char == "-"
+                                                  ? lightGray
+                                                  : black,
                                               fontSize: 18,
-                                              fontFamily: char == "-" ? natoRegular : natoSemiBold,
+                                              fontFamily: char == "-"
+                                                  ? natoRegular
+                                                  : natoSemiBold,
                                             ),
                                           ),
                                         );
@@ -142,7 +183,11 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
                               children: [
                                 const Text(
                                   "Didn't get code?",
-                                  style: TextStyle(color: charcoalGray, fontSize: 14, fontFamily: natoRegular),
+                                  style: TextStyle(
+                                    color: charcoalGray,
+                                    fontSize: 14,
+                                    fontFamily: natoRegular,
+                                  ),
                                 ),
                                 GestureDetector(
                                   onTap: () async {
@@ -152,7 +197,11 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
                                   },
                                   child: const Text(
                                     "Resend",
-                                    style: TextStyle(color: blue, fontSize: 14, fontFamily: natoSemiBold),
+                                    style: TextStyle(
+                                      color: blue,
+                                      fontSize: 14,
+                                      fontFamily: natoSemiBold,
+                                    ),
                                   ),
                                 ),
                               ],

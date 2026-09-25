@@ -14,10 +14,10 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: white,
-        body: GestureDetector(
+    return Scaffold(
+      backgroundColor: white,
+      body: SafeArea(
+        child: GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
           },
@@ -113,7 +113,7 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
                                         },
                                     errorBuilder: (context, error, stackTrace) {
                                       return Image.asset(
-                                        AppImages().momoImg,
+                                        AppImages().profileIcon,
                                         width: 100,
                                         height: 100,
                                         fit: BoxFit.cover,

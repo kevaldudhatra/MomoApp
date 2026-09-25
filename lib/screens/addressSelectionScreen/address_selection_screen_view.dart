@@ -15,10 +15,10 @@ class AddressSelectionScreen extends GetView<AddressSelectionScreenController> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: SafeArea(
-        child: Scaffold(
-          backgroundColor: background,
-          body: GestureDetector(
+      child: Scaffold(
+        backgroundColor: background,
+        body: SafeArea(
+          child: GestureDetector(
             onTap: () {
               FocusScope.of(context).unfocus();
             },

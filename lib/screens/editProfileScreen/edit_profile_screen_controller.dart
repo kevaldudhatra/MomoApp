@@ -336,15 +336,36 @@ class EditProfileScreenController extends GetxController {
         maxHeight: 1024,
       );
       if (pickedFile != null) {
-        avatarUrl.value = await uploadImageToServer(
-          file: File(pickedFile.path),
-        );
+        dynamic data = await getSignedUrl();
+        if (data != null) {
+          String signedUrl = data['uploadUrl'];
+          String profileUrl = data['fileUrl'];
+          bool isUploaded = await uploadImageToServer(
+            url: signedUrl,
+            file: File(pickedFile.path),
+          );
+          if (isUploaded) {
+            avatarUrl.value = profileUrl;
+          } else {
+            avatarUrl.value = userData['profileImage'] ?? "";
+          }
+        } else {
+          avatarUrl.value = userData['profileImage'] ?? "";
+          Get.snackbar(
+            "Oops!",
+            "Failed to get signed URL. Please try again.",
+            icon: const Icon(Icons.error, color: Colors.red),
+            colorText: Colors.white,
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: charcoalGray.withValues(alpha: 0.9),
+          );
+        }
       } else {
         avatarUrl.value = userData['profileImage'] ?? "";
       }
     } catch (e) {
-      avatarUrl.value = userData['profileImage'] ?? "";
       debugPrint("Error picking image: $e");
+      avatarUrl.value = userData['profileImage'] ?? "";
       Get.snackbar(
         "Oops!",
         "Something went wrong. Please try again.",
@@ -354,15 +375,6 @@ class EditProfileScreenController extends GetxController {
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
     }
-  }
-
-  Future<String> uploadImageToServer({File? file}) async {
-    try {
-      print("Selected Image File :- $file");
-    } catch (e) {
-      print("Error uploading image: $e");
-    }
-    return "";
   }
 
   Future<void> saveChanges() async {
@@ -389,7 +401,10 @@ class EditProfileScreenController extends GetxController {
         "Content-Type": "application/json",
         "Authorization": "${storage.read(userToken)}",
       },
-      body: jsonEncode({"name": firstNameController.text.trim()}),
+      body: jsonEncode({
+        "name": firstNameController.text.trim(),
+        "profileImage": avatarUrl.value,
+      }),
     );
     print('updateUserProfile Response status: ${response.statusCode}');
     print('updateUserProfile Response body: ${response.body}');
@@ -410,6 +425,54 @@ class EditProfileScreenController extends GetxController {
         snackPosition: SnackPosition.TOP,
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
+    }
+  }
+
+  Future<dynamic> getSignedUrl() async {
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpeg';
+    print("getSignedUrl FileName :- $fileName");
+    var response = await http.get(
+      Uri.parse(
+        ApiServices.uploadUrl
+            .replaceAll("{fileName}", fileName)
+            .replaceAll("{fileType}", "image/jpeg")
+            .replaceAll("{folder}", "profiles"),
+      ),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "${storage.read(userToken)}",
+      },
+    );
+    print('getSignedUrl Response status: ${response.statusCode}');
+    print('getSignedUrl Response body: ${response.body}');
+    var data = jsonDecode(response.body);
+    if (response.statusCode == 200 && data["success"] == true) {
+      return data["data"];
+    } else {
+      return null;
+    }
+  }
+
+  Future<bool> uploadImageToServer({
+    required String url,
+    required File file,
+  }) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {'Content-Type': 'image/jpeg'},
+        body: bytes,
+      );
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        print('Upload response: ${response.body}');
+        return true;
+      }
+      print('Upload failed: ${response.statusCode} ${response.body}');
+      return false;
+    } catch (e) {
+      print('Upload error: $e');
+      return false;
     }
   }
 }

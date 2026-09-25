@@ -3,20 +3,20 @@ import 'package:flutter_html/flutter_html.dart';
 import 'package:get/get.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:momos/utils/const_colors_key.dart';
-import 'package:momos/screens/privacyAndTermsScreen/privacy_and_terms_screen_controller.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/loading_view.dart';
+import 'package:momos/screens/privacyAndTermsScreen/privacy_and_terms_screen_controller.dart';
 
 class PrivacyAndTermsScreen extends GetView<PrivacyAndTermsScreenController> {
   const PrivacyAndTermsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Obx(
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Obx(
           () => Column(
             children: [
               // Top Bar Header

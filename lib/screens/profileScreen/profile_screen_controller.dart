@@ -81,82 +81,85 @@ class ProfileScreenController extends GetxController {
       backgroundColor: Colors.transparent,
       barrierColor: dialogBarrierColor,
       builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+        return SafeArea(
+          child: Container(
+            decoration: const BoxDecoration(
+              color: white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
             ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Circular icon background
-              Container(
-                width: 56,
-                height: 56,
-                decoration: const BoxDecoration(
-                  color: logoutIconBg,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Image.asset(
-                  AppImages().logoutIcon,
-                  width: 24,
-                  height: 24,
-                  color: orange,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                "We are sad to see you go!",
-                style: TextStyle(
-                  color: black,
-                  fontSize: 18,
-                  fontFamily: natoBold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                "Are you sure you want to logout?",
-                style: TextStyle(
-                  color: charcoalGray,
-                  fontSize: 14,
-                  fontFamily: natoRegular,
-                ),
-              ),
-              const SizedBox(height: 28),
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomButton(
-                      label: "Cancel",
-                      isEnabled: false,
-                      onTap: () => Get.back(),
-                      width: double.infinity,
-                    ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Circular icon background
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: const BoxDecoration(
+                    color: logoutIconBg,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: CustomButton(
-                      label: "Logout",
-                      onTap: () async {
-                        Get.back();
-                        final storage = GetStorage();
-                        final google = GoogleAuthService();
-                        await google.signOutWithGoogle();
-                        await storage.erase();
-                        SocketService().disconnect();
-                        Get.offAllNamed(Routes.startScreen);
-                      },
-                      width: double.infinity,
-                    ),
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    AppImages().logoutIcon,
+                    width: 24,
+                    height: 24,
+                    color: orange,
                   ),
-                ],
-              ),
-            ],
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "We are sad to see you go!",
+                  style: TextStyle(
+                    color: black,
+                    fontSize: 18,
+                    fontFamily: natoBold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Are you sure you want to logout?",
+                  style: TextStyle(
+                    color: charcoalGray,
+                    fontSize: 14,
+                    fontFamily: natoRegular,
+                  ),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomButton(
+                        label: "Cancel",
+                        isEnabled: false,
+                        onTap: () => Get.back(),
+                        width: double.infinity,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: CustomButton(
+                        label: "Logout",
+                        onTap: () async {
+                          Get.back();
+                          final storage = GetStorage();
+                          final google = GoogleAuthService();
+                          await google.signOutWithGoogle();
+                          await storage.erase();
+                          SocketService().disconnect();
+                          Get.offAllNamed(Routes.startScreen);
+                        },
+                        width: double.infinity,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         );
       },

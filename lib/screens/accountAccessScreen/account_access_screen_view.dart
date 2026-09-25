@@ -14,11 +14,11 @@ class AccountAccessScreen extends GetView<AccountAccessScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: white,
-        resizeToAvoidBottomInset: true,
-        body: GestureDetector(
+    return Scaffold(
+      backgroundColor: white,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
           },

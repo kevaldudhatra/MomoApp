@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:momos/screens/aboutUsScreen/about_us_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/screens/aboutUsScreen/about_us_screen_controller.dart';
 
 class AboutUsScreen extends GetView<AboutUsScreenController> {
   const AboutUsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Column(
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Column(
           children: [
             // Top Bar Header
             Container(

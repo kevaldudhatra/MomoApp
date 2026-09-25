@@ -16,7 +16,7 @@ class BookTableScreen extends GetView<BookTableScreenController> {
     return Scaffold(
       backgroundColor: background,
       bottomNavigationBar: Container(
-        color: white,
+        color: background,
         padding: const EdgeInsets.all(16.0),
         child: CustomButton(
           label: "Continue",

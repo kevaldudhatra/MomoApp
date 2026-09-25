@@ -20,10 +20,11 @@ class HomeScreen extends GetView<HomeScreenController> {
         if (didPop) return;
         SystemNavigator.pop();
       },
-      child: SafeArea(
-        child: Obx(
-          () => Scaffold(
-            body: IndexedStack(
+      child: Obx(
+        () => Scaffold(
+          backgroundColor: white,
+          body: SafeArea(
+            child: IndexedStack(
               index: controller.selectedIndex.value,
               children: const [
                 DeliveryScreen(),
@@ -31,7 +32,9 @@ class HomeScreen extends GetView<HomeScreenController> {
                 ProfileScreen(),
               ],
             ),
-            bottomNavigationBar: Container(
+          ),
+          bottomNavigationBar: SafeArea(
+            child: Container(
               height: 65,
               width: MediaQuery.of(context).size.width,
               color: white,

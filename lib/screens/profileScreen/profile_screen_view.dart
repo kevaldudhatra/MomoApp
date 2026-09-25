@@ -6,6 +6,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/loading_view.dart';
+import 'package:shimmer/shimmer.dart';
 
 // Reusable List Item for clean architecture
 class _ProfileListItem extends StatelessWidget {
@@ -111,10 +112,31 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                                       ClipOval(
                                         child: Image.network(
                                           controller.userData['profileImage'] ??
-                                              "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
+                                              "",
                                           width: 60,
                                           height: 60,
                                           fit: BoxFit.cover,
+                                          loadingBuilder:
+                                              (
+                                                context,
+                                                child,
+                                                loadingProgress,
+                                              ) {
+                                                if (loadingProgress == null) {
+                                                  return child;
+                                                }
+                                                return Shimmer.fromColors(
+                                                  baseColor:
+                                                      Colors.grey.shade300,
+                                                  highlightColor:
+                                                      Colors.grey.shade100,
+                                                  child: Container(
+                                                    width: 60,
+                                                    height: 60,
+                                                    color: Colors.white,
+                                                  ),
+                                                );
+                                              },
                                           errorBuilder:
                                               (context, error, stackTrace) {
                                                 return Image.asset(

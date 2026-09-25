@@ -11,10 +11,10 @@ class FAQScreen extends GetView<FaqScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: background,
-        body: Column(
+    return Scaffold(
+      backgroundColor: background,
+      body: SafeArea(
+        child: Column(
           children: [
             // Top Bar Header
             Container(

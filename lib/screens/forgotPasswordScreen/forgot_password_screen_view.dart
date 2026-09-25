@@ -12,11 +12,11 @@ class ForgotPasswordScreen extends GetView<ForgotPasswordScreenController> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: white,
-        resizeToAvoidBottomInset: true,
-        body: GestureDetector(
+    return Scaffold(
+      backgroundColor: background,
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        child: GestureDetector(
           onTap: () {
             FocusScope.of(context).unfocus();
           },

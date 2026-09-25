@@ -58,4 +58,6 @@ class ApiServices {
       '$baseUrl/api/v1/user/outlates/{outletId}/menu?search={dishName}';
   static String verifyPromocode =
       '$baseUrl/api/v1/user/outlates/{outlateId}/promocodes/verify';
+  static String uploadUrl =
+      '$baseUrl/api/v1/upload-url?fileName={fileName}&fileType={fileType}&folder={folder}';
 }
