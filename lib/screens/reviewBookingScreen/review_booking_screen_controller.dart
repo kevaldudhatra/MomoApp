@@ -107,16 +107,16 @@ class ReviewBookingScreenController extends GetxController {
       }
       var data = jsonDecode(response.body);
       if (response.statusCode == 201 && data['success'] == true) {
-        Get.snackbar(
-          "Booking Confirmed",
-          data['message'],
-          snackPosition: SnackPosition.TOP,
-          icon: const Icon(Icons.done, color: Colors.green),
-          backgroundColor: charcoalGray.withValues(alpha: 0.9),
-          colorText: Colors.white,
-        );
-        Future.delayed(const Duration(milliseconds: 500), () {
-          Get.offAndToNamed(Routes.homeScreen);
+        Get.back(result: true);
+        Future.delayed(const Duration(seconds: 1), () {
+          Get.snackbar(
+            "Booking Confirmed",
+            data['message'],
+            snackPosition: SnackPosition.TOP,
+            icon: const Icon(Icons.done, color: Colors.green),
+            backgroundColor: charcoalGray.withValues(alpha: 0.9),
+            colorText: Colors.white,
+          );
         });
       } else {
         Get.snackbar(

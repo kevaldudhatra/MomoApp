@@ -111,8 +111,51 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: background,
-      floatingActionButton: const GlobalCartButton(horizontalMargin: 16),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Obx(
+            () => controller.orderCount.value > 0
+                ? GestureDetector(
+                    onTap: () {
+                      Get.toNamed(Routes.myOrdersScreen);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: black,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: cardShadow,
+                            blurRadius: 8,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        "Order (${controller.orderCount.value})",
+                        style: TextStyle(
+                          color: white,
+                          fontSize: 14,
+                          fontFamily: natoMedium,
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+          Container(
+            margin: EdgeInsets.only(left: 32, top: 10),
+            child: const GlobalCartButton(),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Obx(() {
         return controller.isLoading.value
             ? const Center(child: LoadingDialog())

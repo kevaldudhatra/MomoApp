@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/network/env.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
@@ -621,6 +622,8 @@ class _FoodItemDetailsBottomSheetState
 }
 
 class DeliveryScreenController extends GetxController {
+  StreamSubscription? _orderCountStatusSubscription;
+  StreamSubscription? _reconnectSubscription;
   final storage = GetStorage();
   final searchController = TextEditingController();
   RxBool isSearchEmpty = true.obs;
@@ -634,6 +637,7 @@ class DeliveryScreenController extends GetxController {
   RxString addressType = "Home".obs;
   RxMap<dynamic, dynamic> foodItemsDetails = {}.obs;
   RxList<dynamic> foodItems = [].obs;
+  RxInt orderCount = 0.obs;
 
   Timer? _searchDebounceTimer;
   String _lastSearchQuery = '';
@@ -643,6 +647,8 @@ class DeliveryScreenController extends GetxController {
   void onInit() {
     searchController.addListener(_onSearchChanged);
     loadData();
+    _listenToOrderStatusUpdate();
+    _listenToSocketReconnect();
     super.onInit();
   }
 
@@ -651,7 +657,34 @@ class DeliveryScreenController extends GetxController {
     _searchDebounceTimer?.cancel();
     searchController.removeListener(_onSearchChanged);
     searchController.dispose();
+    _orderCountStatusSubscription?.cancel();
+    _reconnectSubscription?.cancel();
     super.onClose();
+  }
+
+  void _listenToSocketReconnect() {
+    _reconnectSubscription?.cancel();
+    _reconnectSubscription = SocketService().onReconnected.listen((_) {
+      debugPrint(
+        "DeliveryScreenController => Socket reconnected: refreshing orders",
+      );
+      fetchOrdersCount();
+    });
+  }
+
+  void _listenToOrderStatusUpdate() {
+    _orderCountStatusSubscription?.cancel();
+    _orderCountStatusSubscription = SocketService().onNewOrderCountReceived
+        .listen((data) {
+          debugPrint(
+            "📦 Socket order update received in DeliveryScreenController: $data",
+          );
+          if (data == null) return;
+          orderCount.value =
+              int.tryParse(data['activeOrderCount'].toString()) ?? 0;
+          debugPrint("✅ Updated orderCount: ${orderCount.value}");
+          update();
+        });
   }
 
   void _onSearchChanged() {
@@ -691,6 +724,7 @@ class DeliveryScreenController extends GetxController {
   Future<void> loadData() async {
     await getCurrentLocation();
     await Get.find<CartController>().getCartItem();
+    await fetchOrdersCount();
   }
 
   Future<void> addItemToCart({
@@ -1086,6 +1120,45 @@ class DeliveryScreenController extends GetxController {
     } catch (e) {
       print('getFoodItemDetails Error: $e');
       foodItemsDetails.value = {};
+    }
+  }
+
+  Future<void> fetchOrdersCount() async {
+    try {
+      final url = ApiServices.getOrderCount
+          .replaceAll('{page}', 1.toString())
+          .replaceAll('{status}', 'all');
+      print('fetchOrdersCount URL: $url');
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('fetchOrdersCount Status: ${response.statusCode}');
+      print('fetchOrdersCount Body: ${response.body}');
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'];
+          final rawOrders = data['orders'] as List<dynamic>? ?? [];
+          orderCount.value = rawOrders
+              .where(
+                (e) =>
+                    e['orderStatus'] != 'delivered' &&
+                    e['orderStatus'] != 'cancelled',
+              )
+              .length;
+        } else {
+          orderCount.value = 0;
+        }
+      } else {
+        orderCount.value = 0;
+      }
+    } catch (e) {
+      print('fetchOrdersCount Error: $e');
+      orderCount.value = 0;
     }
   }
 }

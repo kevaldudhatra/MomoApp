@@ -15,9 +15,43 @@ class BookTableScreen extends GetView<BookTableScreenController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: background,
+      floatingActionButton: Obx(
+        () => controller.reservationCount.value > 0
+            ? GestureDetector(
+                onTap: () {
+                  Get.toNamed(Routes.myReservationsScreen);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: black,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: cardShadow,
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    "Reservations (${controller.reservationCount.value})",
+                    style: TextStyle(
+                      color: white,
+                      fontSize: 14,
+                      fontFamily: natoMedium,
+                    ),
+                  ),
+                ),
+              )
+            : SizedBox.shrink(),
+      ),
       bottomNavigationBar: Container(
         color: background,
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         child: CustomButton(
           label: "Continue",
           height: 45,
@@ -33,7 +67,11 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                 backgroundColor: charcoalGray.withValues(alpha: 0.9),
               );
             } else {
-              Get.toNamed(Routes.reviewBookingScreen);
+              Get.toNamed(Routes.reviewBookingScreen)?.then((value) {
+                if (value == true) {
+                  controller.refreshData();
+                }
+              });
             }
           },
         ),

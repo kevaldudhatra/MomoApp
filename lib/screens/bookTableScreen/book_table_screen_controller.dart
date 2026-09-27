@@ -1,12 +1,17 @@
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/socket_service.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:http/http.dart' as http;
 
 class BookTableScreenController extends GetxController {
+  StreamSubscription? _reservationCountStatusSubscription;
+  StreamSubscription? _reconnectSubscription;
   final storage = GetStorage();
   final selectedDate = "".obs;
   final selectedGuests = 0.obs;
@@ -16,6 +21,7 @@ class BookTableScreenController extends GetxController {
   final isDateDropdownOpen = false.obs;
   final isGuestDropdownOpen = false.obs;
   final isLoading = true.obs;
+  RxInt reservationCount = 0.obs;
   List<String> get timeSlots => periodTimeSlots[selectedPeriod.value] ?? [];
   final RxMap<String, dynamic> reservationData = <String, dynamic>{}.obs;
   final List<dynamic> allDateWithSlots = <dynamic>[].obs;
@@ -29,6 +35,46 @@ class BookTableScreenController extends GetxController {
   void onInit() {
     super.onInit();
     getReservationBookingDetails();
+    fetchReservations();
+    _listenToReservationStatusUpdate();
+    _listenToSocketReconnect();
+  }
+
+  Future<void> refreshData() async {
+    await Future.wait([getReservationBookingDetails(), fetchReservations()]);
+  }
+
+  @override
+  void onClose() {
+    _reservationCountStatusSubscription?.cancel();
+    _reconnectSubscription?.cancel();
+    super.onClose();
+  }
+
+  void _listenToSocketReconnect() {
+    _reconnectSubscription?.cancel();
+    _reconnectSubscription = SocketService().onReconnected.listen((_) {
+      debugPrint(
+        "BookTableScreenController => Socket reconnected: refreshing orders",
+      );
+      fetchReservations();
+    });
+  }
+
+  void _listenToReservationStatusUpdate() {
+    _reservationCountStatusSubscription?.cancel();
+    _reservationCountStatusSubscription = SocketService()
+        .onNewBookingCountReceived
+        .listen((data) {
+          debugPrint(
+            "📦 Socket reservation update received in BookTableScreenController: $data",
+          );
+          if (data == null) return;
+          reservationCount.value =
+              int.tryParse(data['activeBookingCount'].toString()) ?? 0;
+          debugPrint("✅ Updated reservationCount: ${reservationCount.value}");
+          update();
+        });
   }
 
   void selectDate(String date) {
@@ -67,6 +113,43 @@ class BookTableScreenController extends GetxController {
     selectedTimeIndex.value = 0;
     final slots = periodTimeSlots[period] ?? [];
     selectedTime.value = slots.isNotEmpty ? slots.first : "";
+  }
+
+  Future<void> fetchReservations() async {
+    try {
+      final url = ApiServices.getReservationCount
+          .replaceAll('{page}', 1.toString())
+          .replaceAll('{status}', 'all');
+      print('fetchReservations count URL: $url');
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('fetchReservations count Status: ${response.statusCode}');
+      print('fetchReservations count Body: ${response.body}');
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        if (json['success'] == true && json['data'] != null) {
+          final data = json['data'];
+          final rawReservations = data['reservations'] as List<dynamic>? ?? [];
+          reservationCount.value = rawReservations
+              .where(
+                (e) => e['status'] != 'completed' && e['status'] != 'cancelled',
+              )
+              .length;
+        } else {
+          reservationCount.value = 0;
+        }
+      } else {
+        reservationCount.value = 0;
+      }
+    } catch (e) {
+      print('fetchReservations count Error: $e');
+      reservationCount.value = 0;
+    }
   }
 
   Future<void> getReservationBookingDetails() async {

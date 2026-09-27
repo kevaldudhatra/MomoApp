@@ -51,6 +51,9 @@ class SocketService with WidgetsBindingObserver {
   final _reservationStatusStreamController =
       StreamController<dynamic>.broadcast();
   final _chatMessageStreamController = StreamController<dynamic>.broadcast();
+  final _newOrderCountStreamController = StreamController<dynamic>.broadcast();
+  final _newBookingCountStreamController =
+      StreamController<dynamic>.broadcast();
 
   // Public getters
   bool get isConnected =>
@@ -75,6 +78,10 @@ class SocketService with WidgetsBindingObserver {
       _reservationStatusStreamController.stream;
   Stream<dynamic> get onChatMessageReceived =>
       _chatMessageStreamController.stream;
+  Stream<dynamic> get onNewOrderCountReceived =>
+      _newOrderCountStreamController.stream;
+  Stream<dynamic> get onNewBookingCountReceived =>
+      _newBookingCountStreamController.stream;
 
   // Helper to safely retrieve token from GetStorage
   String? _getStoredToken() {
@@ -301,6 +308,28 @@ class SocketService with WidgetsBindingObserver {
         }
       });
 
+      _socket!.on('activeOrderCount', (data) {
+        debugPrint('📦 New order count: $data');
+        try {
+          if (!_newOrderCountStreamController.isClosed) {
+            _newOrderCountStreamController.add(data);
+          }
+        } catch (e) {
+          debugPrint('❌ Error handling newOrder: $e');
+        }
+      });
+
+      _socket!.on('activeBookingCount', (data) {
+        debugPrint('📦 New booking count: $data');
+        try {
+          if (!_newBookingCountStreamController.isClosed) {
+            _newBookingCountStreamController.add(data);
+          }
+        } catch (e) {
+          debugPrint('❌ Error handling newBooking: $e');
+        }
+      });
+
       // Trigger connection explicitly
       _socket!.connect();
     } catch (e) {
@@ -448,5 +477,7 @@ class SocketService with WidgetsBindingObserver {
     _orderStatusStreamController.close();
     _reservationStatusStreamController.close();
     _chatMessageStreamController.close();
+    _newOrderCountStreamController.close();
+    _newBookingCountStreamController.close();
   }
 }

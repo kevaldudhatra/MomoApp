@@ -34,8 +34,12 @@ class ApiServices {
       '$baseUrl/api/v1/user/outlates/{outlateId}/reservation-slots';
   static String getReservations =
       '$baseUrl/api/v1/user/reservations?limit=10&page={page}&status={status}';
+  static String getReservationCount =
+      '$baseUrl/api/v1/user/reservations?limit=100&page={page}&status={status}';
   static String getOrders =
       '$baseUrl/api/v1/user/orders?limit=10&page={page}&status={status}';
+  static String getOrderCount =
+      '$baseUrl/api/v1/user/orders?limit=100&page={page}&status={status}';
   static String getOutlateByLocation =
       '$baseUrl/api/v1/user/get-home-details?latitude={latitude}&longitude={longitude}';
   static String getAllOffers =
