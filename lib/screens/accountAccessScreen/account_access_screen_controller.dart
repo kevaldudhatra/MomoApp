@@ -25,7 +25,15 @@ class GoogleAuthService {
 
   Future<void> signInWithGoogle({required bool isLogin}) async {
     try {
-      await _googleSignIn.signOut();
+      try {
+        await _googleSignIn.signOut();
+      } on GoogleSignInException catch (e) {
+        print(
+          'Google Sign-Out before sign-in (non-fatal): ${e.code} – ${e.description}',
+        );
+      } catch (_) {
+        print('Google Sign-Out catch');
+      }
       final GoogleSignInAccount account = await _googleSignIn.authenticate();
       print("Email: ${account.email}");
       print("Display Name: ${account.displayName}");
@@ -81,8 +89,27 @@ class GoogleAuthService {
           backgroundColor: charcoalGray.withValues(alpha: 0.9),
         );
       }
+    } on GoogleSignInException catch (e) {
+      print('Google Sign-In exception: ${e.code} - ${e.description}');
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        return;
+      }
+      Get.snackbar(
+        "Oops!",
+        "Unable to sign in with Google. Please try again later.",
+        icon: const Icon(Icons.error, color: Colors.red),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
     } on Exception catch (e) {
       print('Google Sign-In exception: $e');
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
       Get.snackbar(
         "Oops!",
         "Unable to sign in with Google. Please try again later.",
@@ -95,7 +122,15 @@ class GoogleAuthService {
   }
 
   Future<void> signOutWithGoogle() async {
-    await _googleSignIn.signOut();
+    try {
+      await _googleSignIn.signOut();
+    } on GoogleSignInException catch (e) {
+      print(
+        'Google Sign-Out exception (non-fatal): ${e.code} – ${e.description}',
+      );
+    } catch (_) {
+      print('Google Sign-Out catch');
+    }
   }
 }
 

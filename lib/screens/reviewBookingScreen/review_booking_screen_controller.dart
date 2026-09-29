@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:momos/network/api_services.dart';
-import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/bookTableScreen/book_table_screen_controller.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';

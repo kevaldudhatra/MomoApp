@@ -367,55 +367,62 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   // Left side: placed date + status badge
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Order placed on ${order.orderDate}",
-                        style: const TextStyle(
-                          color: textSecondary,
-                          fontSize: 13,
-                          fontFamily: natoRegular,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: white,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: borderGray, width: 1),
-                        ),
-                        child: Text(
-                          controller.formatStatus(order.status),
-                          style: TextStyle(
-                            color: order.status == 'placed'
-                                ? charcoalGray
-                                : order.status == 'accepted' ||
-                                      order.status == 'preparing' ||
-                                      order.status == 'ready' ||
-                                      order.status == 'out_for_delivery'
-                                ? blue
-                                : order.status == 'delivered'
-                                ? greenBadge
-                                : order.status == 'cancelled'
-                                ? red
-                                : charcoalGray,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Order placed on ${order.orderDate}",
+                          style: const TextStyle(
+                            color: textSecondary,
                             fontSize: 13,
-                            fontFamily: natoMedium,
+                            fontFamily: natoRegular,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: white,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: borderGray, width: 1),
+                          ),
+                          child: Text(
+                            controller.formatStatus(order.status),
+                            style: TextStyle(
+                              color: order.status == 'placed'
+                                  ? charcoalGray
+                                  : order.status == 'accepted' ||
+                                        order.status == 'preparing' ||
+                                        order.status == 'ready' ||
+                                        order.status == 'out_for_delivery'
+                                  ? blue
+                                  : order.status == 'delivered'
+                                  ? greenBadge
+                                  : order.status == 'cancelled'
+                                  ? red
+                                  : charcoalGray,
+                              fontSize: 13,
+                              fontFamily: natoMedium,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+
+                  const SizedBox(width: 5),
+
                   // Right side: Total price & Right arrow icon
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         "₹${order.totalAmount.toStringAsFixed(2)}",
