@@ -65,4 +65,5 @@ class AppImages {
 
   // loading view
   final loading = '${gifJson}loading.json';
+  final success = '${gifJson}success.json';
 }

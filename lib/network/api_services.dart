@@ -20,6 +20,7 @@ class ApiServices {
   static String getOrderDetails = '$baseUrl/api/v1/user/orders/{id}';
   static String addRating = '$baseUrl/api/v1/user/outlates/{outlateId}/ratings';
   static String sendMessage = '$baseUrl/api/v1/user/chat/send-message';
+  static String editMessage = '$baseUrl/api/v1/user/chat/edit-message';
   static String getMessages =
       '$baseUrl/api/v1/user/chat/get-messages?limit=20&page={pageNumber}&outlateId={outlateId}';
   static String deleteUserAddress =

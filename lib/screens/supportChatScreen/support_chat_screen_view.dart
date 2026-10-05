@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:momos/network/socket_service.dart';
-import 'package:momos/screens/supportChatScreen/support_chat_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
+import 'package:momos/screens/supportChatScreen/support_chat_screen_controller.dart';
 
 class SupportChatScreen extends GetView<SupportChatScreenController> {
   const SupportChatScreen({super.key});
@@ -155,62 +155,140 @@ class SupportChatScreen extends GetView<SupportChatScreenController> {
             // Input Box Sticky Footer
             Container(
               color: white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
-              ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Text Input
-                  Expanded(
-                    child: Container(
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: borderGray, width: 1.5),
+                  // Editing Message Indicator Banner
+                  Obx(() {
+                    if (!controller.isEdit.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      alignment: Alignment.centerLeft,
-                      child: TextField(
-                        controller: controller.messageController,
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 14,
-                          fontFamily: natoRegular,
-                        ),
-                        decoration: const InputDecoration(
-                          hintText: "Type a message...",
-                          hintStyle: TextStyle(
-                            color: textSecondary,
-                            fontSize: 14,
-                            fontFamily: natoRegular,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Send Button
-                  GestureDetector(
-                    onTap: () => controller.sendMessage(),
-                    child: Container(
-                      width: 48,
-                      height: 48,
                       decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: orange,
+                        color: Color(0xFFFFF3E0),
+                        border: Border(
+                          top: BorderSide(color: borderGray, width: 1),
+                        ),
                       ),
-                      alignment: Alignment.center,
-                      child: Image.asset(
-                        AppImages().sendIcon,
-                        width: 20,
-                        height: 20,
-                        color: white,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit, size: 16, color: orange),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              "Editing message",
+                              style: TextStyle(
+                                color: orange,
+                                fontSize: 13,
+                                fontFamily: natoMedium,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => controller.cancelEdit(),
+                            child: const Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Icon(
+                                Icons.close,
+                                size: 18,
+                                color: charcoalGray,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
+                    );
+                  }),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
+                    child: Row(
+                      children: [
+                        // Text Input
+                        Expanded(
+                          child: Container(
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(color: borderGray, width: 1.5),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0,
+                            ),
+                            alignment: Alignment.centerLeft,
+                            child: Obx(
+                              () => TextField(
+                                controller: controller.messageController,
+                                style: const TextStyle(
+                                  color: black,
+                                  fontSize: 14,
+                                  fontFamily: natoRegular,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: controller.isEdit.value
+                                      ? "Edit message..."
+                                      : "Type a message...",
+                                  hintStyle: const TextStyle(
+                                    color: textSecondary,
+                                    fontSize: 14,
+                                    fontFamily: natoRegular,
+                                  ),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        // Send / Update Button
+                        Obx(() {
+                          final isEditing = controller.isEdit.value;
+                          return GestureDetector(
+                            onTap: () {
+                              if (isEditing) {
+                                controller.editMessage(
+                                  messageId: controller.messageId.value,
+                                );
+                              } else {
+                                controller.sendMessage();
+                              }
+                            },
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: orange,
+                              ),
+                              alignment: Alignment.center,
+                              child: isEditing
+                                  ? const Icon(
+                                      Icons.check,
+                                      color: white,
+                                      size: 22,
+                                    )
+                                  : Image.asset(
+                                      AppImages().sendIcon,
+                                      width: 20,
+                                      height: 20,
+                                      color: white,
+                                    ),
+                            ),
+                          );
+                        }),
+                      ],
                     ),
                   ),
                 ],
@@ -256,20 +334,80 @@ class SupportChatScreen extends GetView<SupportChatScreenController> {
         ),
 
         // Timestamp & Status below
-        Padding(
-          padding: EdgeInsets.only(
-            top: 4.0,
-            left: isUser ? 0.0 : 4.0,
-            right: isUser ? 4.0 : 0.0,
-          ),
-          child: Text(
-            msg.time,
-            style: const TextStyle(
-              color: textSecondary,
-              fontSize: 11,
-              fontFamily: natoRegular,
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(
+                top: 4.0,
+                left: isUser ? 0.0 : 4.0,
+                right: isUser ? 4.0 : 0.0,
+              ),
+              child: Text(
+                msg.time,
+                style: const TextStyle(
+                  color: textSecondary,
+                  fontSize: 11,
+                  fontFamily: natoRegular,
+                ),
+              ),
             ),
-          ),
+            isUser
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Icon(
+                      msg.status == 'sent' ? Icons.done : Icons.done_all,
+                      size: 15,
+                      color: msg.status == 'read' ? blue : textSecondary,
+                    ),
+                  )
+                : Container(),
+            isUser
+                ? PopupMenuButton<String>(
+                    padding: EdgeInsets.zero,
+                    color: white,
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    onSelected: (value) {
+                      if (value == 'edit') {
+                        controller.startEditing(msg);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem<String>(
+                        value: 'edit',
+                        height: 22,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit_outlined, size: 16, color: black),
+                            SizedBox(width: 8),
+                            Text(
+                              'Edit',
+                              style: TextStyle(
+                                color: black,
+                                fontSize: 13,
+                                fontFamily: natoRegular,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    child: const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Icon(
+                        Icons.more_vert,
+                        size: 15,
+                        color: textSecondary,
+                      ),
+                    ),
+                  )
+                : Container(),
+          ],
         ),
       ],
     );

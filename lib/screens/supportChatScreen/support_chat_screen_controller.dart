@@ -16,13 +16,31 @@ class ChatMessage {
   final String text;
   final bool isUser;
   final String time;
+  final String status;
 
   ChatMessage({
     this.id,
     required this.text,
     required this.isUser,
     required this.time,
+    required this.status,
   });
+
+  ChatMessage copyWith({
+    dynamic id,
+    String? text,
+    bool? isUser,
+    String? time,
+    String? status,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      text: text ?? this.text,
+      isUser: isUser ?? this.isUser,
+      time: time ?? this.time,
+      status: status ?? this.status,
+    );
+  }
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
@@ -30,6 +48,7 @@ class ChatMessage {
       text: json['message']?.toString() ?? '',
       isUser: json['senderType'] == 'user',
       time: formatMessageTime(json['createdAt']),
+      status: json['messageStatus']?.toString() ?? '',
     );
   }
 
@@ -48,6 +67,7 @@ class SupportChatScreenController extends GetxController {
   StreamSubscription? _reconnectSubscription;
   StreamSubscription? _connectionStateSubscription;
   bool _isSending = false;
+  RxBool isEdit = false.obs;
   final socketConnectionState = SocketConnectionState.disconnected.obs;
   final isLoading = false.obs;
   final isMoreLoading = false.obs;
@@ -60,6 +80,7 @@ class SupportChatScreenController extends GetxController {
   final messageController = TextEditingController();
   final scrollController = ScrollController();
   final messagesList = <ChatMessage>[].obs;
+  final messageId = 0.obs;
   final outletId = Get.isRegistered<DeliveryScreenController>()
       ? Get.find<DeliveryScreenController>().outlateDetails['id']
       : 0;
@@ -340,6 +361,7 @@ class SupportChatScreenController extends GetxController {
           text: messageData['message']?.toString() ?? '',
           isUser: true,
           time: formatTime(messageData['createdAt'].toString()),
+          status: messageData['messageStatus']?.toString() ?? '',
         );
         final newId = newMessage.id?.toString();
         final alreadyExists = messagesList.any(
@@ -358,6 +380,72 @@ class SupportChatScreenController extends GetxController {
       }
     } catch (e) {
       debugPrint('sendMessage Error: $e');
+      _showErrorSnackbar('Something went wrong. Please try again.');
+    } finally {
+      _isSending = false;
+    }
+  }
+
+  // ----------------------------------------------------------
+  // EDIT MESSAGE
+  // ----------------------------------------------------------
+
+  void startEditing(ChatMessage msg) {
+    final id = int.tryParse(msg.id?.toString() ?? '') ?? 0;
+    if (id == 0) return;
+    messageId.value = id;
+    isEdit.value = true;
+    messageController.text = msg.text;
+    messageController.selection = TextSelection.fromPosition(
+      TextPosition(offset: messageController.text.length),
+    );
+  }
+
+  void cancelEdit() {
+    isEdit.value = false;
+    messageId.value = 0;
+    messageController.clear();
+  }
+
+  Future<void> editMessage({required int messageId}) async {
+    if (_isSending) return;
+    final message = messageController.text.trim();
+    if (message.isEmpty) return;
+    _isSending = true;
+    try {
+      final response = await http.put(
+        Uri.parse(ApiServices.editMessage),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({"messageId": messageId, "message": message}),
+      );
+      debugPrint('editMessage Status: ${response.statusCode}');
+      debugPrint('editMessage Data: ${response.body}');
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        final messageData = data['data']?['messageData'];
+        final updatedText =
+            messageData != null && messageData['message'] != null
+            ? messageData['message'].toString()
+            : message;
+        final index = messagesList.indexWhere(
+          (m) => m.id?.toString() == messageId.toString(),
+        );
+        if (index != -1) {
+          messagesList[index] = messagesList[index].copyWith(text: updatedText);
+          messagesList.refresh();
+        }
+        cancelEdit();
+      } else {
+        _showErrorSnackbar(
+          data['message']?.toString() ??
+              'Something went wrong. Please try again.',
+        );
+      }
+    } catch (e) {
+      debugPrint('editMessage Error: $e');
       _showErrorSnackbar('Something went wrong. Please try again.');
     } finally {
       _isSending = false;

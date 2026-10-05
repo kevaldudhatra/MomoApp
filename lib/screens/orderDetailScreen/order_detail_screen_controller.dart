@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/addressSelectionScreen/address_selection_screen_controller.dart';
@@ -1915,14 +1916,59 @@ class OrderDetailScreenController extends GetxController {
       print('placeOrder Response body: ${response.body}');
       final data = jsonDecode(response.body);
       if (response.statusCode == 201 && data["success"] == true) {
-        Get.snackbar(
-          "Success",
-          "Order placed successfully!",
-          icon: const Icon(Icons.done, color: Colors.green),
-          colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        Get.dialog(
+          Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 24,
+            ),
+            elevation: 0,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: black.withValues(alpha: 0.12),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Lottie.asset(
+                    AppImages().success,
+                    width: 140,
+                    height: 140,
+                    repeat: false,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Your order has been placed successfully",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: natoMedium,
+                      fontSize: 16,
+                      color: black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          barrierColor: dialogBarrierColor,
+          barrierDismissible: true,
         );
+        await Future.delayed(const Duration(milliseconds: 3500));
+        if (Get.isDialogOpen == true) {
+          Get.back();
+        }
         cartItems.clear();
         foodItems.clear();
         outletDetails.value = {};

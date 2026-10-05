@@ -7,6 +7,9 @@ import 'package:momos/network/api_services.dart';
 import 'package:momos/screens/bookTableScreen/book_table_screen_controller.dart';
 import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
+import 'package:lottie/lottie.dart';
+import 'package:momos/utils/const_fonts_key.dart';
+import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:http/http.dart' as http;
@@ -54,6 +57,10 @@ class ReviewBookingScreenController extends GetxController {
   String formatDate(String dateString) {
     if (dateString == 'Today') {
       return DateFormat('yyyy-MM-dd').format(DateTime.now());
+    } else if (dateString == 'Tomorrow') {
+      return DateFormat(
+        'yyyy-MM-dd',
+      ).format(DateTime.now().add(const Duration(days: 1)));
     } else {
       final parsedDate = DateFormat('EEE, dd MMM').parse(dateString);
       final now = DateTime.now();
@@ -98,7 +105,6 @@ class ReviewBookingScreenController extends GetxController {
               : specialRequestController.text,
         }),
       );
-
       print('tableReservations Response status: ${response.statusCode}');
       print('tableReservations Response body: ${response.body}');
       if (Get.isDialogOpen!) {
@@ -106,16 +112,60 @@ class ReviewBookingScreenController extends GetxController {
       }
       var data = jsonDecode(response.body);
       if (response.statusCode == 201 && data['success'] == true) {
-        Get.back(result: true);
-        Future.delayed(const Duration(seconds: 1), () {
-          Get.snackbar(
-            "Booking Confirmed",
-            data['message'],
-            snackPosition: SnackPosition.TOP,
-            icon: const Icon(Icons.done, color: Colors.green),
-            backgroundColor: charcoalGray.withValues(alpha: 0.9),
-            colorText: Colors.white,
-          );
+        Get.dialog(
+          Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 24,
+            ),
+            elevation: 0,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: black.withValues(alpha: 0.12),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Lottie.asset(
+                    AppImages().success,
+                    width: 140,
+                    height: 140,
+                    repeat: false,
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Your table has been booked successfully",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: natoMedium,
+                      fontSize: 16,
+                      color: black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            ),
+          ),
+          barrierColor: dialogBarrierColor,
+          barrierDismissible: true,
+        );
+        Future.delayed(const Duration(milliseconds: 3500), () {
+          if (Get.isDialogOpen == true) {
+            Get.back();
+            Get.back(result: true);
+          }
         });
       } else {
         Get.snackbar(
