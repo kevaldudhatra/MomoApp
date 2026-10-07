@@ -27,6 +27,7 @@ class OrderItem {
 
 class OrderModel {
   final String id;
+  final String restaurantId;
   final String restaurantName;
   final String restaurantAddress;
   final String restaurantImage;
@@ -37,6 +38,7 @@ class OrderModel {
 
   OrderModel({
     required this.id,
+    required this.restaurantId,
     required this.restaurantName,
     required this.restaurantAddress,
     required this.restaurantImage,
@@ -58,6 +60,7 @@ class OrderModel {
     }).toList();
     return OrderModel(
       id: json['id'].toString(),
+      restaurantId: json['outlate']['id'].toString(),
       restaurantName: json['outlate']['name'].toString(),
       restaurantAddress:
           "${json['outlate']['address']?.toString()}, ${json['outlate']['city']?.toString()}, ${json['outlate']['state']?.toString()}",
@@ -73,6 +76,7 @@ class OrderModel {
 
   OrderModel copyWith({
     String? id,
+    String? restaurantId,
     String? restaurantName,
     String? restaurantAddress,
     String? restaurantImage,
@@ -83,6 +87,7 @@ class OrderModel {
   }) {
     return OrderModel(
       id: id ?? this.id,
+      restaurantId: restaurantId ?? this.restaurantId,
       restaurantName: restaurantName ?? this.restaurantName,
       restaurantAddress: restaurantAddress ?? this.restaurantAddress,
       restaurantImage: restaurantImage ?? this.restaurantImage,

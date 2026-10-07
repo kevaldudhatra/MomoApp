@@ -64,6 +64,9 @@ class ChatMessage {
 
 class SupportChatScreenController extends GetxController {
   StreamSubscription? _chatMessageSubscription;
+  StreamSubscription? _messageDeliveredSubscription;
+  StreamSubscription? _messageReadSubscription;
+  StreamSubscription? _editMessageUpdateSubscription;
   StreamSubscription? _reconnectSubscription;
   StreamSubscription? _connectionStateSubscription;
   bool _isSending = false;
@@ -82,7 +85,7 @@ class SupportChatScreenController extends GetxController {
   final messagesList = <ChatMessage>[].obs;
   final messageId = 0.obs;
   final outletId = Get.isRegistered<DeliveryScreenController>()
-      ? Get.find<DeliveryScreenController>().outlateDetails['id']
+      ? Get.find<DeliveryScreenController>().outlateDetails['id'] ?? 0
       : 0;
 
   @override
@@ -100,6 +103,9 @@ class SupportChatScreenController extends GetxController {
     scrollController.dispose();
     SocketService().leaveChatRoom();
     _chatMessageSubscription?.cancel();
+    _messageDeliveredSubscription?.cancel();
+    _messageReadSubscription?.cancel();
+    _editMessageUpdateSubscription?.cancel();
     _reconnectSubscription?.cancel();
     _connectionStateSubscription?.cancel();
     super.onClose();
@@ -107,15 +113,15 @@ class SupportChatScreenController extends GetxController {
 
   void _initSocketListeners() {
     socketConnectionState.value = SocketService().state;
-
     _connectionStateSubscription = SocketService().onConnectionStateChanged
         .listen((state) {
           socketConnectionState.value = state;
         });
-
     SocketService().joinChatRoom();
     _listenToChatMessageUpdate();
-
+    _listenToMessageDelivered();
+    _listenToMessageRead();
+    _listenToEditMessageUpdate();
     // On reconnect, auto-rejoin chat room and sync latest messages
     _reconnectSubscription = SocketService().onReconnected.listen((_) {
       debugPrint(
@@ -153,6 +159,83 @@ class SupportChatScreenController extends GetxController {
         debugPrint("SupportChatScreenController => Error handling message: $e");
       }
     });
+  }
+
+  void _listenToMessageDelivered() {
+    _messageDeliveredSubscription = SocketService().onMessageDelivered.listen((
+      data,
+    ) {
+      debugPrint(
+        "📦 Socket deliver received in SupportChatScreenController: $data",
+      );
+      if (data == null) return;
+      try {
+        _updateMessageStatus(data, 'deliver');
+      } catch (e) {
+        debugPrint("SupportChatScreenController => Error handling deliver: $e");
+      }
+    });
+  }
+
+  void _listenToMessageRead() {
+    _messageReadSubscription = SocketService().onMessageRead.listen((data) {
+      debugPrint(
+        "📦 Socket read received in SupportChatScreenController: $data",
+      );
+      if (data == null) return;
+      try {
+        _updateMessageStatus(data, 'read');
+      } catch (e) {
+        debugPrint("SupportChatScreenController => Error handling read: $e");
+      }
+    });
+  }
+
+  void _updateMessageStatus(dynamic data, String status) {
+    if (data is! Map || data.isEmpty) return;
+    final msgId = data['id']?.toString();
+    debugPrint("msgId: $msgId");
+    debugPrint("status: $status");
+    if (msgId == null || msgId.isEmpty) return;
+    final index = messagesList.indexWhere((m) => m.id?.toString() == msgId);
+    if (index != -1) {
+      messagesList[index] = messagesList[index].copyWith(status: status);
+      messagesList.refresh();
+      update();
+    }
+  }
+
+  void _listenToEditMessageUpdate() {
+    _editMessageUpdateSubscription = SocketService().onEditMessageUpdateReceived
+        .listen((data) {
+          debugPrint(
+            "📦 Socket editmsgupdate received in SupportChatScreenController: $data",
+          );
+          if (data == null) return;
+          try {
+            if (data is Map &&
+                data.isNotEmpty &&
+                data['senderType'] == 'outlate') {
+              final msgId = data['id']?.toString();
+              final updatedText = data['message']?.toString();
+              if (msgId == null || msgId.isEmpty || updatedText == null) return;
+              final index = messagesList.indexWhere(
+                (m) => m.id?.toString() == msgId,
+              );
+              if (index != -1) {
+                messagesList[index] = messagesList[index].copyWith(
+                  text: updatedText,
+                );
+                messagesList.refresh();
+                update();
+              }
+            }
+          } catch (e) {
+            debugPrint(
+              "SupportChatScreenController => Error handling editmsgupdate: $e",
+            );
+          }
+        });
   }
 
   // ----------------------------------------------------------

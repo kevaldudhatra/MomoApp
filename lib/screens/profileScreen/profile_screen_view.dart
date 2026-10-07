@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:momos/routes/app_pages.dart';
-import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 
 // Reusable List Item for clean architecture
 class _ProfileListItem extends StatelessWidget {
@@ -87,6 +87,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                       ),
                     ),
                   ),
+
                   const Divider(height: 1, thickness: 1, color: borderGray),
 
                   // Scrollable Content

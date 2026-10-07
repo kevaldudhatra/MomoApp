@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/network/socket_service.dart';
-import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:open_filex/open_filex.dart';
@@ -18,18 +17,17 @@ class OrderStatusScreenController extends GetxController {
   StreamSubscription? _orderStatusSubscription;
   StreamSubscription? _reconnectSubscription;
   String currentOrderId = "0";
+  String outletId = "0";
   RxBool isLoading = false.obs;
   RxBool isDownloadingInvoice = false.obs;
   RxMap<dynamic, dynamic> orderDetails = {}.obs;
   RxBool isBillDetailsExpanded = true.obs;
-  final outletId = Get.isRegistered<DeliveryScreenController>()
-      ? Get.find<DeliveryScreenController>().outlateDetails['id']
-      : 0;
 
   @override
   void onInit() {
     super.onInit();
     currentOrderId = (Get.arguments?['orderId'] ?? "0").toString();
+    outletId = (Get.arguments?['outletId'] ?? "0").toString();
     getOrderDetails(orderId: currentOrderId);
     _listenToOrderStatusUpdate();
     _listenToSocketReconnect();
@@ -95,7 +93,7 @@ class OrderStatusScreenController extends GetxController {
     String? orderId,
     bool showLoading = true,
   }) async {
-    print("getOrderDetails Input: $orderId");
+    print("getOrderDetails Input: $orderId $outletId");
     try {
       if (showLoading) isLoading.value = true;
       final response = await http.get(

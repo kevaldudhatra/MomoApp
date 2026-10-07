@@ -51,6 +51,11 @@ class SocketService with WidgetsBindingObserver {
   final _reservationStatusStreamController =
       StreamController<dynamic>.broadcast();
   final _chatMessageStreamController = StreamController<dynamic>.broadcast();
+  final _messageDeliveredStreamController =
+      StreamController<dynamic>.broadcast();
+  final _messageReadStreamController = StreamController<dynamic>.broadcast();
+  final _editMessageUpdateStreamController =
+      StreamController<dynamic>.broadcast();
   final _newOrderCountStreamController = StreamController<dynamic>.broadcast();
   final _newBookingCountStreamController =
       StreamController<dynamic>.broadcast();
@@ -78,6 +83,11 @@ class SocketService with WidgetsBindingObserver {
       _reservationStatusStreamController.stream;
   Stream<dynamic> get onChatMessageReceived =>
       _chatMessageStreamController.stream;
+  Stream<dynamic> get onMessageDelivered =>
+      _messageDeliveredStreamController.stream;
+  Stream<dynamic> get onMessageRead => _messageReadStreamController.stream;
+  Stream<dynamic> get onEditMessageUpdateReceived =>
+      _editMessageUpdateStreamController.stream;
   Stream<dynamic> get onNewOrderCountReceived =>
       _newOrderCountStreamController.stream;
   Stream<dynamic> get onNewBookingCountReceived =>
@@ -308,6 +318,39 @@ class SocketService with WidgetsBindingObserver {
         }
       });
 
+      _socket!.on('deliver', (data) {
+        debugPrint('📦 Message delivered: $data');
+        try {
+          if (!_messageDeliveredStreamController.isClosed) {
+            _messageDeliveredStreamController.add(data);
+          }
+        } catch (e) {
+          debugPrint('❌ Error handling deliver: $e');
+        }
+      });
+
+      _socket!.on('read', (data) {
+        debugPrint('📦 Message read: $data');
+        try {
+          if (!_messageReadStreamController.isClosed) {
+            _messageReadStreamController.add(data);
+          }
+        } catch (e) {
+          debugPrint('❌ Error handling read: $e');
+        }
+      });
+
+      _socket!.on('messageEdited', (data) {
+        debugPrint('📦 Edit message update: $data');
+        try {
+          if (!_editMessageUpdateStreamController.isClosed) {
+            _editMessageUpdateStreamController.add(data);
+          }
+        } catch (e) {
+          debugPrint('❌ Error handling editmsgupdate: $e');
+        }
+      });
+
       _socket!.on('activeOrderCount', (data) {
         debugPrint('📦 New order count: $data');
         try {
@@ -477,6 +520,9 @@ class SocketService with WidgetsBindingObserver {
     _orderStatusStreamController.close();
     _reservationStatusStreamController.close();
     _chatMessageStreamController.close();
+    _messageDeliveredStreamController.close();
+    _messageReadStreamController.close();
+    _editMessageUpdateStreamController.close();
     _newOrderCountStreamController.close();
     _newBookingCountStreamController.close();
   }

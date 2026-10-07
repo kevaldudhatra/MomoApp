@@ -30,6 +30,9 @@ class BookTableScreenController extends GetxController {
   final RxList<String> periodsList = <String>[].obs;
   final RxMap<String, List<String>> periodTimeSlots =
       <String, List<String>>{}.obs;
+  final isTodayClosed = Get.isRegistered<DeliveryScreenController>()
+      ? Get.find<DeliveryScreenController>().isTodayClosed.value
+      : false;
 
   @override
   void onInit() {
@@ -155,8 +158,9 @@ class BookTableScreenController extends GetxController {
   Future<void> getReservationBookingDetails() async {
     try {
       isLoading.value = true;
-      final outlateId =
-          Get.find<DeliveryScreenController>().outlateDetails['id'];
+      final outlateId = Get.isRegistered<DeliveryScreenController>()
+          ? Get.find<DeliveryScreenController>().outlateDetails['id'] ?? 0
+          : 0;
       final response = await http.get(
         Uri.parse(
           ApiServices.getReservationBookingDetails.replaceAll(

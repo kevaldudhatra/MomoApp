@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:momos/screens/myOrdersScreen/my_orders_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:momos/screens/myOrdersScreen/my_orders_screen_controller.dart';
 
 class MyOrdersScreen extends GetView<MyOrdersScreenController> {
   const MyOrdersScreen({super.key});
@@ -233,7 +233,10 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
     return GestureDetector(
       onTap: () => Get.toNamed(
         Routes.orderStatusScreen,
-        arguments: {"orderId": order.id.toString()},
+        arguments: {
+          "orderId": order.id.toString(),
+          "outletId": order.restaurantId.toString(),
+        },
       ),
       behavior: HitTestBehavior.opaque,
       child: Container(

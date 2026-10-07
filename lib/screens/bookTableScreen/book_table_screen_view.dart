@@ -16,7 +16,10 @@ class BookTableScreen extends GetView<BookTableScreenController> {
     return Scaffold(
       backgroundColor: background,
       floatingActionButton: Obx(
-        () => controller.reservationCount.value > 0
+        () =>
+            controller.reservationData.isNotEmpty &&
+                !controller.isTodayClosed &&
+                controller.reservationCount.value > 0
             ? GestureDetector(
                 onTap: () {
                   Get.toNamed(Routes.myReservationsScreen);
@@ -49,32 +52,36 @@ class BookTableScreen extends GetView<BookTableScreenController> {
               )
             : SizedBox.shrink(),
       ),
-      bottomNavigationBar: Container(
-        color: background,
-        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-        child: CustomButton(
-          label: "Continue",
-          height: 45,
-          width: double.infinity,
-          onTap: () {
-            if (controller.selectedTime.value.isEmpty) {
-              Get.snackbar(
-                "Oops!",
-                "Please select a valid date and time slot to continue with your reservation.",
-                icon: const Icon(Icons.error, color: Colors.red),
-                colorText: Colors.white,
-                snackPosition: SnackPosition.TOP,
-                backgroundColor: charcoalGray.withValues(alpha: 0.9),
-              );
-            } else {
-              Get.toNamed(Routes.reviewBookingScreen)?.then((value) {
-                if (value == true) {
-                  controller.refreshData();
-                }
-              });
-            }
-          },
-        ),
+      bottomNavigationBar: Obx(
+        () => controller.reservationData.isNotEmpty && !controller.isTodayClosed
+            ? Container(
+                color: background,
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                child: CustomButton(
+                  label: "Continue",
+                  height: 45,
+                  width: double.infinity,
+                  onTap: () {
+                    if (controller.selectedTime.value.isEmpty) {
+                      Get.snackbar(
+                        "Oops!",
+                        "Please select a valid date and time slot to continue with your reservation.",
+                        icon: const Icon(Icons.error, color: Colors.red),
+                        colorText: Colors.white,
+                        snackPosition: SnackPosition.TOP,
+                        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+                      );
+                    } else {
+                      Get.toNamed(Routes.reviewBookingScreen)?.then((value) {
+                        if (value == true) {
+                          controller.refreshData();
+                        }
+                      });
+                    }
+                  },
+                ),
+              )
+            : SizedBox.shrink(),
       ),
       body: Obx(() {
         final fieldWidth = (MediaQuery.of(context).size.width - 44) / 2;
@@ -99,6 +106,7 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                 ),
               ),
             ),
+
             const Divider(height: 1, thickness: 1, color: borderGray),
 
             controller.isLoading.value
@@ -106,7 +114,23 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                     height: MediaQuery.of(context).size.height - 350,
                     child: const Center(child: LoadingDialog()),
                   )
-                : Expanded(
+                : controller.isTodayClosed
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.height - 350,
+                    child: Center(
+                      child: Text(
+                        "Oops!\nToday the outlate is closed.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: textSecondary,
+                          fontSize: 15,
+                          fontFamily: natoBold,
+                        ),
+                      ),
+                    ),
+                  )
+                : controller.reservationData.isNotEmpty
+                ? Expanded(
                     child: Stack(
                       children: [
                         // Main Scroll Content
@@ -547,6 +571,20 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                             ),
                           ),
                       ],
+                    ),
+                  )
+                : SizedBox(
+                    height: MediaQuery.of(context).size.height - 350,
+                    child: Center(
+                      child: Text(
+                        "Oops!\nNo outlate found at your location",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: textSecondary,
+                          fontSize: 15,
+                          fontFamily: natoBold,
+                        ),
+                      ),
                     ),
                   ),
           ],

@@ -49,6 +49,8 @@ class ApiServices {
       '$baseUrl/api/v1/user/outlates/{outletId}/menu?typeId={typeId}';
   static String getFoodItemDetails =
       '$baseUrl/api/v1/user/outlates/{outletId}/menu/{itemId}';
+  static String getOutletStatus =
+      '$baseUrl/api/v1/user/outlates/{outletId}/special-day-today';
   static String getAllOutlateDetails =
       '$baseUrl/api/v1/user/outlates/{outletID}';
   static String getOutletReview =

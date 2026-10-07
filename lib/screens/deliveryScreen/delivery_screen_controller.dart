@@ -622,10 +622,11 @@ class _FoodItemDetailsBottomSheetState
 }
 
 class DeliveryScreenController extends GetxController {
-  StreamSubscription? _orderCountStatusSubscription;
-  StreamSubscription? _reconnectSubscription;
   final storage = GetStorage();
   final searchController = TextEditingController();
+  StreamSubscription? _orderCountStatusSubscription;
+  StreamSubscription? _reconnectSubscription;
+  RxBool isTodayClosed = false.obs;
   RxBool isSearchEmpty = true.obs;
   RxBool isLoading = true.obs;
   RxBool searchLoading = false.obs;
@@ -638,7 +639,6 @@ class DeliveryScreenController extends GetxController {
   RxMap<dynamic, dynamic> foodItemsDetails = {}.obs;
   RxList<dynamic> foodItems = [].obs;
   RxInt orderCount = 0.obs;
-
   Timer? _searchDebounceTimer;
   String _lastSearchQuery = '';
   int _searchRequestId = 0;
@@ -911,7 +911,11 @@ class DeliveryScreenController extends GetxController {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        await getOutletDetails(LatLng(defaultLatitude, defaultLongitude));
+        isLoading.value = false;
+        outlateDetails.value = {};
+        outletBanners.clear();
+        outletCategories.clear();
+        outletTopPicks.clear();
         Get.snackbar(
           "Location Disabled",
           "Please enable location services in your device settings.",
@@ -927,7 +931,11 @@ class DeliveryScreenController extends GetxController {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          await getOutletDetails(LatLng(defaultLatitude, defaultLongitude));
+          isLoading.value = false;
+          outlateDetails.value = {};
+          outletBanners.clear();
+          outletCategories.clear();
+          outletTopPicks.clear();
           Get.snackbar(
             "Permission Denied",
             "Location permissions are denied.",
@@ -941,7 +949,11 @@ class DeliveryScreenController extends GetxController {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        await getOutletDetails(LatLng(defaultLatitude, defaultLongitude));
+        isLoading.value = false;
+        outlateDetails.value = {};
+        outletBanners.clear();
+        outletCategories.clear();
+        outletTopPicks.clear();
         Get.snackbar(
           "Permission Denied",
           "Location permissions are permanently denied. Please enable them in app settings.",
@@ -964,8 +976,11 @@ class DeliveryScreenController extends GetxController {
       await getAddressFromLatLng(currentLatLng);
       await getOutletDetails(currentLatLng);
     } catch (e) {
-      await getOutletDetails(LatLng(defaultLatitude, defaultLongitude));
-      print("Error fetching current location: $e");
+      isLoading.value = false;
+      outlateDetails.value = {};
+      outletBanners.clear();
+      outletCategories.clear();
+      outletTopPicks.clear();
       Get.snackbar(
         "Location Error",
         "Could not fetch current location. Please try again.",
@@ -1024,6 +1039,7 @@ class DeliveryScreenController extends GetxController {
       print('getOutletDetails Response body: ${response.body}');
       var data = jsonDecode(response.body);
       if (response.statusCode == 200 && data["success"] == true) {
+        await getOutletStatus(outletId: data["data"]["outlate"]["id"]);
         outlateDetails.value = data["data"]["outlate"] ?? {};
         outletBanners.assignAll(data["data"]["banners"] ?? []);
         outletCategories.addAll(data["data"]["categories"] ?? []);
@@ -1159,6 +1175,35 @@ class DeliveryScreenController extends GetxController {
     } catch (e) {
       print('fetchOrdersCount Error: $e');
       orderCount.value = 0;
+    }
+  }
+
+  Future<void> getOutletStatus({int? outletId}) async {
+    print('getOutletStatus Input: $outletId');
+    try {
+      final response = await http.get(
+        Uri.parse(
+          ApiServices.getOutletStatus.replaceAll(
+            '{outletId}',
+            outletId.toString(),
+          ),
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+      );
+      print('getOutletStatus Response status: ${response.statusCode}');
+      print('getOutletStatus Response body: ${response.body}');
+      var data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data["success"] == true) {
+        isTodayClosed.value = (data["data"] as List).isNotEmpty ? true : false;
+      } else {
+        isTodayClosed.value = false;
+      }
+    } catch (e) {
+      print('getOutletStatus Error: $e');
+      isTodayClosed.value = false;
     }
   }
 }

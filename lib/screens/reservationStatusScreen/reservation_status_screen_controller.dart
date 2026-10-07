@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:momos/network/api_services.dart';
 import 'package:momos/network/socket_service.dart';
-import 'package:momos/screens/deliveryScreen/delivery_screen_controller.dart';
 import 'package:momos/screens/myReservationsScreen/my_reservations_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_key.dart';
@@ -18,9 +17,6 @@ class ReservationStatusScreenController extends GetxController {
   ReservationModel get reservation => _reservation.value;
   set reservation(ReservationModel value) => _reservation.value = value;
   final storage = GetStorage();
-  final outletId = Get.isRegistered<DeliveryScreenController>()
-      ? Get.find<DeliveryScreenController>().outlateDetails['id']
-      : 0;
 
   @override
   void onInit() {
@@ -30,6 +26,7 @@ class ReservationStatusScreenController extends GetxController {
     } else {
       _reservation = ReservationModel(
         id: "",
+        restaurantId: "",
         restaurantName: "",
         restaurantAddress: "",
         restaurantImage: "",
@@ -86,7 +83,10 @@ class ReservationStatusScreenController extends GetxController {
     try {
       final response = await http.post(
         Uri.parse(
-          ApiServices.addRating.replaceAll('{outlateId}', outletId.toString()),
+          ApiServices.addRating.replaceAll(
+            '{outlateId}',
+            reservation.restaurantId,
+          ),
         ),
         headers: {
           'Content-Type': 'application/json',
