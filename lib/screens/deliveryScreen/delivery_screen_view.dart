@@ -153,8 +153,12 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                 : const SizedBox.shrink(),
           ),
           Container(
-            margin: EdgeInsets.only(left: 32, top: 10),
-            child: const GlobalCartButton(),
+            margin: const EdgeInsets.only(left: 32, top: 10),
+            child:
+                controller.outlateDetails.isNotEmpty &&
+                    !controller.isTodayClosed.value
+                ? const GlobalCartButton()
+                : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -172,10 +176,10 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                         child: controller.isTodayClosed.value
                             ? SizedBox(
                                 height:
-                                    MediaQuery.of(context).size.height * 0.65,
+                                    MediaQuery.of(context).size.height - 100,
                                 child: Center(
                                   child: Text(
-                                    "Oops!\nToday the outlate is closed.",
+                                    "Oops!\n${controller.closeNotes.value}",
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: textSecondary,

@@ -626,6 +626,7 @@ class DeliveryScreenController extends GetxController {
   final searchController = TextEditingController();
   StreamSubscription? _orderCountStatusSubscription;
   StreamSubscription? _reconnectSubscription;
+  RxString closeNotes = "".obs;
   RxBool isTodayClosed = false.obs;
   RxBool isSearchEmpty = true.obs;
   RxBool isLoading = true.obs;
@@ -972,6 +973,7 @@ class DeliveryScreenController extends GetxController {
         ),
       );
 
+      // final currentLatLng = LatLng(22.5687828, 88.4330432);
       final currentLatLng = LatLng(position.latitude, position.longitude);
       await getAddressFromLatLng(currentLatLng);
       await getOutletDetails(currentLatLng);
@@ -1196,14 +1198,19 @@ class DeliveryScreenController extends GetxController {
       print('getOutletStatus Response status: ${response.statusCode}');
       print('getOutletStatus Response body: ${response.body}');
       var data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data["success"] == true) {
-        isTodayClosed.value = (data["data"] as List).isNotEmpty ? true : false;
+      if (response.statusCode == 200 &&
+          data["success"] == true &&
+          (data["data"] as List).isNotEmpty) {
+        isTodayClosed.value = true;
+        closeNotes.value = data["data"][0]['note'] ?? "";
       } else {
         isTodayClosed.value = false;
+        closeNotes.value = "";
       }
     } catch (e) {
       print('getOutletStatus Error: $e');
       isTodayClosed.value = false;
+      closeNotes.value = "";
     }
   }
 }

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "432315956205",
+    "project_id": "momo-app-bf562",
+    "storage_bucket": "momo-app-bf562.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432315956205:android:148f86f6df3765f23485e4",
+        "android_client_info": {
+          "package_name": "com.food.momos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnMncD9j6a6ZOkggo2bkeWbEm6xQAYf2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

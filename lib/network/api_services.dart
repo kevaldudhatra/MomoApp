@@ -21,6 +21,7 @@ class ApiServices {
   static String addRating = '$baseUrl/api/v1/user/outlates/{outlateId}/ratings';
   static String sendMessage = '$baseUrl/api/v1/user/chat/send-message';
   static String editMessage = '$baseUrl/api/v1/user/chat/edit-message';
+  static String updateFCMToken = '$baseUrl/api/v1/user/fcm-token';
   static String getMessages =
       '$baseUrl/api/v1/user/chat/get-messages?limit=20&page={pageNumber}&outlateId={outlateId}';
   static String deleteUserAddress =

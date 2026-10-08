@@ -18,7 +18,7 @@ class BookTableScreen extends GetView<BookTableScreenController> {
       floatingActionButton: Obx(
         () =>
             controller.reservationData.isNotEmpty &&
-                !controller.isTodayClosed &&
+                !controller.isTodayClosed.value &&
                 controller.reservationCount.value > 0
             ? GestureDetector(
                 onTap: () {
@@ -53,7 +53,9 @@ class BookTableScreen extends GetView<BookTableScreenController> {
             : SizedBox.shrink(),
       ),
       bottomNavigationBar: Obx(
-        () => controller.reservationData.isNotEmpty && !controller.isTodayClosed
+        () =>
+            controller.reservationData.isNotEmpty &&
+                !controller.isTodayClosed.value
             ? Container(
                 color: background,
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
@@ -114,12 +116,12 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                     height: MediaQuery.of(context).size.height - 350,
                     child: const Center(child: LoadingDialog()),
                   )
-                : controller.isTodayClosed
+                : controller.isTodayClosed.value
                 ? SizedBox(
-                    height: MediaQuery.of(context).size.height - 350,
+                    height: MediaQuery.of(context).size.height - 250,
                     child: Center(
                       child: Text(
-                        "Oops!\nToday the outlate is closed.",
+                        "Oops!\n${controller.closeNotes.value}",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: textSecondary,
@@ -574,7 +576,7 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                     ),
                   )
                 : SizedBox(
-                    height: MediaQuery.of(context).size.height - 350,
+                    height: MediaQuery.of(context).size.height - 250,
                     child: Center(
                       child: Text(
                         "Oops!\nNo outlate found at your location",

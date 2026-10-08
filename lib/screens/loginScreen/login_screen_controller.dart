@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/notification_service.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/network/socket_service.dart';
 import 'package:momos/utils/const_colors_key.dart';
@@ -91,6 +92,8 @@ class LoginScreenController extends GetxController {
       final token = "Bearer ${data["data"]["token"]}";
       await storage.write(userToken, token);
       SocketService().connect(userToken: data["data"]["token"]);
+      await NotificationService().init();
+      await NotificationService().getDeviceToken();
       Get.offAllNamed(Routes.homeScreen);
     } else {
       Get.snackbar(

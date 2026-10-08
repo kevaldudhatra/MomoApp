@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:momos/network/api_services.dart';
+import 'package:momos/network/notification_service.dart';
 import 'package:momos/network/socket_service.dart';
 import 'package:momos/routes/app_pages.dart';
 import 'package:momos/screens/accountAccessScreen/account_access_screen_controller.dart';
@@ -145,11 +146,12 @@ class ProfileScreenController extends GetxController {
                         label: "Logout",
                         onTap: () async {
                           Get.back();
-                          final storage = GetStorage();
                           final google = GoogleAuthService();
-                          await google.signOutWithGoogle();
-                          await storage.erase();
+                          final storage = GetStorage();
                           SocketService().disconnect();
+                          await NotificationService().addFcmToken(fcmToken: "");
+                          await storage.erase();
+                          await google.signOutWithGoogle();
                           Get.offAllNamed(Routes.startScreen);
                         },
                         width: double.infinity,

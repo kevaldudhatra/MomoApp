@@ -21,6 +21,8 @@ class BookTableScreenController extends GetxController {
   final isDateDropdownOpen = false.obs;
   final isGuestDropdownOpen = false.obs;
   final isLoading = true.obs;
+  RxString closeNotes = "".obs;
+  RxBool isTodayClosed = false.obs;
   RxInt reservationCount = 0.obs;
   List<String> get timeSlots => periodTimeSlots[selectedPeriod.value] ?? [];
   final RxMap<String, dynamic> reservationData = <String, dynamic>{}.obs;
@@ -30,9 +32,6 @@ class BookTableScreenController extends GetxController {
   final RxList<String> periodsList = <String>[].obs;
   final RxMap<String, List<String>> periodTimeSlots =
       <String, List<String>>{}.obs;
-  final isTodayClosed = Get.isRegistered<DeliveryScreenController>()
-      ? Get.find<DeliveryScreenController>().isTodayClosed.value
-      : false;
 
   @override
   void onInit() {
@@ -44,7 +43,11 @@ class BookTableScreenController extends GetxController {
   }
 
   Future<void> refreshData() async {
-    await Future.wait([getReservationBookingDetails(), fetchReservations()]);
+    await Future.wait([
+      checkOutletStatus(),
+      getReservationBookingDetails(),
+      fetchReservations(),
+    ]);
   }
 
   @override
@@ -116,6 +119,15 @@ class BookTableScreenController extends GetxController {
     selectedTimeIndex.value = 0;
     final slots = periodTimeSlots[period] ?? [];
     selectedTime.value = slots.isNotEmpty ? slots.first : "";
+  }
+
+  Future<void> checkOutletStatus() async {
+    if (Get.isRegistered<DeliveryScreenController>()) {
+      print("checkOutletStatus isTodayClosed: $isTodayClosed $closeNotes");
+      isTodayClosed.value =
+          Get.find<DeliveryScreenController>().isTodayClosed.value;
+      closeNotes.value = Get.find<DeliveryScreenController>().closeNotes.value;
+    }
   }
 
   Future<void> fetchReservations() async {
