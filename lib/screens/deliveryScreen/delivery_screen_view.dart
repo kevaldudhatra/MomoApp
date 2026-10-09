@@ -176,17 +176,126 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                         child: controller.isTodayClosed.value
                             ? SizedBox(
                                 height:
-                                    MediaQuery.of(context).size.height - 100,
-                                child: Center(
-                                  child: Text(
-                                    "Oops!\n${controller.closeNotes.value}",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: textSecondary,
-                                      fontSize: 15,
-                                      fontFamily: natoBold,
+                                    MediaQuery.of(context).size.height - 200,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.fromLTRB(
+                                        16,
+                                        20,
+                                        16,
+                                        20,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.only(
+                                          bottomLeft: Radius.circular(20),
+                                          bottomRight: Radius.circular(20),
+                                        ),
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            orangeGradientStart,
+                                            orangeGradientEnd,
+                                            orangeGradientStart,
+                                          ],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: black.withValues(
+                                              alpha: 0.15,
+                                            ),
+                                            blurRadius: 15,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: InkWell(
+                                        onTap: () async {
+                                          final result = await Get.toNamed(
+                                            Routes.addressSelectionScreen,
+                                          );
+                                          if (result != null) {
+                                            controller.selectedAddress.value =
+                                                result!["selectedAddress"];
+                                            controller.addressType.value =
+                                                result["addressType"];
+                                            await controller.getOutletDetails(
+                                              LatLng(
+                                                result["latitude"],
+                                                result["longitude"],
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
+                                              children: [
+                                                Image.asset(
+                                                  AppImages().locationIcon,
+                                                  width: 20,
+                                                  height: 20,
+                                                  color: white,
+                                                ),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  controller.addressType.value,
+                                                  style: const TextStyle(
+                                                    fontFamily: natoSemiBold,
+                                                    fontSize: 18,
+                                                    color: white,
+                                                  ),
+                                                ),
+                                                Image.asset(
+                                                  AppImages().dropDownArrowIcon,
+                                                  width: 22,
+                                                  height: 22,
+                                                  color: white,
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 3),
+                                            Text(
+                                              controller.selectedAddress.value,
+                                              style: TextStyle(
+                                                fontFamily: natoRegular,
+                                                fontSize: 12,
+                                                color: white.withValues(
+                                                  alpha: 0.85,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    Expanded(
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 20,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            "Oops!\n${controller.closeNotes.value}",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: textSecondary,
+                                              fontSize: 15,
+                                              fontFamily: natoBold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               )
                             : Column(
@@ -981,16 +1090,124 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                 ],
                               ),
                       )
-                    : Center(
-                        child: Text(
-                          "Oops!\nNo outlate found at your location",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: textSecondary,
-                            fontSize: 15,
-                            fontFamily: natoBold,
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.fromLTRB(16, 20, 16, 20),
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(20),
+                                bottomRight: Radius.circular(20),
+                              ),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  orangeGradientStart,
+                                  orangeGradientEnd,
+                                  orangeGradientStart,
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: black.withValues(alpha: 0.15),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: InkWell(
+                              onTap: () async {
+                                final result = await Get.toNamed(
+                                  Routes.addressSelectionScreen,
+                                );
+                                if (result != null) {
+                                  controller.selectedAddress.value =
+                                      result!["selectedAddress"];
+                                  controller.addressType.value =
+                                      result["addressType"];
+                                  await controller.getOutletDetails(
+                                    LatLng(
+                                      result["latitude"],
+                                      result["longitude"],
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        AppImages().locationIcon,
+                                        width: 20,
+                                        height: 20,
+                                        color: white,
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Text(
+                                        controller.addressType.value,
+                                        style: const TextStyle(
+                                          fontFamily: natoSemiBold,
+                                          fontSize: 18,
+                                          color: white,
+                                        ),
+                                      ),
+                                      Image.asset(
+                                        AppImages().dropDownArrowIcon,
+                                        width: 22,
+                                        height: 22,
+                                        color: white,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    controller.selectedAddress.value,
+                                    style: TextStyle(
+                                      fontFamily: natoRegular,
+                                      fontSize: 12,
+                                      color: white.withValues(alpha: 0.85),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      AppImages().addressIcon,
+                                      color: textSecondary,
+                                      height: 75,
+                                      width: 75,
+                                    ),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      "Oops!\nWe don't deliver to this area at the moment. Please choose a different location.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: textSecondary,
+                                        fontSize: 15,
+                                        fontFamily: natoBold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
               );
       }),

@@ -193,8 +193,11 @@ class BookTableScreenController extends GetxController {
       if (response.statusCode == 200 && data['success'] == true) {
         reservationData.value = Map<String, dynamic>.from(data['data'] ?? {});
         _parseReservationData(data['data']);
+      } else {
+        reservationData.value = {};
       }
     } catch (e) {
+      reservationData.value = {};
       print('getReservationBookingDetails Error: $e');
     } finally {
       isLoading.value = false;

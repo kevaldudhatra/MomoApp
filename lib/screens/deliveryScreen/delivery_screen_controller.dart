@@ -973,7 +973,6 @@ class DeliveryScreenController extends GetxController {
         ),
       );
 
-      // final currentLatLng = LatLng(22.5687828, 88.4330432);
       final currentLatLng = LatLng(position.latitude, position.longitude);
       await getAddressFromLatLng(currentLatLng);
       await getOutletDetails(currentLatLng);

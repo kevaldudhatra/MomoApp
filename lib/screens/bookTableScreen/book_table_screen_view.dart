@@ -117,7 +117,8 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                     child: const Center(child: LoadingDialog()),
                   )
                 : controller.isTodayClosed.value
-                ? SizedBox(
+                ? Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
                     height: MediaQuery.of(context).size.height - 250,
                     child: Center(
                       child: Text(
@@ -575,17 +576,30 @@ class BookTableScreen extends GetView<BookTableScreenController> {
                       ],
                     ),
                   )
-                : SizedBox(
+                : Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
                     height: MediaQuery.of(context).size.height - 250,
                     child: Center(
-                      child: Text(
-                        "Oops!\nNo outlate found at your location",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: textSecondary,
-                          fontSize: 15,
-                          fontFamily: natoBold,
-                        ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            AppImages().addressIcon,
+                            color: textSecondary,
+                            height: 75,
+                            width: 75,
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            "Oops!\nWe don't deliver to this area at the moment. Please choose a different location.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: textSecondary,
+                              fontSize: 15,
+                              fontFamily: natoBold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
