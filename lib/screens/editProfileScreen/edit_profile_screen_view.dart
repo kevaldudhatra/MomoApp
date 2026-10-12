@@ -7,7 +7,7 @@ import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/custom_text_field.dart';
 import 'package:momos/screens/editProfileScreen/edit_profile_screen_controller.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:momos/widgets/safe_network_image.dart';
 
 class EditProfileScreen extends GetView<EditProfileScreenController> {
   const EditProfileScreen({super.key});
@@ -88,38 +88,14 @@ class EditProfileScreen extends GetView<EditProfileScreenController> {
                                     ),
                                   ],
                                 ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: Image.network(
-                                    controller.avatarUrl.value,
-                                    width: 100,
-                                    height: 100,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return child;
-                                          }
-                                          return Shimmer.fromColors(
-                                            baseColor: Colors.grey.shade300,
-                                            highlightColor:
-                                                Colors.grey.shade100,
-                                            child: Container(
-                                              width: 100,
-                                              height: 100,
-                                              color: Colors.white,
-                                            ),
-                                          );
-                                        },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Image.asset(
-                                        AppImages().profileIcon,
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                      );
-                                    },
-                                  ),
+                                child: SafeNetworkImage(
+                                  imageUrl: controller.avatarUrl.value,
+                                  width: 100,
+                                  height: 100,
+                                  isCircle: true,
+                                  cacheWidth: 250,
+                                  cacheHeight: 250,
+                                  fallbackAsset: AppImages().profileIcon,
                                 ),
                               ),
                               // Overlay Camera/Edit badge

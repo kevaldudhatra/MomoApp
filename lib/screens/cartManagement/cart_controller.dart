@@ -14,13 +14,15 @@ class CartController extends GetxController {
     try {
       cartItems.clear();
       billDetails.value = {};
-      final response = await http.get(
-        Uri.parse(ApiServices.getCartItem),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': '${storage.read(userToken)}',
-        },
-      );
+      final response = await http
+          .get(
+            Uri.parse(ApiServices.getCartItem),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': '${storage.read(userToken)}',
+            },
+          )
+          .timeout(const Duration(seconds: 25));
       print('getCartItem Response status: ${response.statusCode}');
       print('getCartItem Response body: ${response.body}');
       var data = jsonDecode(response.body);

@@ -33,6 +33,12 @@ void main() async {
           ),
   );
   await GetStorage.init();
+
+  // Configure image cache for low-RAM devices (2GB-4GB)
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes =
+      40 * 1024 * 1024; // 40 MB max
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: background,
@@ -51,7 +57,29 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    // Clear live and cached image textures on OS memory warning
+    debugPrint(
+      "MEMORY WARNING => Clearing image cache to relieve RAM pressure",
+    );
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
+  }
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(

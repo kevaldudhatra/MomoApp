@@ -7,7 +7,7 @@ import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/custom_button.dart';
 import 'package:momos/widgets/feedback_dialog.dart';
 import 'package:momos/widgets/loading_view.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:momos/widgets/safe_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:momos/screens/orderStatusScreen/order_status_screen_controller.dart';
 
@@ -318,34 +318,13 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
           // Restaurant and Action Buttons
           Row(
             children: [
-              ClipRRect(
+              SafeNetworkImage(
+                imageUrl: order['outlate']?['brandLogo']?.toString(),
+                width: 44,
+                height: 44,
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  order['outlate']['brandLogo'] ?? "",
-                  width: 44,
-                  height: 44,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    }
-                    return Shimmer.fromColors(
-                      baseColor: Colors.grey.shade300,
-                      highlightColor: Colors.grey.shade100,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        color: Colors.white,
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) => Image.asset(
-                    AppImages().momoImg,
-                    width: 44,
-                    height: 44,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                cacheWidth: 100,
+                cacheHeight: 100,
               ),
               const SizedBox(width: 12),
               Expanded(

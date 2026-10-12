@@ -5,7 +5,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/widgets/loading_view.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:momos/widgets/safe_network_image.dart';
 import 'package:momos/screens/profileScreen/profile_screen_controller.dart';
 
 // Reusable List Item for clean architecture
@@ -109,45 +109,16 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                                   padding: const EdgeInsets.all(16.0),
                                   child: Row(
                                     children: [
-                                      // Avatar Image
-                                      ClipOval(
-                                        child: Image.network(
-                                          controller.userData['profileImage'] ??
-                                              "",
-                                          width: 60,
-                                          height: 60,
-                                          fit: BoxFit.cover,
-                                          loadingBuilder:
-                                              (
-                                                context,
-                                                child,
-                                                loadingProgress,
-                                              ) {
-                                                if (loadingProgress == null) {
-                                                  return child;
-                                                }
-                                                return Shimmer.fromColors(
-                                                  baseColor:
-                                                      Colors.grey.shade300,
-                                                  highlightColor:
-                                                      Colors.grey.shade100,
-                                                  child: Container(
-                                                    width: 60,
-                                                    height: 60,
-                                                    color: Colors.white,
-                                                  ),
-                                                );
-                                              },
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                                return Image.asset(
-                                                  AppImages().profileIcon,
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
-                                                );
-                                              },
-                                        ),
+                                      SafeNetworkImage(
+                                        imageUrl: controller
+                                            .userData['profileImage']
+                                            ?.toString(),
+                                        width: 60,
+                                        height: 60,
+                                        isCircle: true,
+                                        cacheWidth: 150,
+                                        cacheHeight: 150,
+                                        fallbackAsset: AppImages().profileIcon,
                                       ),
                                       const SizedBox(width: 16),
                                       // Name and Phone number

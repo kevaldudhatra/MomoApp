@@ -13,7 +13,7 @@ import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
 import 'package:momos/screens/cartManagement/cart_controller.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:momos/widgets/safe_network_image.dart';
 import 'package:http/http.dart' as http;
 
 class FoodItemDetailsBottomSheet extends StatefulWidget {
@@ -384,40 +384,16 @@ class _FoodItemDetailsBottomSheetState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // Food Image
-                                ClipRRect(
+                                SafeNetworkImage(
+                                  imageUrl: widget.foodItem["itemImage"],
+                                  width: double.infinity,
+                                  height: 200,
+                                  fit: BoxFit.cover,
                                   borderRadius: const BorderRadius.vertical(
                                     top: Radius.circular(16),
                                   ),
-                                  child: Image.network(
-                                    widget.foodItem["itemImage"] ?? "",
-                                    width: double.infinity,
-                                    height: 200,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return child;
-                                          }
-                                          return Shimmer.fromColors(
-                                            baseColor: Colors.grey.shade300,
-                                            highlightColor:
-                                                Colors.grey.shade100,
-                                            child: Container(
-                                              width: double.infinity,
-                                              height: 200,
-                                              color: Colors.white,
-                                            ),
-                                          );
-                                        },
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Image.asset(
-                                              AppImages().momoImg,
-                                              width: double.infinity,
-                                              height: 200,
-                                              fit: BoxFit.cover,
-                                            ),
-                                  ),
+                                  cacheWidth: 800,
+                                  cacheHeight: 500,
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.all(16.0),

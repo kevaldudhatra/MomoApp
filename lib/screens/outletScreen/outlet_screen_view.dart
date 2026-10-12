@@ -7,8 +7,8 @@ import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/screens/cartManagement/cart_button.dart';
 import 'package:momos/widgets/loading_view.dart';
+import 'package:momos/widgets/safe_network_image.dart';
 import 'package:readmore_flutter/readmore_flutter.dart';
-import 'package:shimmer/shimmer.dart';
 
 class OutletScreen extends GetView<OutletScreenController> {
   const OutletScreen({super.key});
@@ -200,41 +200,14 @@ class OutletScreen extends GetView<OutletScreenController> {
                                       // Outlet Thumbnail Image
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          controller.outletInfo['brandLogo'] ??
-                                              "",
+                                        child: SafeNetworkImage(
+                                          imageUrl: controller
+                                              .outletInfo['brandLogo'],
                                           width: 85,
                                           height: 85,
                                           fit: BoxFit.cover,
-                                          loadingBuilder:
-                                              (
-                                                context,
-                                                child,
-                                                loadingProgress,
-                                              ) {
-                                                if (loadingProgress == null) {
-                                                  return child;
-                                                }
-                                                return Shimmer.fromColors(
-                                                  baseColor:
-                                                      Colors.grey.shade300,
-                                                  highlightColor:
-                                                      Colors.grey.shade100,
-                                                  child: Container(
-                                                    width: 85,
-                                                    height: 85,
-                                                    color: Colors.white,
-                                                  ),
-                                                );
-                                              },
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  Image.asset(
-                                                    AppImages().momoImg,
-                                                    width: 85,
-                                                    height: 85,
-                                                    fit: BoxFit.cover,
-                                                  ),
+                                          cacheWidth: 200,
+                                          cacheHeight: 200,
                                         ),
                                       ),
                                       const SizedBox(width: 14),
@@ -502,268 +475,166 @@ class OutletScreen extends GetView<OutletScreenController> {
     String categoryName,
   ) {
     final itemId = item["id"];
-    return GestureDetector(
-      key: itemId != null ? controller.getItemKey(itemId) : null,
-      onTap: () {
-        controller
-            .getFoodItemDetails(outletId: item["outlateId"], itemId: item["id"])
-            .then(
-              (value) => {
-                FoodItemDetailsBottomSheet.show(
-                  Get.context!,
-                  foodItem: controller.foodItemsDetails,
-                ),
-              },
-            );
-      },
-      child: Container(
-        color: white,
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Item Details (Left)
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Veg / Non-Veg Indicator
-                      Image.asset(
-                        item["itemType"] == 1
-                            ? AppImages().vegIcon
-                            : AppImages().nonVegIcon,
-                        width: 16,
-                        height: 16,
-                      ),
-                      const SizedBox(height: 6),
-
-                      // Item Name
-                      Text(
-                        item["name"],
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 16,
-                          fontFamily: natoBold,
+    return RepaintBoundary(
+      child: GestureDetector(
+        key: itemId != null ? controller.getItemKey(itemId) : null,
+        onTap: () {
+          controller
+              .getFoodItemDetails(
+                outletId: item["outlateId"],
+                itemId: item["id"],
+              )
+              .then(
+                (value) => {
+                  FoodItemDetailsBottomSheet.show(
+                    Get.context!,
+                    foodItem: controller.foodItemsDetails,
+                  ),
+                },
+              );
+        },
+        child: Container(
+          color: white,
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Item Details (Left)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Veg / Non-Veg Indicator
+                        Image.asset(
+                          item["itemType"] == 1
+                              ? AppImages().vegIcon
+                              : AppImages().nonVegIcon,
+                          width: 16,
+                          height: 16,
                         ),
-                      ),
-                      const SizedBox(height: 4),
+                        const SizedBox(height: 6),
 
-                      // Price & Strikethrough Discount Price
-                      Row(
-                        children: [
-                          item["defaultPrice"]["comparePrice"] == 0
-                              ? Text(
-                                  "₹${item["defaultPrice"]["sellingPrice"]}",
-                                  style: const TextStyle(
-                                    color: black,
-                                    fontSize: 15,
-                                    fontFamily: natoBold,
+                        // Item Name
+                        Text(
+                          item["name"],
+                          style: const TextStyle(
+                            color: black,
+                            fontSize: 16,
+                            fontFamily: natoBold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+
+                        // Price & Strikethrough Discount Price
+                        Row(
+                          children: [
+                            item["defaultPrice"]["comparePrice"] == 0
+                                ? Text(
+                                    "₹${item["defaultPrice"]["sellingPrice"]}",
+                                    style: const TextStyle(
+                                      color: black,
+                                      fontSize: 15,
+                                      fontFamily: natoBold,
+                                    ),
+                                  )
+                                : Text(
+                                    "₹${item["defaultPrice"]["comparePrice"]}",
+                                    style: const TextStyle(
+                                      color: black,
+                                      fontSize: 15,
+                                      fontFamily: natoBold,
+                                    ),
                                   ),
-                                )
-                              : Text(
-                                  "₹${item["defaultPrice"]["comparePrice"]}",
-                                  style: const TextStyle(
-                                    color: black,
-                                    fontSize: 15,
-                                    fontFamily: natoBold,
-                                  ),
+                            if (item["defaultPrice"]["comparePrice"] != 0) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                "₹${item["defaultPrice"]["sellingPrice"]}",
+                                style: const TextStyle(
+                                  color: charcoalGray,
+                                  fontSize: 15,
+                                  fontFamily: natoRegular,
+                                  decoration: TextDecoration.lineThrough,
                                 ),
-                          if (item["defaultPrice"]["comparePrice"] != 0) ...[
-                            const SizedBox(width: 8),
-                            Text(
-                              "₹${item["defaultPrice"]["sellingPrice"]}",
-                              style: const TextStyle(
-                                color: charcoalGray,
-                                fontSize: 15,
-                                fontFamily: natoRegular,
-                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+
+                        // Item Description
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            textButtonTheme: TextButtonThemeData(
+                              style: TextButton.styleFrom(
+                                minimumSize: Size.zero,
+                                padding: EdgeInsets.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                                splashFactory: NoSplash.splashFactory,
+                                overlayColor: Colors.transparent,
                               ),
                             ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Item Description
-                      Theme(
-                        data: Theme.of(context).copyWith(
-                          textButtonTheme: TextButtonThemeData(
-                            style: TextButton.styleFrom(
-                              minimumSize: Size.zero,
-                              padding: EdgeInsets.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: VisualDensity.compact,
-                              splashFactory: NoSplash.splashFactory,
-                              overlayColor: Colors.transparent,
+                          ),
+                          child: ReadMore(
+                            item["description"] ?? "",
+                            style: const TextStyle(
+                              color: charcoalGray,
+                              fontSize: 13,
+                              fontFamily: natoRegular,
                             ),
+                            minLines: 2,
+                            readMoreText: 'Read more',
+                            readLessText: 'Read less',
+                            readMoreStyle: const TextStyle(
+                              color: charcoalGray,
+                              fontSize: 13,
+                              fontFamily: natoMedium,
+                            ),
+                            readMoreIconVisible: false,
+                            alignCenter: false,
                           ),
                         ),
-                        child: ReadMore(
-                          item["description"] ?? "",
-                          style: const TextStyle(
-                            color: charcoalGray,
-                            fontSize: 13,
-                            fontFamily: natoRegular,
-                          ),
-                          minLines: 2,
-                          readMoreText: 'Read more',
-                          readLessText: 'Read less',
-                          readMoreStyle: const TextStyle(
-                            color: charcoalGray,
-                            fontSize: 13,
-                            fontFamily: natoMedium,
-                          ),
-                          readMoreIconVisible: false,
-                          alignCenter: false,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                const SizedBox(width: 16),
+                  const SizedBox(width: 16),
 
-                // Item Image & Floating Add Button (Right)
-                Column(
-                  children: [
-                    SizedBox(
-                      height: 128,
-                      child: Stack(
-                        alignment: Alignment.topCenter,
-                        children: [
-                          // Food Image
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              item["itemImage"] ?? "",
+                  // Item Image & Floating Add Button (Right)
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: 128,
+                        child: Stack(
+                          alignment: Alignment.topCenter,
+                          children: [
+                            // Food Image
+                            SafeNetworkImage(
+                              imageUrl: item["itemImage"],
                               width: 110,
                               height: 110,
                               fit: BoxFit.cover,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                    if (loadingProgress == null) {
-                                      return child;
-                                    }
-                                    return Shimmer.fromColors(
-                                      baseColor: Colors.grey.shade300,
-                                      highlightColor: Colors.grey.shade100,
-                                      child: Container(
-                                        width: 110,
-                                        height: 110,
-                                        color: Colors.white,
-                                      ),
-                                    );
-                                  },
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Image.asset(
-                                    AppImages().momoImg,
-                                    width: 110,
-                                    height: 110,
-                                    fit: BoxFit.cover,
-                                  ),
+                              borderRadius: BorderRadius.circular(12),
+                              cacheWidth: 250,
+                              cacheHeight: 250,
                             ),
-                          ),
 
-                          // Add Button (Overlapping)
-                          item["cartCount"] > 0
-                              ? Positioned(
-                                  bottom: 0,
-                                  child: Container(
-                                    width: 70,
-                                    height: 34,
-                                    decoration: BoxDecoration(
-                                      color: white,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: orange,
-                                        width: 1,
-                                      ),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: cardShadow,
-                                          blurRadius: 4,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        InkWell(
-                                          onTap: () async {
-                                            await controller.decrimentQuantity(
-                                              itemData: item,
-                                            );
-                                          },
-                                          child: const Icon(
-                                            Icons.remove,
-                                            color: charcoalGray,
-                                            size: 16,
-                                          ),
-                                        ),
-                                        Text(
-                                          item["cartCount"].toString(),
-                                          style: const TextStyle(
-                                            color: charcoalGray,
-                                            fontSize: 14,
-                                            fontFamily: natoBold,
-                                          ),
-                                        ),
-                                        InkWell(
-                                          onTap: () async {
-                                            await controller.incrementQuantity(
-                                              itemData: item,
-                                            );
-                                          },
-                                          child: const Icon(
-                                            Icons.add,
-                                            color: charcoalGray,
-                                            size: 16,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : Positioned(
-                                  bottom: 0,
-                                  child: InkWell(
-                                    onTap: () async {
-                                      if (item["hasCustomisation"]) {
-                                        await controller
-                                            .getFoodItemDetails(
-                                              outletId: item["outlateId"],
-                                              itemId: item["id"],
-                                            )
-                                            .then(
-                                              (value) => {
-                                                FoodItemDetailsBottomSheet.show(
-                                                  Get.context!,
-                                                  foodItem: controller
-                                                      .foodItemsDetails,
-                                                ),
-                                              },
-                                            );
-                                      } else {
-                                        await controller.addItemToCart(
-                                          itemQuantity: 1,
-                                          itemData: item,
-                                          modifierOption: [],
-                                        );
-                                      }
-                                    },
+                            // Add Button (Overlapping)
+                            item["cartCount"] > 0
+                                ? Positioned(
+                                    bottom: 0,
                                     child: Container(
                                       width: 70,
                                       height: 34,
                                       decoration: BoxDecoration(
-                                        color: orange,
+                                        color: white,
                                         borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: orange,
+                                          width: 1,
+                                        ),
                                         boxShadow: const [
                                           BoxShadow(
                                             color: cardShadow,
@@ -773,37 +644,126 @@ class OutletScreen extends GetView<OutletScreenController> {
                                         ],
                                       ),
                                       alignment: Alignment.center,
-                                      child: const Text(
-                                        "Add",
-                                        style: TextStyle(
-                                          color: white,
-                                          fontSize: 14,
-                                          fontFamily: natoBold,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          InkWell(
+                                            onTap: () async {
+                                              await controller
+                                                  .decrimentQuantity(
+                                                    itemData: item,
+                                                  );
+                                            },
+                                            child: const Icon(
+                                              Icons.remove,
+                                              color: charcoalGray,
+                                              size: 16,
+                                            ),
+                                          ),
+                                          Text(
+                                            item["cartCount"].toString(),
+                                            style: const TextStyle(
+                                              color: charcoalGray,
+                                              fontSize: 14,
+                                              fontFamily: natoBold,
+                                            ),
+                                          ),
+                                          InkWell(
+                                            onTap: () async {
+                                              await controller
+                                                  .incrementQuantity(
+                                                    itemData: item,
+                                                  );
+                                            },
+                                            child: const Icon(
+                                              Icons.add,
+                                              color: charcoalGray,
+                                              size: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : Positioned(
+                                    bottom: 0,
+                                    child: InkWell(
+                                      onTap: () async {
+                                        if (item["hasCustomisation"]) {
+                                          await controller
+                                              .getFoodItemDetails(
+                                                outletId: item["outlateId"],
+                                                itemId: item["id"],
+                                              )
+                                              .then(
+                                                (value) => {
+                                                  FoodItemDetailsBottomSheet.show(
+                                                    Get.context!,
+                                                    foodItem: controller
+                                                        .foodItemsDetails,
+                                                  ),
+                                                },
+                                              );
+                                        } else {
+                                          await controller.addItemToCart(
+                                            itemQuantity: 1,
+                                            itemData: item,
+                                            modifierOption: [],
+                                          );
+                                        }
+                                      },
+                                      child: Container(
+                                        width: 70,
+                                        height: 34,
+                                        decoration: BoxDecoration(
+                                          color: orange,
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: cardShadow,
+                                              blurRadius: 4,
+                                              offset: Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: const Text(
+                                          "Add",
+                                          style: TextStyle(
+                                            color: white,
+                                            fontSize: 14,
+                                            fontFamily: natoBold,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    if (item["hasCustomisation"])
-                      const Text(
-                        "Customise",
-                        style: TextStyle(
-                          color: charcoalGray,
-                          fontSize: 11,
-                          fontFamily: natoRegular,
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Divider(height: 1, thickness: 1, color: borderGray),
-          ],
+                      const SizedBox(height: 5),
+                      if (item["hasCustomisation"])
+                        const Text(
+                          "Customise",
+                          style: TextStyle(
+                            color: charcoalGray,
+                            fontSize: 11,
+                            fontFamily: natoRegular,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1, thickness: 1, color: borderGray),
+            ],
+          ),
         ),
       ),
     );

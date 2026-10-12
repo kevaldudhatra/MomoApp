@@ -4,8 +4,8 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/routes/app_pages.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:momos/screens/myOrdersScreen/my_orders_screen_controller.dart';
+import 'package:momos/widgets/safe_network_image.dart';
 
 class MyOrdersScreen extends GetView<MyOrdersScreenController> {
   const MyOrdersScreen({super.key});
@@ -230,224 +230,203 @@ class MyOrdersScreen extends GetView<MyOrdersScreenController> {
   }
 
   Widget _buildOrderCard(OrderModel order) {
-    return GestureDetector(
-      onTap: () => Get.toNamed(
-        Routes.orderStatusScreen,
-        arguments: {
-          "orderId": order.id.toString(),
-          "outletId": order.restaurantId.toString(),
-        },
-      ),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 15),
-        decoration: BoxDecoration(
-          color: white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: cardShadow,
-              blurRadius: 8,
-              spreadRadius: 0,
-              offset: Offset(0, 2),
-            ),
-          ],
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () => Get.toNamed(
+          Routes.orderStatusScreen,
+          arguments: {
+            "orderId": order.id.toString(),
+            "outletId": order.restaurantId.toString(),
+          },
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Section: Restaurant Logo & Info
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      order.restaurantImage,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 15),
+          decoration: BoxDecoration(
+            color: white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: cardShadow,
+                blurRadius: 8,
+                spreadRadius: 0,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Section: Restaurant Logo & Info
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    SafeNetworkImage(
+                      imageUrl: order.restaurantImage,
                       width: 44,
                       height: 44,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) {
-                          return child;
-                        }
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey.shade300,
-                          highlightColor: Colors.grey.shade100,
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            color: Colors.white,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          AppImages().momoImg,
-                          width: 44,
-                          height: 44,
-                          fit: BoxFit.cover,
-                        );
-                      },
+                      borderRadius: BorderRadius.circular(10),
+                      cacheWidth: 100,
+                      cacheHeight: 100,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            order.restaurantName,
+                            style: const TextStyle(
+                              color: black,
+                              fontSize: 16,
+                              fontFamily: natoBold,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            order.restaurantAddress,
+                            style: const TextStyle(
+                              color: textSecondary,
+                              fontSize: 13,
+                              fontFamily: natoRegular,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Divider(height: 1, thickness: 1, color: borderGray),
+
+              // Middle Section: Items List
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
+                child: Column(
+                  children: order.items
+                      .map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                item.isVeg
+                                    ? AppImages().vegIcon
+                                    : AppImages().nonVegIcon,
+                                width: 16,
+                                height: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "${item.quantity}  x  ${item.name}",
+                                  style: const TextStyle(
+                                    color: black,
+                                    fontSize: 14,
+                                    fontFamily: natoRegular,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ),
+
+              const Divider(height: 1, thickness: 1, color: borderGray),
+
+              // Bottom Section: Placed Date, Status Badge, Price & Right Arrow
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    // Left side: placed date + status badge
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Order placed on ${order.orderDate}",
+                            style: const TextStyle(
+                              color: textSecondary,
+                              fontSize: 13,
+                              fontFamily: natoRegular,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: borderGray, width: 1),
+                            ),
+                            child: Text(
+                              controller.formatStatus(order.status),
+                              style: TextStyle(
+                                color: order.status == 'placed'
+                                    ? charcoalGray
+                                    : order.status == 'accepted' ||
+                                          order.status == 'preparing' ||
+                                          order.status == 'ready' ||
+                                          order.status == 'out_for_delivery'
+                                    ? blue
+                                    : order.status == 'delivered'
+                                    ? greenBadge
+                                    : order.status == 'cancelled'
+                                    ? red
+                                    : charcoalGray,
+                                fontSize: 13,
+                                fontFamily: natoMedium,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 5),
+
+                    // Right side: Total price & Right arrow icon
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
-                          order.restaurantName,
+                          "₹${order.totalAmount.toStringAsFixed(2)}",
                           style: const TextStyle(
                             color: black,
-                            fontSize: 16,
+                            fontSize: 15,
                             fontFamily: natoBold,
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          order.restaurantAddress,
-                          style: const TextStyle(
-                            color: textSecondary,
-                            fontSize: 13,
-                            fontFamily: natoRegular,
-                          ),
+                        const SizedBox(width: 8),
+                        Image.asset(
+                          AppImages().rightArrowIcon,
+                          width: 12,
+                          height: 12,
+                          color: charcoalGray,
                         ),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-
-            const Divider(height: 1, thickness: 1, color: borderGray),
-
-            // Middle Section: Items List
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
-              ),
-              child: Column(
-                children: order.items
-                    .map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              item.isVeg
-                                  ? AppImages().vegIcon
-                                  : AppImages().nonVegIcon,
-                              width: 16,
-                              height: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                "${item.quantity}  x  ${item.name}",
-                                style: const TextStyle(
-                                  color: black,
-                                  fontSize: 14,
-                                  fontFamily: natoRegular,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-
-            const Divider(height: 1, thickness: 1, color: borderGray),
-
-            // Bottom Section: Placed Date, Status Badge, Price & Right Arrow
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  // Left side: placed date + status badge
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Order placed on ${order.orderDate}",
-                          style: const TextStyle(
-                            color: textSecondary,
-                            fontSize: 13,
-                            fontFamily: natoRegular,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: white,
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: borderGray, width: 1),
-                          ),
-                          child: Text(
-                            controller.formatStatus(order.status),
-                            style: TextStyle(
-                              color: order.status == 'placed'
-                                  ? charcoalGray
-                                  : order.status == 'accepted' ||
-                                        order.status == 'preparing' ||
-                                        order.status == 'ready' ||
-                                        order.status == 'out_for_delivery'
-                                  ? blue
-                                  : order.status == 'delivered'
-                                  ? greenBadge
-                                  : order.status == 'cancelled'
-                                  ? red
-                                  : charcoalGray,
-                              fontSize: 13,
-                              fontFamily: natoMedium,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(width: 5),
-
-                  // Right side: Total price & Right arrow icon
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        "₹${order.totalAmount.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 15,
-                          fontFamily: natoBold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Image.asset(
-                        AppImages().rightArrowIcon,
-                        width: 12,
-                        height: 12,
-                        color: charcoalGray,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

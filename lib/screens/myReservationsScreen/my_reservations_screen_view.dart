@@ -5,7 +5,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/screens/myReservationsScreen/my_reservations_screen_controller.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:momos/widgets/safe_network_image.dart';
 
 class MyReservationsScreen extends GetView<MyReservationsScreenController> {
   const MyReservationsScreen({super.key});
@@ -232,163 +232,142 @@ class MyReservationsScreen extends GetView<MyReservationsScreenController> {
   }
 
   Widget _buildReservationCard(ReservationModel reservation) {
-    return GestureDetector(
-      onTap: () =>
-          Get.toNamed(Routes.reservationStatusScreen, arguments: reservation),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 15),
-        decoration: BoxDecoration(
-          color: white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: cardShadow,
-              blurRadius: 8,
-              spreadRadius: 0,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Section: Restaurant Logo & Info
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      reservation.restaurantImage,
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () =>
+            Get.toNamed(Routes.reservationStatusScreen, arguments: reservation),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 15),
+          decoration: BoxDecoration(
+            color: white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: cardShadow,
+                blurRadius: 8,
+                spreadRadius: 0,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Section: Restaurant Logo & Info
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    SafeNetworkImage(
+                      imageUrl: reservation.restaurantImage,
                       width: 44,
                       height: 44,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) {
-                          return child;
-                        }
-                        return Shimmer.fromColors(
-                          baseColor: Colors.grey.shade300,
-                          highlightColor: Colors.grey.shade100,
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      cacheWidth: 100,
+                      cacheHeight: 100,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            reservation.restaurantName,
+                            style: const TextStyle(
+                              color: black,
+                              fontSize: 16,
+                              fontFamily: natoBold,
+                            ),
                           ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          AppImages().momoImg,
-                          width: 44,
-                          height: 44,
-                          fit: BoxFit.cover,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          reservation.restaurantName,
-                          style: const TextStyle(
-                            color: black,
-                            fontSize: 16,
-                            fontFamily: natoBold,
+                          const SizedBox(height: 2),
+                          Text(
+                            reservation.restaurantAddress,
+                            style: const TextStyle(
+                              color: textSecondary,
+                              fontSize: 13,
+                              fontFamily: natoRegular,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          reservation.restaurantAddress,
-                          style: const TextStyle(
-                            color: textSecondary,
-                            fontSize: 13,
-                            fontFamily: natoRegular,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(height: 1, thickness: 1, color: borderGray),
-
-            // Middle Section: Booking Details Info Rows
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow("Booking ID", reservation.id),
-                  _buildInfoRow("Guests", reservation.guests.toString()),
-                  _buildInfoRow("Scheduled Time", reservation.scheduledTime),
-                  _buildInfoRow("Placed Time", reservation.placedTime),
-                ],
-              ),
-            ),
-
-            const Divider(height: 1, thickness: 1, color: borderGray),
-
-            // Bottom Section: Placed Date, Status Badge
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 12.0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Booking status",
-                    style: TextStyle(
-                      color: charcoalGray,
-                      fontSize: 14,
-                      fontFamily: natoRegular,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: borderGray, width: 1),
-                    ),
-                    child: Text(
-                      '${reservation.status[0].toUpperCase()}${reservation.status.substring(1)}',
-                      style: TextStyle(
-                        color: reservation.status == 'pending'
-                            ? charcoalGray
-                            : reservation.status == 'confirmed'
-                            ? blue
-                            : reservation.status == 'completed'
-                            ? greenBadge
-                            : reservation.status == 'cancelled'
-                            ? red
-                            : charcoalGray,
-                        fontSize: 13,
-                        fontFamily: natoMedium,
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+
+              const Divider(height: 1, thickness: 1, color: borderGray),
+
+              // Middle Section: Booking Details Info Rows
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow("Booking ID", reservation.id),
+                    _buildInfoRow("Guests", reservation.guests.toString()),
+                    _buildInfoRow("Scheduled Time", reservation.scheduledTime),
+                    _buildInfoRow("Placed Time", reservation.placedTime),
+                  ],
+                ),
+              ),
+
+              const Divider(height: 1, thickness: 1, color: borderGray),
+
+              // Bottom Section: Placed Date, Status Badge
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Booking status",
+                      style: TextStyle(
+                        color: charcoalGray,
+                        fontSize: 14,
+                        fontFamily: natoRegular,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: borderGray, width: 1),
+                      ),
+                      child: Text(
+                        '${reservation.status[0].toUpperCase()}${reservation.status.substring(1)}',
+                        style: TextStyle(
+                          color: reservation.status == 'pending'
+                              ? charcoalGray
+                              : reservation.status == 'confirmed'
+                              ? blue
+                              : reservation.status == 'completed'
+                              ? greenBadge
+                              : reservation.status == 'cancelled'
+                              ? red
+                              : charcoalGray,
+                          fontSize: 13,
+                          fontFamily: natoMedium,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -62,6 +62,22 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
+  TextEditingController? _internalController;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.textEditingController == null) {
+      _internalController = TextEditingController();
+    }
+  }
+
+  @override
+  void dispose() {
+    _internalController?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -83,8 +99,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         TextField(
           enabled: widget.enabled ?? true,
           maxLines: widget.maxLine ?? 1,
-          controller:
-              widget.textEditingController ?? TextEditingController(text: ""),
+          controller: widget.textEditingController ?? _internalController,
           autocorrect: true,
           readOnly: widget.readOnly ?? false,
           onChanged: widget.onChanged ?? (values) {},

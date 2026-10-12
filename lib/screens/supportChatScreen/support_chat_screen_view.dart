@@ -143,9 +143,11 @@ class SupportChatScreen extends GetView<SupportChatScreenController> {
                       );
                     }
                     final msg = messages[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: _buildMessageBubble(context, msg),
+                    return RepaintBoundary(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16.0),
+                        child: _buildMessageBubble(context, msg),
+                      ),
                     );
                   },
                 );

@@ -2,6 +2,9 @@ const images = 'assets/images/';
 const gifJson = 'assets/loader/';
 
 class AppImages {
+  static final AppImages _instance = AppImages._internal();
+  factory AppImages() => _instance;
+  AppImages._internal();
   final splashImg = '${images}splashImg.png';
   final welcomeImg = '${images}welcomeImg.png';
   final fullBgImg = '${images}fullBgImg.png';
