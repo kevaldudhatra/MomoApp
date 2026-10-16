@@ -277,7 +277,7 @@ class OrderStatusScreen extends GetView<OrderStatusScreenController> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      controller.orderDetails['address']['line'],
+                      controller.orderDetails['address']['fullAddress'],
                       style: TextStyle(
                         color: charcoalGray,
                         fontSize: 13,

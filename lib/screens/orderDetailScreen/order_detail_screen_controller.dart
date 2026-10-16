@@ -17,6 +17,8 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
+import 'package:momos/widgets/loading_view.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:http/http.dart' as http;
 
 // Models for dynamic delivery schedule and time slots
@@ -1455,6 +1457,10 @@ class OrderDetailScreenController extends GetxController {
   final storage = GetStorage();
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
+  late Razorpay _razorpay;
+  Map<String, dynamic>? pendingOrderPayload;
+  String? pendingRazorpayOrderId;
+  String? _lastVerifiedPaymentId;
   RxBool isLoading = true.obs;
   RxList<DeliveryDaySchedule> scheduleList = <DeliveryDaySchedule>[].obs;
   RxList<SavedAddress> userAddressList = <SavedAddress>[].obs;
@@ -1491,13 +1497,25 @@ class OrderDetailScreenController extends GetxController {
     getUserAddress();
     getPaymentMethods(outletDetails['id']);
     loadData();
+    _initializeRazorpay();
   }
 
   @override
   void onClose() {
     cookingNoteController.dispose();
     promoCodeController.dispose();
+    _razorpay.clear();
+    pendingOrderPayload = null;
+    pendingRazorpayOrderId = null;
+    _lastVerifiedPaymentId = null;
     super.onClose();
+  }
+
+  void _initializeRazorpay() {
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
   String convertToApiDate(String inputDate) {
@@ -1882,7 +1900,12 @@ class OrderDetailScreenController extends GetxController {
         payload["promocodeCode"] = promoCodeController.text.trim().toString();
       }
       print("Delivering Now Order Payload: $payload");
-      await placeOrder(orderData: payload);
+      if (selectedPaymentMethod.value == 'Cash on delivery' ||
+          selectedPaymentMethod.value == 'Wallet') {
+        await placeOrder(orderData: payload);
+      } else {
+        await initiateOrderPayment(orderData: payload);
+      }
     } else {
       final dateResult = convertToApiDate(selectedScheduleDate.value);
       final timeResult = convertTimeRange(selectedScheduleTime.value);
@@ -1900,12 +1923,18 @@ class OrderDetailScreenController extends GetxController {
         payload["promocodeCode"] = promoCodeController.text.trim().toString();
       }
       print("Delivering Schedule Order Payload: $payload");
-      await placeOrder(orderData: payload);
+      if (selectedPaymentMethod.value == 'Cash on delivery' ||
+          selectedPaymentMethod.value == 'Wallet') {
+        await placeOrder(orderData: payload);
+      } else {
+        await initiateOrderPayment(orderData: payload);
+      }
     }
   }
 
   Future<void> placeOrder({dynamic orderData}) async {
     try {
+      print("Final Place order input : $orderData");
       final response = await http.post(
         Uri.parse(ApiServices.placeOrder),
         headers: {
@@ -1999,6 +2028,187 @@ class OrderDetailScreenController extends GetxController {
         backgroundColor: charcoalGray.withValues(alpha: 0.9),
       );
     }
+  }
+
+  Future<void> initiateOrderPayment({dynamic orderData}) async {
+    if (orderData != null) {
+      pendingOrderPayload = Map<String, dynamic>.from(orderData);
+    }
+    Get.dialog(const LoadingDialog(), barrierDismissible: false);
+    try {
+      final response = await http.post(
+        Uri.parse(ApiServices.initiateOrderPayment),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': '${storage.read(userToken)}',
+        },
+        body: jsonEncode({
+          "amount": totalBill.toDouble().toString(),
+          "outlateId": outletDetails['id'],
+        }),
+      );
+      print('initiateOrderPayment Response status: ${response.statusCode}');
+      print('initiateOrderPayment Response body: ${response.body}');
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 201 && data["success"] == true) {
+        final resData = data["data"] is Map ? data["data"] : data;
+        final String orderId = resData["razorpayOrderId"]?.toString() ?? "";
+        final String razorpayKeyToUse = resData["keyId"]?.toString() ?? "";
+        pendingRazorpayOrderId = orderId;
+        _openRazorpayCheckout(
+          orderId: orderId,
+          amount: totalBill.toDouble(),
+          key: razorpayKeyToUse,
+          orderData: orderData,
+        );
+      } else {
+        Get.snackbar(
+          "Oops!",
+          data["message"] ?? "Failed to initiate payment. Please try again.",
+          snackPosition: SnackPosition.TOP,
+          icon: const Icon(Icons.error, color: Colors.red),
+          backgroundColor: charcoalGray.withValues(alpha: 0.9),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      print('initiateOrderPayment Error: $e');
+      Get.snackbar(
+        "Oops!",
+        "Something went wrong while initiating payment. Please try again.",
+        snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void _openRazorpayCheckout({
+    required String orderId,
+    required double amount,
+    required String key,
+    required dynamic orderData,
+  }) {
+    pendingRazorpayOrderId = orderId;
+    if (orderData != null) {
+      pendingOrderPayload = Map<String, dynamic>.from(orderData);
+    }
+    final options = {
+      'key': key,
+      'amount': (amount * 100).toInt(),
+      'currency': 'INR',
+      'name': 'Momo I am',
+      'order_id': orderId,
+      'theme': {'color': '#FF5722'},
+    };
+    print("Razorpay option : $options");
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      print('Razorpay open Error: $e');
+      Get.snackbar(
+        "Oops!",
+        "Failed to open Razorpay payment gateway: $e",
+        snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    print(
+      'Razorpay Payment Success: paymentId=${response.paymentId}, orderId=${response.orderId}, signature=${response.signature}',
+    );
+    final effectiveOrderId = response.orderId ?? pendingRazorpayOrderId;
+    if (response.paymentId == null ||
+        effectiveOrderId == null ||
+        response.signature == null) {
+      Get.snackbar(
+        "Oops!",
+        "Could not verify payment. Please contact support if your account was debited.",
+        snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+      return;
+    }
+    if (response.paymentId != null &&
+        _lastVerifiedPaymentId == response.paymentId) {
+      print(
+        'Payment ${response.paymentId} already processed, ignoring duplicate event.',
+      );
+      return;
+    }
+    _lastVerifiedPaymentId = response.paymentId;
+    final updatedPayload = Map<String, dynamic>.from(pendingOrderPayload ?? {});
+    updatedPayload["razorpayOrderId"] = response.orderId;
+    updatedPayload["razorpayPaymentId"] = response.paymentId;
+    updatedPayload["razorpaySignature"] = response.signature;
+    try {
+      await placeOrder(orderData: updatedPayload);
+    } catch (e) {
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      Get.snackbar(
+        "Verification Error",
+        "Network error while verifying payment. If amount was debited, it will reflect shortly.",
+        snackPosition: SnackPosition.TOP,
+        icon: const Icon(Icons.error, color: Colors.red),
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    print(
+      'Razorpay Payment Error: code=${response.code}, message=${response.message}',
+    );
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+    final isCancelled = response.code == Razorpay.PAYMENT_CANCELLED;
+    Get.snackbar(
+      isCancelled ? "Payment Cancelled" : "Payment Failed",
+      isCancelled
+          ? "Payment was cancelled."
+          : (response.message ?? "Payment failed. Please try again."),
+      snackPosition: SnackPosition.TOP,
+      icon: Icon(
+        isCancelled ? Icons.info_outline : Icons.error,
+        color: isCancelled ? Colors.amber : Colors.red,
+      ),
+      backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      colorText: Colors.white,
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    print('Razorpay External Wallet: walletName=${response.walletName}');
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+    Get.snackbar(
+      "External Wallet Selected",
+      "Redirecting to ${response.walletName ?? 'external wallet'} to complete payment.",
+      snackPosition: SnackPosition.TOP,
+      icon: const Icon(Icons.account_balance_wallet, color: Colors.blue),
+      backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      colorText: Colors.white,
+    );
   }
 
   Future<void> verifyPromocode({int? outletId, int? promocodeId}) async {

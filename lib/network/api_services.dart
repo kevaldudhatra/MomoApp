@@ -23,6 +23,7 @@ class ApiServices {
   static String editMessage = '$baseUrl/api/v1/user/chat/edit-message';
   static String updateFCMToken = '$baseUrl/api/v1/user/fcm-token';
   static String addMoney = '$baseUrl/api/v1/user/wallet/add-money';
+  static String initiateOrderPayment = '$baseUrl/api/v1/user/payments/initiate';
   static String initiateAddMoney =
       '$baseUrl/api/v1/user/wallet/add-money/initiate';
   static String walletTransactions =
