@@ -745,7 +745,7 @@ class OrderDetailScreen extends GetView<OrderDetailScreenController> {
                   ),
                 ),
                 Text(
-                  "₹${controller.totalBill.toInt()}",
+                  "₹${controller.totalBill.toDouble().toStringAsFixed(2)}",
                   style: const TextStyle(
                     color: black,
                     fontSize: 15,

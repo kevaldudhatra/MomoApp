@@ -200,7 +200,7 @@ class ProfileScreen extends GetView<ProfileScreenController> {
                                             ),
                                             SizedBox(height: 8),
                                             Text(
-                                              "₹${controller.userData['walletAmt'] ?? 0.00}",
+                                              "₹${controller.userData['walletAmt'].toStringAsFixed(2) ?? 0.00}",
                                               style: TextStyle(
                                                 color: black,
                                                 fontSize: 32,

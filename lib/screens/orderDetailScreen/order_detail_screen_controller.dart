@@ -1881,6 +1881,7 @@ class OrderDetailScreenController extends GetxController {
         payload["promocodeId"] = promocodeId.value;
         payload["promocodeCode"] = promoCodeController.text.trim().toString();
       }
+      print("Delivering Now Order Payload: $payload");
       await placeOrder(orderData: payload);
     } else {
       final dateResult = convertToApiDate(selectedScheduleDate.value);
@@ -1898,6 +1899,7 @@ class OrderDetailScreenController extends GetxController {
         payload["promocodeId"] = promocodeId.value;
         payload["promocodeCode"] = promoCodeController.text.trim().toString();
       }
+      print("Delivering Schedule Order Payload: $payload");
       await placeOrder(orderData: payload);
     }
   }

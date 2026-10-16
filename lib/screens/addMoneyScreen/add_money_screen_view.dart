@@ -151,12 +151,19 @@ class AddMoneyScreen extends GetView<AddMoneyScreenController> {
                         const SizedBox(height: 32),
 
                         // Action Button
-                        CustomButton(
-                          width: double.infinity,
-                          label: "Add Money",
-                          onTap: () {
-                            controller.addMoney();
-                          },
+                        Obx(
+                          () => CustomButton(
+                            width: double.infinity,
+                            label: controller.isLoading.value
+                                ? "Processing..."
+                                : "Add Money",
+                            isEnabled: !controller.isLoading.value,
+                            onTap: controller.isLoading.value
+                                ? null
+                                : () {
+                                    controller.addMoney();
+                                  },
+                          ),
                         ),
                       ],
                     ),
