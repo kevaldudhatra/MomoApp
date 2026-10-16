@@ -75,7 +75,7 @@ class NotificationService {
         ?.createNotificationChannel(_androidChannel);
 
     await _firebaseMessaging.setForegroundNotificationPresentationOptions(
-      alert: false,
+      alert: true,
       badge: true,
       sound: true,
     );
@@ -112,6 +112,10 @@ class NotificationService {
           icon: 'ic_notification',
           largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
           color: orange,
+          styleInformation: BigTextStyleInformation(
+            body ?? '',
+            contentTitle: title,
+          ),
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,
