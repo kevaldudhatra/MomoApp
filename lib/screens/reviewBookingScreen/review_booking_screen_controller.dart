@@ -11,6 +11,7 @@ import 'package:lottie/lottie.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
+import 'package:momos/network/payment_sound_service.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:http/http.dart' as http;
 
@@ -22,6 +23,7 @@ class ReviewBookingScreenController extends GetxController {
   final bookingDateTime = "".obs;
   final guestCount = "".obs;
   final cancellationPolicy = "".obs;
+  final _paymentSoundService = PaymentSoundService();
 
   @override
   void onInit() {
@@ -77,6 +79,7 @@ class ReviewBookingScreenController extends GetxController {
   @override
   void onClose() {
     specialRequestController.dispose();
+    _paymentSoundService.dispose();
     super.onClose();
   }
 
@@ -112,6 +115,7 @@ class ReviewBookingScreenController extends GetxController {
       }
       var data = jsonDecode(response.body);
       if (response.statusCode == 201 && data['success'] == true) {
+        _paymentSoundService.playPaymentSound();
         Get.dialog(
           Dialog(
             backgroundColor: Colors.transparent,

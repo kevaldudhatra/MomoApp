@@ -17,6 +17,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
+import 'package:momos/network/payment_sound_service.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -1458,6 +1459,7 @@ class OrderDetailScreenController extends GetxController {
   final cookingNoteController = TextEditingController();
   final promoCodeController = TextEditingController();
   late Razorpay _razorpay;
+  final _paymentSoundService = PaymentSoundService();
   Map<String, dynamic>? pendingOrderPayload;
   String? pendingRazorpayOrderId;
   String? _lastVerifiedPaymentId;
@@ -1505,6 +1507,7 @@ class OrderDetailScreenController extends GetxController {
     cookingNoteController.dispose();
     promoCodeController.dispose();
     _razorpay.clear();
+    _paymentSoundService.dispose();
     pendingOrderPayload = null;
     pendingRazorpayOrderId = null;
     _lastVerifiedPaymentId = null;
@@ -1947,6 +1950,7 @@ class OrderDetailScreenController extends GetxController {
       print('placeOrder Response body: ${response.body}');
       final data = jsonDecode(response.body);
       if (response.statusCode == 201 && data["success"] == true) {
+        _paymentSoundService.playPaymentSound();
         Get.dialog(
           Dialog(
             backgroundColor: Colors.transparent,

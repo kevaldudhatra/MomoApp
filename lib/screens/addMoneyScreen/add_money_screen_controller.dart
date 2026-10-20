@@ -11,6 +11,7 @@ import 'package:momos/utils/const_colors_key.dart';
 import 'package:momos/utils/const_fonts_key.dart';
 import 'package:momos/utils/const_image_key.dart';
 import 'package:momos/utils/const_key.dart';
+import 'package:momos/network/payment_sound_service.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:http/http.dart' as http;
 
@@ -22,6 +23,7 @@ class AddMoneyScreenController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isProcessingPayment = false.obs;
   late Razorpay _razorpay;
+  final _paymentSoundService = PaymentSoundService();
   String? _currentOrderId;
   double _pendingAmount = 0.0;
   bool _isVerifyingPayment = false;
@@ -45,6 +47,7 @@ class AddMoneyScreenController extends GetxController {
   void onClose() {
     _razorpay.clear();
     amountController.dispose();
+    _paymentSoundService.dispose();
     super.onClose();
   }
 
@@ -329,6 +332,7 @@ class AddMoneyScreenController extends GetxController {
   }
 
   Future<void> _showSuccessDialog(double amount) async {
+    _paymentSoundService.playPaymentSound();
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
