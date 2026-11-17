@@ -764,6 +764,7 @@ class OutletScreenController extends GetxController {
   RxList<dynamic> foodTypes = [].obs;
   RxList<dynamic> foodItems = [].obs;
   RxMap<dynamic, dynamic> foodItemsDetails = {}.obs;
+  dynamic targetCategoryId;
   RxMap<dynamic, dynamic> get outletDetails =>
       Get.isRegistered<DeliveryScreenController>()
       ? Get.find<DeliveryScreenController>().outlateDetails
@@ -782,7 +783,18 @@ class OutletScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _handleArguments();
     loadData();
+  }
+
+  void _handleArguments() {
+    if (Get.arguments != null) {
+      if (Get.arguments is Map && Get.arguments["categoryId"] != null) {
+        targetCategoryId = Get.arguments["categoryId"];
+      } else {
+        targetCategoryId = Get.arguments;
+      }
+    }
   }
 
   @override
@@ -799,6 +811,10 @@ class OutletScreenController extends GetxController {
       await getFoodTypes(outletId: outletDetails['id']);
     } finally {
       isLoading.value = false;
+    }
+    if (targetCategoryId != null) {
+      scrollToCategory(targetCategoryId);
+      targetCategoryId = null;
     }
   }
 
@@ -1144,27 +1160,43 @@ class OutletScreenController extends GetxController {
 
   void scrollToCategory(dynamic catId) {
     final id = int.tryParse(catId.toString()) ?? 0;
-    final catIndex = foodItems.indexWhere(
-      (item) =>
-          (int.tryParse(item["category"]?["id"]?.toString() ?? "") ?? -1) == id,
-    );
-    if (catIndex != -1) {
-      if (foodItems[catIndex]["isExpanded"] != true) {
-        foodItems[catIndex]["isExpanded"] = true;
-        foodItems.refresh();
+    if (id == 0) return;
+
+    void tryScroll([int attempt = 0]) {
+      final catIndex = foodItems.indexWhere(
+        (item) =>
+            (int.tryParse(
+                  item["category"]?["id"]?.toString() ??
+                      item["id"]?.toString() ??
+                      "",
+                ) ??
+                -1) ==
+            id,
+      );
+      if (catIndex != -1) {
+        if (foodItems[catIndex]["isExpanded"] != true) {
+          foodItems[catIndex]["isExpanded"] = true;
+          foodItems.refresh();
+        }
       }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final key = categoryKeys[id];
+        if (key?.currentContext != null && key!.currentContext!.mounted) {
+          Scrollable.ensureVisible(
+            key.currentContext!,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            alignment: 0.0,
+          );
+        } else if (attempt < 10) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            tryScroll(attempt + 1);
+          });
+        }
+      });
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = categoryKeys[id];
-      if (key?.currentContext != null && key!.currentContext!.mounted) {
-        Scrollable.ensureVisible(
-          key.currentContext!,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.0,
-        );
-      }
-    });
+    tryScroll();
   }
 }

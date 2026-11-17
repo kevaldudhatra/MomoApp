@@ -12,6 +12,8 @@ import 'package:momos/screens/cartManagement/cart_button.dart';
 import 'package:momos/widgets/loading_view.dart';
 import 'package:momos/widgets/safe_network_image.dart';
 import 'package:readmore_flutter/readmore_flutter.dart';
+import 'package:momos/screens/outletScreen/outlet_screen_controller.dart'
+    show OutletScreenController;
 
 class CarouselSlider extends StatefulWidget {
   const CarouselSlider({super.key, required this.outletBanners});
@@ -546,7 +548,33 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                         () {
                                                           Get.toNamed(
                                                             Routes.outletScreen,
+                                                            arguments: {
+                                                              "categoryId":
+                                                                  item["id"],
+                                                            },
                                                           );
+                                                          if (Get.isRegistered<
+                                                            OutletScreenController
+                                                          >()) {
+                                                            final outletCtrl =
+                                                                Get.find<
+                                                                  OutletScreenController
+                                                                >();
+                                                            outletCtrl
+                                                                    .targetCategoryId =
+                                                                item["id"];
+                                                            if (!outletCtrl
+                                                                    .isLoading
+                                                                    .value &&
+                                                                outletCtrl
+                                                                    .foodItems
+                                                                    .isNotEmpty) {
+                                                              outletCtrl
+                                                                  .scrollToCategory(
+                                                                    item["id"],
+                                                                  );
+                                                            }
+                                                          }
                                                         },
                                                       );
                                                     },
