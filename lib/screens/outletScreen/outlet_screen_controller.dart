@@ -174,6 +174,8 @@ class MenuPopupWidget extends StatelessWidget {
 class FoodItemDetailsBottomSheet extends StatefulWidget {
   final dynamic foodItem;
   final VoidCallback? onClose;
+  static bool _isOpen = false;
+  static bool get isOpen => _isOpen;
 
   const FoodItemDetailsBottomSheet({
     super.key,
@@ -186,24 +188,30 @@ class FoodItemDetailsBottomSheet extends StatefulWidget {
     BuildContext context, {
     required dynamic foodItem,
     VoidCallback? onClose,
-  }) {
-    return showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: dialogBarrierColor,
-      isDismissible: false,
-      enableDrag: false,
-      builder: (context) {
-        return FoodItemDetailsBottomSheet(
-          foodItem: foodItem,
-          onClose: () {
-            onClose?.call();
-            Navigator.of(context).pop();
-          },
-        );
-      },
-    );
+  }) async {
+    if (_isOpen) return;
+    _isOpen = true;
+    try {
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: dialogBarrierColor,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (context) {
+          return FoodItemDetailsBottomSheet(
+            foodItem: foodItem,
+            onClose: () {
+              onClose?.call();
+              Navigator.of(context).pop();
+            },
+          );
+        },
+      );
+    } finally {
+      _isOpen = false;
+    }
   }
 
   @override
@@ -630,7 +638,7 @@ class _FoodItemDetailsBottomSheetState
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
                                   Container(
-                                    width: 70,
+                                    width: 100,
                                     height: 40,
                                     decoration: BoxDecoration(
                                       color: white,
@@ -666,7 +674,7 @@ class _FoodItemDetailsBottomSheetState
                                           child: const Icon(
                                             Icons.remove,
                                             color: charcoalGray,
-                                            size: 16,
+                                            size: 18,
                                           ),
                                         ),
                                         Text(
@@ -687,7 +695,7 @@ class _FoodItemDetailsBottomSheetState
                                           child: const Icon(
                                             Icons.add,
                                             color: charcoalGray,
-                                            size: 16,
+                                            size: 18,
                                           ),
                                         ),
                                       ],
@@ -758,6 +766,7 @@ class OutletScreenController extends GetxController {
   final Map<int, GlobalKey> itemKeys = {};
   RxBool isLoading = true.obs;
   RxBool filterLoading = false.obs;
+  RxBool isItemDetailLoading = false.obs;
   RxBool isMenuOpen = false.obs;
   RxMap<dynamic, dynamic> outletInfo = {}.obs;
   RxList<MenuPopupCategoryItem> menuItems = <MenuPopupCategoryItem>[].obs;
@@ -783,6 +792,10 @@ class OutletScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    // Optimize Flutter's in-memory image cache to avoid evictions during browsing
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 250 << 20; // 250 MB
+    PaintingBinding.instance.imageCache.maximumSize = 1000;
+    SafeNetworkImage.initCache();
     _handleArguments();
     loadData();
   }
@@ -843,7 +856,18 @@ class OutletScreenController extends GetxController {
       var data = jsonDecode(response.body);
       if (response.statusCode == 200 && data["success"] == true) {
         outletInfo.value = data["data"]["outlate"] ?? {};
-        for (var item in data["data"]["sections"] ?? []) {
+        final brandLogo = outletInfo['brandLogo']?.toString().trim();
+        if (brandLogo != null &&
+            brandLogo.isNotEmpty &&
+            brandLogo.startsWith('http')) {
+          SafeNetworkImage.precache(
+            brandLogo,
+            cacheWidth: 200,
+            cacheHeight: 200,
+          );
+        }
+        final sections = data["data"]["sections"] ?? [];
+        for (var item in sections) {
           menuItems.add(
             MenuPopupCategoryItem(
               catId: item["category"]["id"],
@@ -852,10 +876,11 @@ class OutletScreenController extends GetxController {
             ),
           );
         }
-        for (var item in data["data"]["sections"] ?? []) {
+        for (var item in sections) {
           foodItems.add({...item, "isExpanded": true});
         }
         foodItems.refresh();
+        _precacheTopFoodImages(sections);
       } else {
         outletInfo.value = {};
         menuItems.clear();
@@ -868,6 +893,20 @@ class OutletScreenController extends GetxController {
       foodItems.clear();
     } finally {
       filterLoading.value = false;
+    }
+  }
+
+  void _precacheTopFoodImages(List<dynamic> sections) {
+    int precached = 0;
+    for (var section in sections) {
+      for (var item in section["items"] ?? []) {
+        final imgUrl = item["itemImage"]?.toString().trim();
+        if (imgUrl != null && imgUrl.isNotEmpty && imgUrl.startsWith('http')) {
+          SafeNetworkImage.precache(imgUrl, cacheWidth: 250, cacheHeight: 250);
+          precached++;
+          if (precached >= 8) return;
+        }
+      }
     }
   }
 
@@ -909,7 +948,11 @@ class OutletScreenController extends GetxController {
     }
   }
 
-  Future<void> getFoodItemDetails({int? outletId, int? itemId}) async {
+  Future<bool> getFoodItemDetails({int? outletId, int? itemId}) async {
+    if (isItemDetailLoading.value || FoodItemDetailsBottomSheet.isOpen) {
+      return false;
+    }
+    isItemDetailLoading.value = true;
     print('getFoodItemDetails Input: $outletId, $itemId');
     try {
       final response = await http.get(
@@ -928,12 +971,36 @@ class OutletScreenController extends GetxController {
       var data = jsonDecode(response.body);
       if (response.statusCode == 200 && data["success"] == true) {
         foodItemsDetails.value = data["data"] ?? {};
+        return foodItemsDetails.isNotEmpty;
       } else {
         foodItemsDetails.value = {};
+        return false;
       }
     } catch (e) {
       print('getFoodItemDetails Error: $e');
       foodItemsDetails.value = {};
+      return false;
+    } finally {
+      isItemDetailLoading.value = false;
+    }
+  }
+
+  Future<void> openFoodItemDetailsBottomSheet(
+    BuildContext context,
+    dynamic item,
+  ) async {
+    if (isItemDetailLoading.value || FoodItemDetailsBottomSheet.isOpen) {
+      return;
+    }
+    final success = await getFoodItemDetails(
+      outletId: item["outlateId"],
+      itemId: item["id"],
+    );
+    if (success && context.mounted) {
+      await FoodItemDetailsBottomSheet.show(
+        context,
+        foodItem: foodItemsDetails,
+      );
     }
   }
 

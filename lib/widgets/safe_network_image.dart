@@ -1,11 +1,104 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:momos/utils/const_image_key.dart';
 
-/// Memory-optimized network image widget that automatically calculates
+/// High-performance disk cache manager for network images.
+/// Ensures images are stored locally, avoiding repeat network calls,
+/// throttling concurrent downloads to keep the UI responsive.
+class ImageDiskCacheManager {
+  static Directory? _cacheDir;
+  static final Map<String, Future<File?>> _inFlight = {};
+  static int _activeDownloads = 0;
+  static const int _maxConcurrent = 6;
+  static final List<Function> _queue = [];
+
+  static Future<Directory> getCacheDirectory() async {
+    if (_cacheDir != null) return _cacheDir!;
+    final temp = await getTemporaryDirectory();
+    _cacheDir = Directory('${temp.path}/momo_img_cache');
+    if (!await _cacheDir!.exists()) {
+      await _cacheDir!.create(recursive: true);
+    }
+    return _cacheDir!;
+  }
+
+  static String getCacheKey(String url) {
+    final bytes = utf8.encode(url);
+    final base = base64Url.encode(bytes).replaceAll('=', '');
+    final short = base.length > 32 ? base.substring(base.length - 32) : base;
+    return '${url.hashCode.abs().toRadixString(36)}_$short.bin';
+  }
+
+  static File? getLocalFileIfCached(String url) {
+    if (kIsWeb || _cacheDir == null) return null;
+    final file = File('${_cacheDir!.path}/${getCacheKey(url)}');
+    return (file.existsSync() && file.lengthSync() > 0) ? file : null;
+  }
+
+  static Future<File?> getImageFile(String url) async {
+    if (kIsWeb) return null;
+    try {
+      final dir = await getCacheDirectory();
+      final file = File('${dir.path}/${getCacheKey(url)}');
+      if (file.existsSync() && file.lengthSync() > 0) {
+        return file;
+      }
+
+      if (_inFlight.containsKey(url)) {
+        return await _inFlight[url];
+      }
+
+      final completer = Completer<File?>();
+      _inFlight[url] = completer.future;
+
+      void processDownload() async {
+        _activeDownloads++;
+        try {
+          final uri = Uri.parse(url);
+          final response = await http
+              .get(uri)
+              .timeout(const Duration(seconds: 15));
+          if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+            await file.writeAsBytes(response.bodyBytes, flush: true);
+            completer.complete(file);
+          } else {
+            completer.complete(null);
+          }
+        } catch (_) {
+          completer.complete(null);
+        } finally {
+          _inFlight.remove(url);
+          _activeDownloads--;
+          if (_queue.isNotEmpty) {
+            final next = _queue.removeAt(0);
+            next();
+          }
+        }
+      }
+
+      if (_activeDownloads < _maxConcurrent) {
+        processDownload();
+      } else {
+        _queue.add(processDownload);
+      }
+
+      return await completer.future;
+    } catch (_) {
+      return null;
+    }
+  }
+}
+
+/// Memory and disk-optimized network image widget that automatically calculates
 /// cacheWidth and cacheHeight to prevent decoding full-resolution bitmaps
-/// on low-RAM devices (2GB-4GB).
-class SafeNetworkImage extends StatelessWidget {
+/// and caches images locally for butter-smooth rendering.
+class SafeNetworkImage extends StatefulWidget {
   final String? imageUrl;
   final double? width;
   final double? height;
@@ -31,19 +124,117 @@ class SafeNetworkImage extends StatelessWidget {
     this.placeholder,
   });
 
+  /// Pre-warms cache directory in background
+  static Future<void> initCache() async {
+    if (!kIsWeb) {
+      await ImageDiskCacheManager.getCacheDirectory();
+    }
+  }
+
+  /// Precaches image in local disk and memory ahead of time
+  static Future<void> precache(
+    String url, {
+    BuildContext? context,
+    int? cacheWidth,
+    int? cacheHeight,
+  }) async {
+    try {
+      if (url.isEmpty || !url.startsWith('http')) return;
+      final file = await ImageDiskCacheManager.getImageFile(url);
+      if (file != null && file.existsSync()) {
+        final provider = ResizeImage.resizeIfNeeded(
+          cacheWidth,
+          cacheHeight,
+          FileImage(file),
+        );
+        final ctx = context ?? Get.context;
+        if (ctx != null && ctx.mounted) {
+          precacheImage(provider, ctx);
+        }
+      }
+    } catch (_) {}
+  }
+
+  @override
+  State<SafeNetworkImage> createState() => _SafeNetworkImageState();
+}
+
+class _SafeNetworkImageState extends State<SafeNetworkImage> {
+  File? _cachedFile;
+  bool _isLoading = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  @override
+  void didUpdateWidget(SafeNetworkImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageUrl != widget.imageUrl) {
+      _loadImage();
+    }
+  }
+
+  void _loadImage() {
+    final url = widget.imageUrl?.trim();
+    if (url == null || url.isEmpty || !url.startsWith('http')) {
+      _cachedFile = null;
+      _isLoading = false;
+      _hasError = false;
+      return;
+    }
+
+    if (kIsWeb) {
+      _isLoading = false;
+      _hasError = false;
+      return;
+    }
+
+    final syncFile = ImageDiskCacheManager.getLocalFileIfCached(url);
+    if (syncFile != null) {
+      _cachedFile = syncFile;
+      _isLoading = false;
+      _hasError = false;
+      return;
+    }
+
+    _isLoading = true;
+    _hasError = false;
+
+    ImageDiskCacheManager.getImageFile(url).then((file) {
+      if (!mounted) return;
+      if (file != null) {
+        setState(() {
+          _cachedFile = file;
+          _isLoading = false;
+          _hasError = false;
+        });
+      } else {
+        setState(() {
+          _cachedFile = null;
+          _isLoading = false;
+          _hasError = true;
+        });
+      }
+    });
+  }
+
   int? _resolveCacheWidth(BuildContext context) {
-    if (cacheWidth != null) return cacheWidth;
-    if (width != null && width! > 0) {
+    if (widget.cacheWidth != null) return widget.cacheWidth;
+    if (widget.width != null && widget.width! > 0) {
       // 2.5x density is optimal for sharp rendering while capping memory
-      return (width! * 2.5).round().clamp(50, 1200);
+      return (widget.width! * 2.5).round().clamp(50, 1200);
     }
     return null;
   }
 
   int? _resolveCacheHeight(BuildContext context) {
-    if (cacheHeight != null) return cacheHeight;
-    if (height != null && height! > 0) {
-      return (height! * 2.5).round().clamp(50, 1200);
+    if (widget.cacheHeight != null) return widget.cacheHeight;
+    if (widget.height != null && widget.height! > 0) {
+      return (widget.height! * 2.5).round().clamp(50, 1200);
     }
     return null;
   }
@@ -53,26 +244,34 @@ class SafeNetworkImage extends StatelessWidget {
     int? resolvedCacheW,
     int? resolvedCacheH,
   ) {
-    final assetPath = fallbackAsset ?? AppImages().momoImg;
+    final assetPath = widget.fallbackAsset ?? AppImages().momoImg;
     return Image.asset(
       assetPath,
-      width: width,
-      height: height,
-      fit: fit,
+      width: widget.width,
+      height: widget.height,
+      fit: widget.fit,
       cacheWidth: resolvedCacheW,
       cacheHeight: resolvedCacheH,
     );
   }
 
   Widget _buildPlaceholder(BuildContext context) {
-    if (placeholder != null) return placeholder!;
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      child: Container(
-        width: width ?? double.infinity,
-        height: height ?? double.infinity,
-        color: Colors.white,
+    if (widget.placeholder != null) return widget.placeholder!;
+    return Container(
+      width: widget.width ?? double.infinity,
+      height: widget.height ?? double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F3F5),
+        borderRadius:
+            widget.borderRadius ??
+            (widget.isCircle ? null : BorderRadius.circular(12)),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.fastfood_outlined,
+          color: Colors.grey.shade300,
+          size: (widget.width != null && widget.width! < 60) ? 18 : 26,
+        ),
       ),
     );
   }
@@ -83,18 +282,19 @@ class SafeNetworkImage extends StatelessWidget {
     final resolvedCacheH = _resolveCacheHeight(context);
 
     Widget content;
-    final url = imageUrl?.trim();
+    final url = widget.imageUrl?.trim();
 
     if (url == null || url.isEmpty || !url.startsWith('http')) {
       content = _buildFallback(context, resolvedCacheW, resolvedCacheH);
-    } else {
+    } else if (kIsWeb) {
       content = Image.network(
         url,
-        width: width,
-        height: height,
-        fit: fit,
+        width: widget.width,
+        height: widget.height,
+        fit: widget.fit,
         cacheWidth: resolvedCacheW,
         cacheHeight: resolvedCacheH,
+        gaplessPlayback: true,
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
           return _buildPlaceholder(context);
@@ -103,16 +303,35 @@ class SafeNetworkImage extends StatelessWidget {
           return _buildFallback(context, resolvedCacheW, resolvedCacheH);
         },
       );
+    } else if (_cachedFile != null) {
+      content = Image(
+        image: ResizeImage.resizeIfNeeded(
+          resolvedCacheW,
+          resolvedCacheH,
+          FileImage(_cachedFile!),
+        ),
+        width: widget.width,
+        height: widget.height,
+        fit: widget.fit,
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallback(context, resolvedCacheW, resolvedCacheH);
+        },
+      );
+    } else if (_hasError) {
+      content = _buildFallback(context, resolvedCacheW, resolvedCacheH);
+    } else if (_isLoading) {
+      content = _buildPlaceholder(context);
+    } else {
+      content = _buildFallback(context, resolvedCacheW, resolvedCacheH);
     }
 
-    if (isCircle) {
-      return ClipOval(child: content);
+    if (widget.isCircle) {
+      content = ClipOval(child: content);
+    } else if (widget.borderRadius != null) {
+      content = ClipRRect(borderRadius: widget.borderRadius!, child: content);
     }
 
-    if (borderRadius != null) {
-      return ClipRRect(borderRadius: borderRadius!, child: content);
-    }
-
-    return content;
+    return RepaintBoundary(child: content);
   }
 }

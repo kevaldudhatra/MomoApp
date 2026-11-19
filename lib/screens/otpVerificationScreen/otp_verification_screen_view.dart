@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:momos/screens/otpVerificationScreen/otp_verification_screen_controller.dart';
 import 'package:momos/utils/const_colors_key.dart';
@@ -16,6 +17,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onTap: () {
             controller.focusNode.unfocus();
           },
@@ -85,28 +87,10 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
-                                  Positioned.fill(
-                                    child: Opacity(
-                                      opacity: 0,
-                                      child: TextField(
-                                        controller: controller.otpController,
-                                        focusNode: controller.focusNode,
-                                        keyboardType: TextInputType.number,
-                                        maxLength: 6,
-                                        showCursor: false,
-                                        enableInteractiveSelection: false,
-                                        decoration: const InputDecoration(
-                                          counterText: "",
-                                          border: InputBorder.none,
-                                          enabledBorder: InputBorder.none,
-                                          focusedBorder: InputBorder.none,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                                   GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
                                     onTap: () {
-                                      controller.focusNode.requestFocus();
+                                      controller.requestKeyboard();
                                     },
                                     child: Row(
                                       mainAxisAlignment:
@@ -161,6 +145,43 @@ class OtpVerificationScreen extends GetView<OtpVerificationScreenController> {
                                           ),
                                         );
                                       }),
+                                    ),
+                                  ),
+                                  Positioned.fill(
+                                    child: TextField(
+                                      controller: controller.otpController,
+                                      focusNode: controller.focusNode,
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: false,
+                                            signed: false,
+                                          ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                        LengthLimitingTextInputFormatter(6),
+                                      ],
+                                      maxLength: 6,
+                                      showCursor: false,
+                                      enableInteractiveSelection: false,
+                                      cursorColor: Colors.transparent,
+                                      autofillHints: const [
+                                        AutofillHints.oneTimeCode,
+                                      ],
+                                      style: const TextStyle(
+                                        color: Colors.transparent,
+                                        fontSize: 1,
+                                        height: 0.01,
+                                      ),
+                                      decoration: const InputDecoration(
+                                        counterText: "",
+                                        border: InputBorder.none,
+                                        enabledBorder: InputBorder.none,
+                                        focusedBorder: InputBorder.none,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                      onTap: () {
+                                        controller.requestKeyboard();
+                                      },
                                     ),
                                   ),
                                 ],

@@ -203,6 +203,24 @@ class AccountAccessScreenController extends GetxController {
               data["data"]?["user"]?["secretId"] ?? data["data"]?["secretId"],
         },
       );
+    } else if (response.statusCode == 400 && data["success"] == false) {
+      Get.snackbar(
+        "Success",
+        data["message"],
+        icon: const Icon(Icons.done, color: Colors.green),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+      Get.toNamed(
+        Routes.otpVerificationScreen,
+        arguments: {
+          "forLogin": false,
+          "phoneNumber": phoneNumber.value.trim(),
+          "email": "",
+          "secretId": data["data"]?["secretId"],
+        },
+      );
     } else {
       Get.snackbar(
         "Oops!",

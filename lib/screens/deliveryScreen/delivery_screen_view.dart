@@ -680,19 +680,9 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                         context,
                                                       ).unfocus();
                                                       controller
-                                                          .getFoodItemDetails(
-                                                            outletId:
-                                                                item["outlateId"],
-                                                            itemId: item["id"],
-                                                          )
-                                                          .then(
-                                                            (value) => {
-                                                              FoodItemDetailsBottomSheet.show(
-                                                                Get.context!,
-                                                                foodItem: controller
-                                                                    .foodItemsDetails,
-                                                              ),
-                                                            },
+                                                          .openFoodItemDetailsBottomSheet(
+                                                            context,
+                                                            item,
                                                           );
                                                     },
                                                     child: Container(
@@ -841,7 +831,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                                             0
                                                                         ? Container(
                                                                             width:
-                                                                                70,
+                                                                                80,
                                                                             height:
                                                                                 26,
                                                                             decoration: BoxDecoration(
@@ -879,7 +869,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                                                   child: const Icon(
                                                                                     Icons.remove,
                                                                                     color: charcoalGray,
-                                                                                    size: 16,
+                                                                                    size: 18,
                                                                                   ),
                                                                                 ),
                                                                                 Text(
@@ -899,7 +889,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                                                   child: const Icon(
                                                                                     Icons.add,
                                                                                     color: charcoalGray,
-                                                                                    size: 16,
+                                                                                    size: 18,
                                                                                   ),
                                                                                 ),
                                                                               ],
@@ -908,21 +898,10 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                                         : GestureDetector(
                                                                             onTap: () async {
                                                                               if (item["hasCustomisation"]) {
-                                                                                await controller
-                                                                                    .getFoodItemDetails(
-                                                                                      outletId: item["outlateId"],
-                                                                                      itemId: item["id"],
-                                                                                    )
-                                                                                    .then(
-                                                                                      (
-                                                                                        value,
-                                                                                      ) => {
-                                                                                        FoodItemDetailsBottomSheet.show(
-                                                                                          Get.context!,
-                                                                                          foodItem: controller.foodItemsDetails,
-                                                                                        ),
-                                                                                      },
-                                                                                    );
+                                                                                await controller.openFoodItemDetailsBottomSheet(
+                                                                                  context,
+                                                                                  item,
+                                                                                );
                                                                               } else {
                                                                                 await controller.addItemToCart(
                                                                                   itemQuantity: 1,
@@ -933,7 +912,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                                             },
                                                                             child: Container(
                                                                               height: 26,
-                                                                              width: 55,
+                                                                              width: 80,
                                                                               alignment: Alignment.center,
                                                                               decoration: BoxDecoration(
                                                                                 color: white,
@@ -949,7 +928,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                                                                 "Add",
                                                                                 style: TextStyle(
                                                                                   fontFamily: natoSemiBold,
-                                                                                  fontSize: 11,
+                                                                                  fontSize: 14,
                                                                                   color: orange,
                                                                                 ),
                                                                               ),
@@ -1166,19 +1145,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
       child: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
-          controller
-              .getFoodItemDetails(
-                outletId: item["outlateId"],
-                itemId: item["id"],
-              )
-              .then(
-                (value) => {
-                  FoodItemDetailsBottomSheet.show(
-                    Get.context!,
-                    foodItem: controller.foodItemsDetails,
-                  ),
-                },
-              );
+          controller.openFoodItemDetailsBottomSheet(context, item);
         },
         child: Container(
           color: white,
@@ -1313,7 +1280,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                 ? Positioned(
                                     bottom: 0,
                                     child: Container(
-                                      width: 70,
+                                      width: 80,
                                       height: 34,
                                       decoration: BoxDecoration(
                                         color: white,
@@ -1347,7 +1314,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                             child: const Icon(
                                               Icons.remove,
                                               color: charcoalGray,
-                                              size: 16,
+                                              size: 18,
                                             ),
                                           ),
                                           Text(
@@ -1368,7 +1335,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                             child: const Icon(
                                               Icons.add,
                                               color: charcoalGray,
-                                              size: 16,
+                                              size: 18,
                                             ),
                                           ),
                                         ],
@@ -1381,18 +1348,9 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                       onTap: () async {
                                         if (item["hasCustomisation"]) {
                                           await controller
-                                              .getFoodItemDetails(
-                                                outletId: item["outlateId"],
-                                                itemId: item["id"],
-                                              )
-                                              .then(
-                                                (value) => {
-                                                  FoodItemDetailsBottomSheet.show(
-                                                    Get.context!,
-                                                    foodItem: controller
-                                                        .foodItemsDetails,
-                                                  ),
-                                                },
+                                              .openFoodItemDetailsBottomSheet(
+                                                context,
+                                                item,
                                               );
                                         } else {
                                           await controller.addItemToCart(
@@ -1403,7 +1361,7 @@ class DeliveryScreen extends GetView<DeliveryScreenController> {
                                         }
                                       },
                                       child: Container(
-                                        width: 70,
+                                        width: 80,
                                         height: 34,
                                         decoration: BoxDecoration(
                                           color: orange,

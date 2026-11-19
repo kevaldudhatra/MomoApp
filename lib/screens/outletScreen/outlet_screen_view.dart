@@ -479,19 +479,7 @@ class OutletScreen extends GetView<OutletScreenController> {
       child: GestureDetector(
         key: itemId != null ? controller.getItemKey(itemId) : null,
         onTap: () {
-          controller
-              .getFoodItemDetails(
-                outletId: item["outlateId"],
-                itemId: item["id"],
-              )
-              .then(
-                (value) => {
-                  FoodItemDetailsBottomSheet.show(
-                    Get.context!,
-                    foodItem: controller.foodItemsDetails,
-                  ),
-                },
-              );
+          controller.openFoodItemDetailsBottomSheet(context, item);
         },
         child: Container(
           color: white,
@@ -626,7 +614,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                                 ? Positioned(
                                     bottom: 0,
                                     child: Container(
-                                      width: 70,
+                                      width: 80,
                                       height: 34,
                                       decoration: BoxDecoration(
                                         color: white,
@@ -660,7 +648,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                                             child: const Icon(
                                               Icons.remove,
                                               color: charcoalGray,
-                                              size: 16,
+                                              size: 18,
                                             ),
                                           ),
                                           Text(
@@ -681,7 +669,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                                             child: const Icon(
                                               Icons.add,
                                               color: charcoalGray,
-                                              size: 16,
+                                              size: 18,
                                             ),
                                           ),
                                         ],
@@ -694,18 +682,9 @@ class OutletScreen extends GetView<OutletScreenController> {
                                       onTap: () async {
                                         if (item["hasCustomisation"]) {
                                           await controller
-                                              .getFoodItemDetails(
-                                                outletId: item["outlateId"],
-                                                itemId: item["id"],
-                                              )
-                                              .then(
-                                                (value) => {
-                                                  FoodItemDetailsBottomSheet.show(
-                                                    Get.context!,
-                                                    foodItem: controller
-                                                        .foodItemsDetails,
-                                                  ),
-                                                },
+                                              .openFoodItemDetailsBottomSheet(
+                                                context,
+                                                item,
                                               );
                                         } else {
                                           await controller.addItemToCart(
@@ -716,7 +695,7 @@ class OutletScreen extends GetView<OutletScreenController> {
                                         }
                                       },
                                       child: Container(
-                                        width: 70,
+                                        width: 80,
                                         height: 34,
                                         decoration: BoxDecoration(
                                           color: orange,

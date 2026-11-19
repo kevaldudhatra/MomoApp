@@ -56,12 +56,12 @@ class LoginScreenController extends GetxController {
       );
       return;
     }
-    await liginApi();
+    await loginApi();
   }
 
-  Future<dynamic> liginApi() async {
+  Future<dynamic> loginApi() async {
     print(
-      " liginApi input Data => ${emailController.text}, ${passwordController.text}",
+      "loginApi input Data => ${emailController.text}, ${passwordController.text}",
     );
     Get.dialog(const LoadingDialog(), barrierDismissible: false);
     var response = await http.post(
@@ -73,8 +73,8 @@ class LoginScreenController extends GetxController {
         "loginType": "email",
       }),
     );
-    print('liginApi Response status: ${response.statusCode}');
-    print('liginApi Response body: ${response.body}');
+    print('loginApi Response status: ${response.statusCode}');
+    print('loginApi Response body: ${response.body}');
     if (Get.isDialogOpen!) {
       Get.back();
     }
@@ -95,6 +95,24 @@ class LoginScreenController extends GetxController {
       await NotificationService().init();
       await NotificationService().getDeviceToken();
       Get.offAllNamed(Routes.homeScreen);
+    } else if (response.statusCode == 400 && data["success"] == false) {
+      Get.snackbar(
+        "Success",
+        data["message"],
+        icon: const Icon(Icons.done, color: Colors.green),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+        backgroundColor: charcoalGray.withValues(alpha: 0.9),
+      );
+      Get.toNamed(
+        Routes.otpVerificationScreen,
+        arguments: {
+          "forLogin": false,
+          "phoneNumber": "",
+          "email": emailController.text.trim(),
+          "secretId": data["data"]?["secretId"],
+        },
+      );
     } else {
       Get.snackbar(
         "Oops!",

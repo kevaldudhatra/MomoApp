@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:momos/network/api_services.dart';
@@ -25,6 +26,26 @@ class VerifyEmailScreenController extends GetxController {
     });
     focusNode.addListener(() {
       isOtpFocused.value = focusNode.hasFocus;
+      if (focusNode.hasFocus) {
+        SystemChannels.textInput.invokeMethod('TextInput.show');
+      }
+    });
+  }
+
+  void requestKeyboard() {
+    if (!focusNode.hasFocus) {
+      focusNode.requestFocus();
+    }
+    SystemChannels.textInput.invokeMethod('TextInput.show');
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!isClosed && focusNode.canRequestFocus) {
+        requestKeyboard();
+      }
     });
   }
 
